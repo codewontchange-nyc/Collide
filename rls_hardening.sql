@@ -194,3 +194,27 @@ drop function if exists whoami_definer();
 -- Membership still gates content. Applied to the live project.
 drop policy if exists comm_sel on communities;
 create policy comm_sel on communities for select to authenticated using (true);
+-- Precision pass (2026-08-14): align RLS exactly with the app's join flow.
+-- Requests are status='pending'; organizers approve. Pending members must not
+-- see community content, and must not be able to promote themselves.
+
+-- membership now means APPROVED membership (own row stays visible via the
+-- own-row shortcut in cmem_sel)
+create or replace function is_community_member(cid uuid, uid uuid default auth.uid())
+returns boolean language sql security definer stable set search_path=public as $$
+  select cid is not null and exists(
+    select 1 from community_members m
+    where m.community_id=cid and m.profile_id=uid and m.status <> 'pending');
+$$;
+
+-- join requests: self-insert is ONLY 'pending'; creators/owners add real members
+drop policy if exists cmem_ins on community_members;
+create policy cmem_ins on community_members for insert to authenticated
+  with check ((profile_id = auth.uid() and status = 'pending')
+              or community_owner(community_id) = auth.uid());
+
+-- approval is the organizer's move, never the requester's (staff via staff_all)
+drop policy if exists cmem_upd on community_members;
+create policy cmem_upd on community_members for update to authenticated
+  using (community_owner(community_id) = auth.uid())
+  with check (community_owner(community_id) = auth.uid());
