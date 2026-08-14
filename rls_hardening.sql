@@ -188,3 +188,9 @@ create policy cpv_sel on community_poll_votes for select to authenticated using 
 drop function if exists whoami();
 drop function if exists whoami_invoker();
 drop function if exists whoami_definer();
+
+-- (2026-08-14) Communities are discoverable on the shared map — the app's
+-- join-request flow needs every signed-in user to see the community card.
+-- Membership still gates content. Applied to the live project.
+drop policy if exists comm_sel on communities;
+create policy comm_sel on communities for select to authenticated using (true);
