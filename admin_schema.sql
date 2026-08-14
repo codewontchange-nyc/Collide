@@ -145,3 +145,7 @@ create policy event_media_write on storage.objects for all to authenticated
 drop policy if exists event_media_read on storage.objects;
 create policy event_media_read on storage.objects for select to anon
   using (bucket_id = 'event-media');
+
+-- (2026-08-14) POIs placed on the shared map like other pins
+alter table pois add column if not exists x double precision;
+alter table pois add column if not exists y double precision;
