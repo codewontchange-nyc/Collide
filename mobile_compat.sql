@@ -34,3 +34,6 @@ alter table communities add column if not exists y double precision;
 drop policy if exists staff_all on map_events;
 create policy staff_all on map_events for all to authenticated
   using (is_any_staff()) with check (is_any_staff());
+
+-- (2026-08-14) profile editor saves display_name + socials (jsonb of handles)
+alter table profiles add column if not exists socials jsonb;
