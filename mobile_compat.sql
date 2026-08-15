@@ -171,3 +171,77 @@ returns boolean language sql security definer stable set search_path=public as $
 $$;
 
 select m.title, m.activity_id is not null as has_event, m.from_activity from map_events m order by m.created_at;
+-- ============================================================================
+--  Yaps (2026-08-15): short, expiring shouts users drop on the map.
+--  One per day, 4/8/24h expiry, visible to your circle + shared communities.
+--  With this, announcements and plans become staff-only surfaces.
+-- ============================================================================
+
+create table if not exists yaps (
+  id         uuid primary key default gen_random_uuid(),
+  author_id  uuid not null references profiles(id) on delete cascade,
+  body       text not null check (char_length(body) between 1 and 240),
+  x          double precision not null,
+  y          double precision not null,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists yaps_one_per_day
+  on yaps (author_id, ((created_at at time zone 'utc')::date));
+
+create table if not exists yap_otw (
+  yap_id     uuid not null references yaps(id) on delete cascade,
+  profile_id uuid not null references profiles(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  primary key (yap_id, profile_id)
+);
+
+create or replace function shares_community(u1 uuid, u2 uuid)
+returns boolean language sql security definer stable set search_path=public as $$
+  select exists(
+    select 1 from community_members m1
+    join community_members m2 on m1.community_id = m2.community_id
+    where m1.profile_id = u1 and m2.profile_id = u2
+      and m1.status <> 'pending' and m2.status <> 'pending');
+$$;
+
+create or replace function can_see_yap(yid uuid, uid uuid default auth.uid())
+returns boolean language sql security definer stable set search_path=public as $$
+  select exists(select 1 from yaps y where y.id = yid and
+    (y.author_id = uid or are_connected(y.author_id, uid) or shares_community(y.author_id, uid)));
+$$;
+
+alter table yaps enable row level security;
+drop policy if exists yap_sel on yaps;
+create policy yap_sel on yaps for select to authenticated
+  using (author_id = auth.uid() or are_connected(author_id, auth.uid()) or shares_community(author_id, auth.uid()));
+drop policy if exists yap_ins on yaps;
+create policy yap_ins on yaps for insert to authenticated with check (author_id = auth.uid());
+drop policy if exists yap_del on yaps;
+create policy yap_del on yaps for delete to authenticated using (author_id = auth.uid() or is_any_staff());
+
+alter table yap_otw enable row level security;
+drop policy if exists otw_sel on yap_otw;
+create policy otw_sel on yap_otw for select to authenticated
+  using (profile_id = auth.uid() or exists(select 1 from yaps y where y.id = yap_id and y.author_id = auth.uid()));
+drop policy if exists otw_ins on yap_otw;
+create policy otw_ins on yap_otw for insert to authenticated
+  with check (profile_id = auth.uid() and can_see_yap(yap_id));
+drop policy if exists otw_del on yap_otw;
+create policy otw_del on yap_otw for delete to authenticated using (profile_id = auth.uid());
+
+alter publication supabase_realtime add table yaps;
+alter publication supabase_realtime add table yap_otw;
+
+-- ---- lockdowns: announcements + plans + event pins are staff surfaces ------
+drop policy if exists ann_ins on announcements;
+create policy ann_ins on announcements for insert to authenticated
+  with check (author_id = auth.uid() and is_any_staff());
+
+drop policy if exists act_ins on activities;
+create policy act_ins on activities for insert to authenticated
+  with check (host_id = auth.uid() and is_any_staff());
+
+drop policy if exists mapev_ins on map_events;
+create policy mapev_ins on map_events for insert to authenticated
+  with check (created_by = auth.uid() and is_any_staff());
