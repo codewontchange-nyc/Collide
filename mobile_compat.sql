@@ -253,3 +253,23 @@ alter table event_messages     alter column author_id set default auth.uid();
 alter table announcements      alter column author_id set default auth.uid();
 alter table activities         alter column host_id    set default auth.uid();
 alter table map_events         alter column created_by set default auth.uid();
+-- Circle requests (2026-08-15): chat is the main path to meeting people.
+-- Connections gain a pending→accepted flow. QR/link connects stay instant
+-- (status defaults to accepted); chat requests insert as pending and only
+-- the RECIPIENT can accept. Content visibility counts accepted only.
+alter table connections add column if not exists status text not null default 'accepted'
+  check (status in ('pending','accepted'));
+alter table connections add column if not exists requested_by uuid references profiles(id) on delete set null;
+
+create or replace function are_connected(u1 uuid, u2 uuid)
+returns boolean language sql security definer stable set search_path=public as $$
+  select u1 = u2 or exists(
+    select 1 from connections c
+    where ((c.a=u1 and c.b=u2) or (c.a=u2 and c.b=u1)) and c.status = 'accepted');
+$$;
+
+drop policy if exists conn_upd on connections;
+create policy conn_upd on connections for update to authenticated
+  using (status = 'pending' and (a = auth.uid() or b = auth.uid())
+         and requested_by is not null and requested_by <> auth.uid())
+  with check ((a = auth.uid() or b = auth.uid()) and status = 'accepted');
