@@ -245,3 +245,11 @@ create policy act_ins on activities for insert to authenticated
 drop policy if exists mapev_ins on map_events;
 create policy mapev_ins on map_events for insert to authenticated
   with check (created_by = auth.uid() and is_any_staff());
+
+-- (2026-08-15) app omits author/creator on inserts — original schema defaulted
+-- them to auth.uid(); without this, chat messages 403'd (NULL author vs RLS)
+alter table community_messages alter column author_id set default auth.uid();
+alter table event_messages     alter column author_id set default auth.uid();
+alter table announcements      alter column author_id set default auth.uid();
+alter table activities         alter column host_id    set default auth.uid();
+alter table map_events         alter column created_by set default auth.uid();
