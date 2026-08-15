@@ -400,3 +400,8 @@
 .ed-wrap .ann-news.ann-many .ann-card:nth-child(6n+1) .ann-text{font-size:18.5px}
 .ed-wrap .ann-news.ann-many .ann-card:nth-child(6n+4) .ann-text{font-size:16px}
 .ed-wrap .ann-news.ann-many .ann-card:not(:nth-child(6n+1)):not(:nth-child(6n+4)) .ann-text{font-size:13.5px}
+
+/* p38b: community section slug on front-page stories */
+.ed-wrap .ann-news .ann-tag{font:700 9.5px Inter;letter-spacing:.1em;text-transform:uppercase;color:#b0483f;
+ border:1px solid #e3cfc2;border-radius:4px;padding:1.5px 5px;margin-left:8px;white-space:nowrap}
+.ann-tag{font:600 10px Inter;color:#8a8580;margin-left:8px}
