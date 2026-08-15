@@ -218,3 +218,17 @@ drop policy if exists cmem_upd on community_members;
 create policy cmem_upd on community_members for update to authenticated
   using (community_owner(community_id) = auth.uid())
   with check (community_owner(community_id) = auth.uid());
+
+-- (2026-08-14) map-backed events are visible to every signed-in user
+create or replace function on_shared_map(aid uuid)
+returns boolean language sql security definer stable set search_path=public as $$
+  select exists(select 1 from map_events me where me.activity_id = aid);
+$$;
+drop policy if exists act_sel on activities;
+create policy act_sel on activities for select to authenticated using (
+  host_id = auth.uid()
+  or are_connected(host_id, auth.uid())
+  or has_rsvp(id, auth.uid())
+  or (community_id is not null and is_community_member(community_id))
+  or on_shared_map(id)
+);
