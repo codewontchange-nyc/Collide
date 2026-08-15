@@ -198,6 +198,26 @@ def main():
             if ids[n] != yp["author_id"]:
                 svc("POST", "/rest/v1/yap_otw", {"yap_id": yp["id"], "profile_id": ids[n]})
     print("  ✓ otw taps sprinkled on every live yap")
+
+    # avatars: illustrated ink-style portraits (DiceBear notionists), idempotent
+    profs = svc("GET", "/rest/v1/profiles?select=id,avatar_url") or []
+    have = {p["id"]: p.get("avatar_url") for p in profs}
+    added = 0
+    for who, uid in ids.items():
+        if have.get(uid):
+            continue
+        seed = who.replace(" ", "")
+        img = urllib.request.urlopen(urllib.request.Request(
+            f"https://api.dicebear.com/9.x/notionists/png?seed={seed}&size=256&backgroundColor=f6f1ea",
+            headers={"User-Agent": "curl/8"})).read()
+        path = f"{uid}/seed-avatar.png"
+        req = urllib.request.Request(f"{URL}/storage/v1/object/avatars/{path}", data=img, method="POST",
+            headers={"Authorization": f"Bearer {SVC}", "apikey": SVC,
+                     "Content-Type": "image/png", "x-upsert": "true"})
+        urllib.request.urlopen(req)
+        svc("PATCH", f"/rest/v1/profiles?id=eq.{uid}", {"avatar_url": path})
+        added += 1
+    print(f"  ✓ avatars set ({added} new)")
     print("\nDone — the town is alive. Password/PIN for every test user: 424242")
 
 if __name__ == "__main__":
