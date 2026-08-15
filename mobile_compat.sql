@@ -273,3 +273,31 @@ create policy conn_upd on connections for update to authenticated
   using (status = 'pending' and (a = auth.uid() or b = auth.uid())
          and requested_by is not null and requested_by <> auth.uid())
   with check ((a = auth.uid() or b = auth.uid()) and status = 'accepted');
+-- p35: chats gated on being IN (rsvp for events, membership for communities)
+-- + community landing preview for non-members
+drop policy if exists emsg_sel on event_messages;
+create policy emsg_sel on event_messages for select to authenticated
+  using (has_rsvp(activity_id, auth.uid()) or is_activity_host(activity_id, auth.uid()) or staff_sees_activity(activity_id));
+drop policy if exists emsg_ins on event_messages;
+create policy emsg_ins on event_messages for insert to authenticated
+  with check (author_id = auth.uid() and (has_rsvp(activity_id, auth.uid()) or is_activity_host(activity_id, auth.uid()) or staff_sees_activity(activity_id)));
+create or replace function can_see_event_message(mid uuid, uid uuid default auth.uid()) returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists(select 1 from event_messages m where m.id = mid
+    and (has_rsvp(m.activity_id, uid) or is_activity_host(m.activity_id, uid) or staff_sees_activity(m.activity_id)));
+$$;
+
+create or replace function community_landing(cid uuid) returns jsonb
+language sql stable security definer set search_path = public as $$
+  select jsonb_build_object(
+    'member_count', (select count(*) from community_members m where m.community_id = cid and m.status = 'member'),
+    'upcoming', coalesce((select jsonb_agg(jsonb_build_object(
+        'title', a.title, 'date', a.date, 'at_time', a.at_time,
+        'place', coalesce(a.place, a.location), 'category', a.category))
+      from (select * from activities x where x.community_id = cid
+            and (x.expires_at is null or x.expires_at > now())
+            order by coalesce(x.date, '9999-12-31'), x.created_at desc limit 3) a), '[]'::jsonb),
+    'ann', (select jsonb_build_object('body', left(an.body, 200), 'created_at', an.created_at)
+      from announcements an where an.community_id = cid order by an.created_at desc limit 1));
+$$;
+grant execute on function community_landing(uuid) to authenticated;
