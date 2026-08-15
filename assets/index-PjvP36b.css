@@ -335,7 +335,7 @@
 @keyframes edcl-out{to{opacity:0;transform:translate(-50%,-50%) scale(calc(.4 / var(--map-scale,1)))}}
 /* cluster drawer */
 .edcl-head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
-.edcl-head b{font-family:Fraunces,serif;font-size:26px}
+.edcl-head b{font-family:Fraunces,serif;font-size:26px;flex:none;white-space:nowrap}
 .edcl-list{display:flex;flex-direction:column}
 .edcl-row{display:flex;align-items:center;gap:13px;background:none;border:none;border-bottom:1.5px solid #eee7df;
  padding:13px 4px;text-align:left;cursor:pointer;width:100%}
