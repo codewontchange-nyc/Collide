@@ -131,19 +131,48 @@ def main():
                     {"message_id": poll["id"], "profile_id": ids[n], "option_index": opt})
     print("  ✓ polls + votes")
 
-    # event chat on the two headline events
-    for title, msgs in {
-        "Rose Sounds Kickoff Set": [("Jules Rivera", "pulling up early for soundcheck vibes"),
-                                    ("Zoe Kim", "what's the dress code — sparkle? sparkle.")],
-        "DJ Leah Rose's Pool Party": [("Kofi Mensah", "floaties: yes or yes"),
-                                      ("Sofia Reyes", "bringing the waterproof speaker as backup 😌")],
-    }.items():
-        ev = next((e for e in all_events if e["title"] == title), None)
-        if ev:
-            for who, body in msgs:
-                svc("POST", "/rest/v1/event_messages",
-                    {"activity_id": ev["id"], "author_id": ids[who], "kind": "text", "body": body})
-    print("  ✓ event chats posted")
+    # event chat: top up every event to at least ~4-5 messages (idempotent —
+    # skips events that already have enough; titles matched stripped)
+    EVENT_CHAT = {
+        "Rose Sounds Kickoff Set": [("Jules Rivera", "ok but the LINEUP. someone leak the setlist"),
+                                    ("Zoe Kim", "wearing my dancing shoes and my backup dancing shoes"),
+                                    ("Sofia Reyes", "my friends keep asking what to expect and honestly? everything"),
+                                    ("Andre Okafor", "post-run recovery = dancing, that's science"),
+                                    ("Lena Brooks", "if the sunrise run crew shows up sleepy tomorrow, this is why")],
+        "DJ Leah Rose's Pool Party": [("Kofi Mensah", "chicken fight bracket. i'm just saying"),
+                                      ("Sofia Reyes", "SPF squad — bringing extra for everyone"),
+                                      ("Marcus Bell", "calling the deep end for the whole first hour"),
+                                      ("Priya Patel", "poolside snacks handled. don't ask, just trust 🥟"),
+                                      ("Jules Rivera", "leah's transitions underwater still hit different")],
+        "Comedy n Chill": [("Zoe Kim", "who's brave enough for the front row 👀"),
+                           ("Dev Sharma", "if they do crowd work I'm hiding behind priya"),
+                           ("Tommy Nguyen", "laughing counts as core work right"),
+                           ("Jules Rivera", "two drink minimum, three laugh minimum")],
+        "Library Book Sale": [("Priya Patel", "dollar cart or nothing. see you at open"),
+                              ("Dev Sharma", "hunting old chess books — leave them alone please"),
+                              ("Zoe Kim", "art section speed run then coffee after?"),
+                              ("Lena Brooks", "running there counts as my saturday miles")],
+        "Estate Sale": [("Marcus Bell", "estate sales are just museums where you can buy stuff"),
+                        ("Kofi Mensah", "if there's vinyl I'm going full elbows"),
+                        ("Priya Patel", "looking for weird spoons. don't judge my collection"),
+                        ("Jules Rivera", "vintage speakers or bust")],
+        "Jetskii Day!": [("Tommy Nguyen", "cardio but make it THROTTLE"),
+                         ("Andre Okafor", "team no-wetsuit checking in ❄️"),
+                         ("Marcus Bell", "racing everyone. yes everyone"),
+                         ("Lena Brooks", "gopro charged. embarrassing footage guaranteed"),
+                         ("Kofi Mensah", "packing snacks for the dock crew 🌭")],
+    }
+    for title, msgs in EVENT_CHAT.items():
+        ev = next((e for e in all_events if e["title"].strip() == title), None)
+        if not ev:
+            continue
+        existing = svc("GET", f"/rest/v1/event_messages?activity_id=eq.{ev['id']}&select=id") or []
+        if len(existing) >= len(msgs):
+            continue
+        for who, body in msgs[len(existing):]:
+            svc("POST", "/rest/v1/event_messages",
+                {"activity_id": ev["id"], "author_id": ids[who], "kind": "text", "body": body})
+    print("  ✓ event chats topped up (4-5+ per event)")
 
     # yaps (one per user per day) + otw
     now = datetime.datetime.utcnow()
