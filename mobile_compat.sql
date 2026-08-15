@@ -253,3 +253,71 @@ alter table event_messages     alter column author_id set default auth.uid();
 alter table announcements      alter column author_id set default auth.uid();
 alter table activities         alter column host_id    set default auth.uid();
 alter table map_events         alter column created_by set default auth.uid();
+-- Smart placement: new map markers spiral to the nearest free spot so pins,
+-- yaps, POIs and community homes never stack. Drags/updates are respected —
+-- only inserts are nudged.
+create or replace function free_spot(px double precision, py double precision)
+returns record language plpgsql security definer stable set search_path=public as $$
+declare r double precision := 0.042; k int; ang double precision; rad double precision;
+        cx double precision := coalesce(px,0.5); cy double precision := coalesce(py,0.45);
+        clash boolean; out record;
+begin
+  for k in 0..14 loop
+    select exists(
+      select 1 from (
+        select x,y from map_events where expires_at > now() and x is not null
+        union all select x,y from yaps where expires_at > now()
+        union all select x,y from pois where x is not null
+        union all select x,y from communities where x is not null
+      ) m where abs(m.x-cx) < r and abs(m.y-cy) < r
+    ) into clash;
+    exit when not clash;
+    ang := k * 2.399963;
+    rad := r * (0.9 + k * 0.35);
+    cx := greatest(0.03, least(0.97, coalesce(px,0.5) + rad*cos(ang)));
+    cy := greatest(0.03, least(0.97, coalesce(py,0.45) + rad*sin(ang)));
+  end loop;
+  select cx, cy into out; return out;
+end $$;
+
+-- map_events: fold the nudge into the existing before-insert trigger fn
+create or replace function sync_pin_activity() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare aid uuid; spot record;
+begin
+  select * into spot from free_spot(new.x, new.y) as t(nx double precision, ny double precision);
+  new.x := spot.nx; new.y := spot.ny;
+  if new.activity_id is not null then return new; end if;
+  insert into activities (host_id, title, at_time, place, note, link, visibility, expires_at, when_bucket)
+  values (new.created_by, coalesce(new.title, 'On the map'), new.at_time, new.place, new.note, new.link,
+          'public', coalesce(new.expires_at, now() + interval '7 days'), 'this_week')
+  returning id into aid;
+  new.activity_id := aid;
+  new.from_activity := false;
+  return new;
+end $$;
+
+create or replace function yap_free_spot() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare spot record;
+begin
+  select * into spot from free_spot(new.x, new.y) as t(nx double precision, ny double precision);
+  new.x := spot.nx; new.y := spot.ny;
+  return new;
+end $$;
+drop trigger if exists yaps_free_spot on yaps;
+create trigger yaps_free_spot before insert on yaps
+  for each row execute function yap_free_spot();
+
+create or replace function poi_free_spot() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare spot record;
+begin
+  if new.x is null then return new; end if;
+  select * into spot from free_spot(new.x, new.y) as t(nx double precision, ny double precision);
+  new.x := spot.nx; new.y := spot.ny;
+  return new;
+end $$;
+drop trigger if exists pois_free_spot on pois;
+create trigger pois_free_spot before insert on pois
+  for each row execute function poi_free_spot();
