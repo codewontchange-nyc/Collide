@@ -461,3 +461,9 @@
  45%{translate:-1.5px 0;rotate:-7deg}
  60%{translate:1.5px -1.5px;rotate:6deg}
  78%{translate:-1px 0;rotate:-4deg}}
+
+/* ---------- p41: masthead tear matches the headliner treatment — no more desk box ---------- */
+.edt-desk{display:none}
+.edt-fiber{filter:drop-shadow(0 -0.5px 0.5px rgba(31,24,17,.2))}
+.edt-paper{background:linear-gradient(#fdfaf6,#fbf6f0 85%);
+ filter:drop-shadow(0 -2px 2.5px rgba(31,24,17,.38)) drop-shadow(0 -10px 17px rgba(31,24,17,.2))}
