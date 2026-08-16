@@ -467,3 +467,6 @@
 .edt-fiber{filter:drop-shadow(0 -0.5px 0.5px rgba(31,24,17,.2))}
 .edt-paper{background:linear-gradient(#fdfaf6,#fbf6f0 85%);
  filter:drop-shadow(0 -2px 2.5px rgba(31,24,17,.38)) drop-shadow(0 -10px 17px rgba(31,24,17,.2))}
+
+/* p43: real faces in the circle-request drawer */
+.cn-ava-img{object-fit:cover;background:#f6f1ea;padding:0;border:2px solid #3a3733}

@@ -411,7 +411,8 @@ if(!a||!a.id)return;
 var me=null;try{var g=await W.auth.getUser();me=g.data.user}catch(e){}
 if(!me||me.id===a.id)return;
 var lo=me.id<a.id?me.id:a.id,hi=me.id<a.id?a.id:me.id;
-var w=edSheet('<div class="cn-hero"><span class="cn-ava">'+edEsc(((a.display_name||"?")[0]||"?").toUpperCase())+'</span>'+
+var edAv="";try{a.avatar_url&&(edAv=W.storage.from("avatars").getPublicUrl(a.avatar_url).data.publicUrl)}catch(e){}
+var w=edSheet('<div class="cn-hero">'+(edAv?'<img class="cn-ava cn-ava-img" src="'+edEsc(edAv)+'" alt=""/>':'<span class="cn-ava">'+edEsc(((a.display_name||"?")[0]||"?").toUpperCase())+'</span>')+
 '<div><div class="cn-name">'+edEsc(a.display_name||"Someone")+'</div>'+
 '<div class="cn-sub">Collide is better with your people in it</div></div></div>'+
 '<button class="btn cn-btn">…</button><div class="cn-note"></div>');
