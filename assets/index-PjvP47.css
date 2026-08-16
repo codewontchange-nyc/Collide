@@ -512,3 +512,13 @@
 .ed-briefs .ed-item:nth-child(4){animation-delay:.18s}
 .ed-briefs .ed-item:nth-child(5){animation-delay:.24s}
 .ed-briefs .ed-item:nth-child(n+6){animation-delay:.3s}
+
+/* ---------- p47: capacity, prices, join requests, event unread, inkify moment ---------- */
+.ed-full{opacity:.55;pointer-events:none}
+.cnreq-comm{font:600 12px Inter;color:#8a8580}
+.ed-inktoast{position:fixed;left:50%;bottom:92px;transform:translateX(-50%);z-index:200;
+ background:#17181a;color:#f5f1ec;font:600 13.5px Inter;padding:11px 18px;border-radius:999px;
+ display:flex;align-items:center;gap:10px;box-shadow:0 8px 26px rgba(18,14,12,.35);white-space:nowrap}
+.ed-inkring{width:14px;height:14px;border-radius:50%;border:2px solid #f5f1ec;border-top-color:transparent;
+ animation:ed-inkspin .8s linear infinite;flex:none}
+@keyframes ed-inkspin{to{transform:rotate(360deg)}}
