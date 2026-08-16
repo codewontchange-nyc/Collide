@@ -390,7 +390,7 @@ edReqCount=c1+c2;edReqPingAll()})}).catch(function(){})}
 function EdNavDot(){
 var f=(0,_.useState)(0)[1];
 (0,_.useEffect)(function(){var g=function(){f(function(x){return x+1})};edReqSubs.push(g);
-if(!EdNavDot.init){EdNavDot.init=1;edReqLoad();
+if(!EdNavDot.init){EdNavDot.init=1;edReqLoad();setTimeout(edReqLoad,2200);
 try{W.channel("ed-navreq").on("postgres_changes",{event:"*",schema:"public",table:"connections"},edReqLoad).on("postgres_changes",{event:"*",schema:"public",table:"community_members"},edReqLoad).subscribe()}catch(e){}}
 return function(){edReqSubs=edReqSubs.filter(function(x){return x!==g})}},[]);
 return edReqCount>0?EdH("span",{className:"ed-nav-dot"}):null}
@@ -403,12 +403,12 @@ W.from("connections").select("a,b,status,requested_by,pa:profiles!connections_a_
 setReqs((r.data||[]).filter(function(c){return(c.a===u.id||c.b===u.id)&&c.requested_by&&c.requested_by!==u.id}))});
 W.from("community_members").select("community_id,profile_id,status,prof:profiles(id,display_name,avatar_url),comm:communities(id,name)").eq("status","pending").then(function(r){
 setJoins((r.data||[]).filter(function(m){return m.profile_id!==u.id&&edStaffSees(m.community_id)}))})},[u&&u.id]);
-(0,_.useEffect)(function(){load();
+(0,_.useEffect)(function(){load();var edRt=setTimeout(load,2000);
 var ch=W.channel("ed-req-"+Math.random().toString(36).slice(2,6));
 ch.on("postgres_changes",{event:"*",schema:"public",table:"connections"},function(){load();edReqLoad()});
 ch.on("postgres_changes",{event:"*",schema:"public",table:"community_members"},function(){load();edReqLoad()});
 ch.subscribe();
-return function(){try{W.removeChannel(ch)}catch(e){}}},[load]);
+return function(){clearTimeout(edRt);try{W.removeChannel(ch)}catch(e){}}},[load]);
 var kids=[];
 if(reqs&&reqs.length)kids.push(EdH("section",{className:"cnreq",key:"c"},
 EdH("h3",{className:"cnreq-h"},"Circle requests"),
