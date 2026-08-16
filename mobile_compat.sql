@@ -301,3 +301,34 @@ language sql stable security definer set search_path = public as $$
       from announcements an where an.community_id = cid order by an.created_at desc limit 1));
 $$;
 grant execute on function community_landing(uuid) to authenticated;
+-- p42: facilitators keep ONE live announcement (posting replaces it); owner keeps many
+create or replace function enforce_one_live_announcement() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  if exists (select 1 from staff s join auth.users u on u.email = s.email
+             where u.id = new.author_id and s.role = 'facilitator')
+     and not exists (select 1 from staff s join auth.users u on u.email = s.email
+             where u.id = new.author_id and s.role = 'owner') then
+    delete from announcements a
+      where a.author_id = new.author_id
+        and a.id is distinct from new.id
+        and (a.expires_at is null or a.expires_at > now());
+  end if;
+  return new;
+end $$;
+drop trigger if exists ann_one_live on announcements;
+create trigger ann_one_live before insert on announcements
+for each row execute function enforce_one_live_announcement();
+
+-- bring existing data in line: each facilitator keeps only their newest live announcement
+with fac as (
+  select u.id uid from staff s join auth.users u on u.email = s.email
+  where s.role = 'facilitator'
+    and not exists (select 1 from staff s2 join auth.users u2 on u2.email = s2.email
+                    where u2.id = u.id and s2.role = 'owner')
+), ranked as (
+  select a.id, row_number() over (partition by a.author_id order by a.created_at desc) rn
+  from announcements a join fac on fac.uid = a.author_id
+  where a.expires_at is null or a.expires_at > now()
+)
+delete from announcements where id in (select id from ranked where rn > 1);
