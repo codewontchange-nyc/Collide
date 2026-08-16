@@ -470,3 +470,7 @@
 
 /* p43: real faces in the circle-request drawer */
 .cn-ava-img{object-fit:cover;background:#f6f1ea;padding:0;border:2px solid #3a3733}
+
+/* p45: You're in — lean rows, no emoji tiles; titles and text lead into chat */
+.timeline .act-card .act-emoji{display:none}
+.timeline .act-card .act-top{gap:0}
