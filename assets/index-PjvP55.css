@@ -577,3 +577,8 @@
  border-radius:16px;scroll-snap-align:center;box-shadow:0 6px 20px rgba(18,14,12,.18)}
 .poi-meta{margin:10px 0 4px;display:flex;flex-direction:column;gap:7px}
 .poi-mrow{font:500 15.5px Inter;color:#4c4742}
+
+/* ---------- p55: community desk rows tap through ---------- */
+.ed-comm-tap{cursor:pointer;position:relative;border-radius:10px;margin-left:-8px;margin-right:-8px;padding-left:8px;padding-right:26px;-webkit-tap-highlight-color:transparent}
+.ed-comm-tap:active{background:rgba(18,14,12,.05)}
+.ed-comm-go{position:absolute;right:8px;top:50%;transform:translateY(-50%);font:600 20px Newsreader,serif;color:#b7b0a8;pointer-events:none}

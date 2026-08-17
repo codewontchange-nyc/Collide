@@ -44,7 +44,7 @@ function edExpired(e){return!!(e&&e.expires_at)&&new Date(e.expires_at).getTime(
 function edDay(e){if(!e.date){var L={today:"today",tomorrow:"tomorrow",this_weekend:"this weekend",this_week:"this week",next_week:"next week",someday:"someday soon"};return L[e.when_bucket]||"soon"}var d=new Date(e.date+"T00:00:00"),t=new Date;t.setHours(0,0,0,0);var n=Math.round((d-t)/864e5);if(n<=0)return"today";if(n===1)return"tomorrow";if(n<7)return d.toLocaleDateString(void 0,{weekday:"long"});return d.toLocaleDateString(void 0,{month:"short",day:"numeric"})}
 function edMedia(p){if(!p)return null;try{return W.storage.from("event-media").getPublicUrl(p).data.publicUrl}catch(e){return null}}
 function EdUp(){
-var u=jc().user;
+var u=jc().user;var edGo=ft();
 var s1=(0,_.useState)(null),ev=s1[0],setEv=s1[1];
 var s2=(0,_.useState)([]),pois=s2[0],setPois=s2[1];
 var s3=(0,_.useState)([]),comms=s3[0],setComms=s3[1];
@@ -128,11 +128,11 @@ return EdH("div",{className:"app ed-wrap"},
    EdH("span",{},EdH("b",{},p.name),p.category?" · "+p.category:"",cname[p.community_id]?" — "+cname[p.community_id]:"",new Date(p.created_at).getTime()>=wk?"  ·  fresh this week":""))})),
  callouts.length>0&&EdH("div",{},
   EdH("div",{className:"ed-sec"},"Community desk"),
-  callouts.slice(0,5).map(function(k){return EdH("div",{className:"ed-comm",key:k.c.id},
+  callouts.slice(0,5).map(function(k){return EdH("div",{className:"ed-comm ed-comm-tap",key:k.c.id,role:"button",tabIndex:0,onClick:function(){edGo("/community/"+k.c.id)},onKeyDown:function(ev){(ev.key==="Enter"||ev.key===" ")&&edGo("/community/"+k.c.id)}},
    EdH("span",{className:"ed-comm-e"},k.c.emoji||"🏘️"),
    EdH("div",{},
     EdH("div",{className:"ed-comm-n"},k.c.name,!k.mine&&EdH("span",{className:"ed-comm-tag"}," · worth a look")),
-    EdH("div",{className:"ed-comm-l"},k.line)))})),
+    EdH("div",{className:"ed-comm-l"},k.line)),EdH("span",{className:"ed-comm-go","aria-hidden":"true"},"\u203a"))})),
  EdH("div",{className:"ed-foot"},"refreshed live · this page rewrites itself as plans land"))
 }
 
