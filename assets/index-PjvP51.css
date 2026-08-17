@@ -552,3 +552,8 @@
 .cn-avchip.on{background:#f5f1ec;color:#17181a;border-color:#f5f1ec}
 .cn-avchip.on.both{box-shadow:0 0 0 2px #e85d75}
 .cn-their{margin-top:12px;font-size:13px}
+
+/* ---------- p51: Up next runs to the bleed edge, like real print ---------- */
+.ed-wrap{max-width:660px;padding:26px 11px 110px}
+.ed-torn{margin:-26px -11px 4px}
+.ed-torn2{margin:10px -11px -2px}
