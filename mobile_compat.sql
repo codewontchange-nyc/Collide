@@ -334,38 +334,4 @@ with fac as (
 delete from announcements where id in (select id from ranked where rn > 1);
 -- p47: staff see ALL POIs on the shared map (facilitators were scoped to their memberships)
 create policy pois_staff_sel on pois for select to authenticated using (is_any_staff());
--- p49: passive invites between circle members + mutual "let's collide" availability
-create table if not exists event_invites (
-  id uuid primary key default gen_random_uuid(),
-  activity_id uuid not null references activities(id) on delete cascade,
-  from_id uuid not null references profiles(id) on delete cascade,
-  to_id uuid not null references profiles(id) on delete cascade,
-  created_at timestamptz default now(),
-  unique(activity_id, from_id, to_id)
-);
-alter table event_invites enable row level security;
-create policy evinv_ins on event_invites for insert to authenticated
-  with check (from_id = auth.uid() and has_rsvp(activity_id, auth.uid()) and are_connected(from_id, to_id));
-create policy evinv_sel on event_invites for select to authenticated
-  using (from_id = auth.uid() or to_id = auth.uid());
-create policy evinv_del on event_invites for delete to authenticated
-  using (from_id = auth.uid() or to_id = auth.uid());
-
-create table if not exists collide_pairs (
-  a uuid not null references profiles(id) on delete cascade,
-  b uuid not null references profiles(id) on delete cascade,
-  a_in boolean not null default false,
-  b_in boolean not null default false,
-  a_avail text[] not null default '{}',
-  b_avail text[] not null default '{}',
-  updated_at timestamptz default now(),
-  primary key (a, b),
-  check (a < b)
-);
-alter table collide_pairs enable row level security;
-create policy cp_all on collide_pairs for all to authenticated
-  using (a = auth.uid() or b = auth.uid())
-  with check ((a = auth.uid() or b = auth.uid()) and are_connected(a, b));
-
-alter publication supabase_realtime add table event_invites;
-alter publication supabase_realtime add table collide_pairs;
+-- p49 tables (event_invites, collide_pairs) were created and later DROPPED in the full revert to p48.
