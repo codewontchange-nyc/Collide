@@ -530,25 +530,3 @@
 .ed-wake svg path{fill:none;stroke:#17181a;stroke-width:2.6;stroke-linecap:round;
  stroke-dasharray:230;animation:ed-sketchloop 2s cubic-bezier(.45,.1,.45,.9) infinite}
 .ed-wake span{font:700 10.5px Inter;letter-spacing:.14em;text-transform:uppercase;color:#8a8580}
-
-/* ---------- p49: friend drawer — join me, socials, let's collide ---------- */
-.cn-friend{margin-top:4px}
-.cn-sec{margin-top:18px}
-.cn-h{font:700 10.5px Inter;letter-spacing:.12em;text-transform:uppercase;color:#8f8a84;margin-bottom:10px}
-.cn-dim{color:#8f8a84;font-size:13.5px}
-.cn-soc{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
-.cn-socchip{font:600 12.5px Inter;color:#f5f1ec;border:1.5px solid #3a3733;border-radius:999px;
- padding:6px 13px;text-decoration:none}
-.cn-ev{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #26241f}
-.cn-ev:last-child{border-bottom:none}
-.cn-evt{flex:1;font:600 15px Fraunces,serif;color:#f5f1ec;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cn-inv{background:#f5f1ec;color:#17181a;border:none}
-.cn-inv.done{background:none;color:#8f8a84;border:1.5px solid #3a3733}
-.cn-collide{width:100%;background:#f5f1ec;color:#17181a;border:none;font-size:15.5px;padding:12px}
-.cn-collide.cn-wait{background:none;color:#8f8a84;border:1.5px solid #3a3733}
-.cn-avs{display:flex;gap:7px;flex-wrap:wrap}
-.cn-avchip{font:600 12.5px Inter;color:#c9c3bb;background:none;border:1.5px solid #3a3733;border-radius:999px;
- padding:7px 12px;cursor:pointer}
-.cn-avchip.on{background:#f5f1ec;color:#17181a;border-color:#f5f1ec}
-.cn-avchip.on.both{box-shadow:0 0 0 2px #e85d75}
-.cn-their{margin-top:12px;font-size:13px}
