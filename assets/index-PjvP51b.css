@@ -557,3 +557,8 @@
 .ed-wrap{max-width:660px;padding:26px 11px 110px}
 .ed-torn{margin:-26px -11px 4px}
 .ed-torn2{margin:10px -11px -2px}
+
+/* every announcement carries its author — small portrait on the column briefs */
+.ed-wrap .ann-news .ann-card:not(:nth-child(6n+1)):not(:nth-child(6n+4)) > :first-child{
+ display:block;float:left;margin:1px 8px 2px 0;
+ width:22px!important;height:22px!important;font-size:9px!important}
