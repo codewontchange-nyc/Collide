@@ -562,3 +562,6 @@
 .ed-wrap .ann-news .ann-card:not(:nth-child(6n+1)):not(:nth-child(6n+4)) > :first-child{
  display:block;float:left;margin:1px 8px 2px 0;
  width:22px!important;height:22px!important;font-size:9px!important}
+
+/* p53: drop cap hugs its word — no orphaned first letter */
+.ed-wrap .ann-news .ann-card:nth-child(6n+1) .ann-text:first-letter{padding:4px 2px 0 0}
