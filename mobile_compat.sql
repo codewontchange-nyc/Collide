@@ -369,3 +369,9 @@ create policy cp_all on collide_pairs for all to authenticated
 
 alter publication supabase_realtime add table event_invites;
 alter publication supabase_realtime add table collide_pairs;
+-- p54: POIs are public curation — visible to every signed-in user, with richer data
+create policy pois_public_sel on pois for select to authenticated using (true);
+alter table pois add column if not exists address text;
+alter table pois add column if not exists hours text;
+alter table pois add column if not exists link text;
+alter table pois add column if not exists images text[] not null default '{}';

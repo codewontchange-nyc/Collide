@@ -344,7 +344,24 @@ return EdH("span",{className:"ed-dot-badge"})}
 function EdMarkRead({cid}){(0,_.useEffect)(function(){cid&&edChatMark(cid)});return null}
 
 
+function edOpenPoi(p,back){
+var imgs=(p.images&&p.images.length?p.images:(p.image_path?[p.image_path]:[])).map(function(x){
+ try{return W.storage.from("event-media").getPublicUrl(x).data.publicUrl}catch(e){return null}}).filter(Boolean);
+var car=imgs.length?'<div class="poi-car">'+imgs.map(function(u){return '<img src="'+edEsc(u)+'" alt="" loading="lazy"/>'}).join("")+'</div>':"";
+var w=edSheet((back?'<button class="edcl-back">\u2039 '+edEsc(back.label||'Back')+'</button>':'')+
+car+
+'<div class="pin-hero"><div class="pin-hero-tx"><div class="pin-hero-title">'+edEsc(p.name||"Point of interest")+'</div>'+
+(p.category?'<div class="pin-hero-meta">'+edEsc(p.category)+'</div>':'')+
+'</div></div>'+
+(p.notes?'<p class="pin-note">'+edEsc(p.notes)+'</p>':'')+
+((p.address||p.hours)?'<div class="poi-meta">'+
+ (p.address?'<div class="poi-mrow">\ud83d\udccd '+edEsc(p.address)+'</div>':'')+
+ (p.hours?'<div class="poi-mrow">\ud83d\udd52 '+edEsc(p.hours)+'</div>':'')+'</div>':'')+
+(p.link?'<a class="pin-link" href="'+edEsc(p.link)+'" target="_blank" rel="noopener noreferrer">Visit \u2197</a>':''));
+if(back){var bb=w.querySelector(".edcl-back");bb&&bb.addEventListener("click",function(){back.fn()});
+ var pn=w.querySelector(".yap-panel");pn&&pn.classList.add("ed-nest-in")}}
 async function edOpenPin(p,pinEl,back){
+if(p&&p.__poi)return edOpenPoi(p,back);
 var me=null;try{var g=await W.auth.getUser();me=g.data.user}catch(e){}
 var w=edSheet((back?'<button class="edcl-back">\u2039 '+edEsc(back.label||'Back')+'</button>':'')+'<div class="pin-hero">'+(p.emoji?'<span class="pin-hero-emoji">'+edEsc(p.emoji)+'</span>':'')+
 '<div class="pin-hero-tx"><div class="pin-hero-title">'+edEsc(p.title||'On the map')+'</div>'+
