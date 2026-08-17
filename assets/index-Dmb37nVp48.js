@@ -537,6 +537,42 @@ function edFxApply(p,fx,delay){setTimeout(function(){
 if(!window.__edFxBoot){window.__edFxBoot=1;edFxTick()}
 window.__edFxRun=edFxRun;
 
+
+/* wake manager: PWAs come back from the background with dead sockets and a
+   hung token refresh — meet the user at the door instead. */
+var edWakeAway=0,edWakeLock=0,edSpinT=0;
+function edWakeSoft(){
+ try{navigator.serviceWorker&&navigator.serviceWorker.getRegistration().then(function(r){r&&r.update()})}catch(e){}
+ try{typeof edYapRefresh==="function"&&edYapRefresh()}catch(e){}
+ try{edReqLoad()}catch(e){}
+ try{edEvInit_&&edEvLoad()}catch(e){}
+ try{window.__edClTick&&window.__edClTick()}catch(e){}}
+function edWakeHandle(away){
+ if(edWakeLock)return;
+ edWakeSoft();
+ if(away>6e4){
+  var typing=Array.prototype.some.call(document.querySelectorAll("textarea,input"),function(x){return x.value&&x.value.length>0});
+  if(typing)return;
+  edWakeLock=1;
+  var ov=document.createElement("div");ov.className="ed-wake";
+  ov.innerHTML='<svg viewBox="0 0 80 80"><path d="M40 8 C58 6 74 20 73 39 C74 58 58 73 39 72 C21 73 8 58 9 39 C8 21 23 10 40 8 C47 7 54 10 59 14"/></svg><span>catching you up\u2026</span>';
+  document.body.appendChild(ov);
+  setTimeout(function(){location.reload()},380)}}
+if(!window.__edWakeBoot){window.__edWakeBoot=1;
+ document.addEventListener("visibilitychange",function(){
+  if(document.visibilityState==="hidden"){edWakeAway=Date.now();return}
+  edWakeHandle(edWakeAway?Date.now()-edWakeAway:0)});
+ window.addEventListener("pageshow",function(ev){if(ev.persisted)edWakeHandle(6e4+1)});
+ window.__edWake=edWakeHandle;
+ /* spinner watchdog: a loader that sits for 8s gets one clean reload */
+ setInterval(function(){
+  if(document.visibilityState!=="visible")return;
+  var sp=document.querySelector(".full-center .spin");
+  if(sp){edSpinT++;
+   if(edSpinT===8&&!sessionStorage.getItem("ed-spin-reload")){
+    try{sessionStorage.setItem("ed-spin-reload","1")}catch(e){}location.reload()}}
+  else{edSpinT=0;try{sessionStorage.removeItem("ed-spin-reload")}catch(e){}}
+ },1000)}
 var edEvLatest=null,edEvSubs=[],edEvInit_=0;
 function edEvRead(a){try{return+localStorage.getItem("cw.evread."+a)||0}catch(e){return 0}}
 function edEvMarkNow(a){try{localStorage.setItem("cw.evread."+a,String(Date.now()))}catch(e){}edEvPing()}

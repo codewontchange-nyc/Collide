@@ -522,3 +522,11 @@
 .ed-inkring{width:14px;height:14px;border-radius:50%;border:2px solid #f5f1ec;border-top-color:transparent;
  animation:ed-inkspin .8s linear infinite;flex:none}
 @keyframes ed-inkspin{to{transform:rotate(360deg)}}
+
+/* ---------- p48: the return experience — catch the user up at the door ---------- */
+.ed-wake{position:fixed;inset:0;z-index:400;background:#fbf6f0;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:16px;animation:ed-soft-in .25s ease}
+.ed-wake svg{width:64px;height:64px;overflow:visible}
+.ed-wake svg path{fill:none;stroke:#17181a;stroke-width:2.6;stroke-linecap:round;
+ stroke-dasharray:230;animation:ed-sketchloop 2s cubic-bezier(.45,.1,.45,.9) infinite}
+.ed-wake span{font:700 10.5px Inter;letter-spacing:.14em;text-transform:uppercase;color:#8a8580}

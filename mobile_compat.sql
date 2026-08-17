@@ -332,3 +332,5 @@ with fac as (
   where a.expires_at is null or a.expires_at > now()
 )
 delete from announcements where id in (select id from ranked where rn > 1);
+-- p47: staff see ALL POIs on the shared map (facilitators were scoped to their memberships)
+create policy pois_staff_sel on pois for select to authenticated using (is_any_staff());
