@@ -565,3 +565,6 @@
 
 /* p53: drop cap hugs its word — no orphaned first letter */
 .ed-wrap .ann-news .ann-card:nth-child(6n+1) .ann-text:first-letter{padding:4px 2px 0 0}
+
+/* editor's brief cap hugs too */
+.ed-brief::first-letter{padding:4px 4px 0 0}
