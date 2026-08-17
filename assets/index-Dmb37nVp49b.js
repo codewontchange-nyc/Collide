@@ -482,11 +482,14 @@ async function buildFriend(){if(built)return;built=true;
  // join me: my live plans + existing invites to them
  try{var rr=await Promise.all([
   W.from("rsvps").select("activity_id, act:activities(id,title,date,at_time,expires_at)").eq("profile_id",me.id),
-  W.from("event_invites").select("activity_id").eq("from_id",me.id).eq("to_id",a.id)]);
+  W.from("event_invites").select("activity_id").eq("from_id",me.id).eq("to_id",a.id),
+  W.from("rsvps").select("activity_id").eq("profile_id",a.id)]);
   var sent={};(rr[1].data||[]).forEach(function(x){sent[x.activity_id]=1});
-  var evs=(rr[0].data||[]).map(function(x){return x.act}).filter(function(e){return e&&(!e.expires_at||new Date(e.expires_at)>new Date())});
+  var theirs={};(rr[2].data||[]).forEach(function(x){theirs[x.activity_id]=1});
+  var all=(rr[0].data||[]).map(function(x){return x.act}).filter(function(e){return e&&(!e.expires_at||new Date(e.expires_at)>new Date())});
+  var evs=all.filter(function(e){return!theirs[e.id]});
   var box2=w.querySelector(".cn-evs");box2.innerHTML="";
-  if(!evs.length){box2.innerHTML='<span class="cn-dim">RSVP to something first, then invite them along.</span>'}
+  if(!evs.length){box2.innerHTML='<span class="cn-dim">'+(all.length?"They\u2019re already in all your plans \ud83d\ude4c":"RSVP to something first, then invite them along.")+'</span>'}
   evs.slice(0,5).forEach(function(ev){
    var row=document.createElement("div");row.className="cn-ev";
    var t=document.createElement("span");t.className="cn-evt";t.textContent=ev.title;row.appendChild(t);
