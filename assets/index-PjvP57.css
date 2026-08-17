@@ -590,3 +590,19 @@
 .circle-meet{font-size:12.5px;line-height:1.35;color:var(--muted);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .circle-meet b{font-weight:650;color:#4c4742}
 .circle-meet.dim{opacity:.65;font-style:italic}
+
+/* ---------- p57: my yap status card on profile ---------- */
+.yap-mine{margin-top:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.ym-live{display:flex;flex-direction:column;gap:10px}
+.ym-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ym-t{font-size:14px;font-weight:700}
+.ym-t.ym-faded{color:var(--muted);font-weight:600}
+.ym-pill{flex:none;font-size:11.5px;font-weight:700;color:#a8323e;background:rgba(233,78,92,.1);border:1px solid rgba(233,78,92,.25);border-radius:999px;padding:3px 10px}
+.ym-body{margin:0;font-family:Newsreader,Georgia,serif;font-size:17px;line-height:1.4;color:#3d3833}
+.ym-otw{display:flex;align-items:center;gap:8px;min-height:26px}
+.ym-avs{display:flex}
+.ym-av{border-radius:50%;overflow:hidden;flex:none;border:2px solid var(--surface);margin-left:-7px}
+.ym-av:first-child{margin-left:0}
+.ym-who{font-size:12.5px;font-weight:650;color:var(--teal-ink)}
+.ym-none{font-size:12.5px;font-style:italic;color:var(--muted)}
+.ym-next{font-size:12px;color:var(--muted);border-top:1px dashed color-mix(in srgb, var(--muted) 35%, transparent);padding-top:9px}
