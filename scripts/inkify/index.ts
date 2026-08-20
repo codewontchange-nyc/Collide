@@ -91,6 +91,12 @@ const BROWS: Record<string, string> = {
   "thin-arched": "variant05",
   "thin-straight": "variant04",
 };
+const EYES: Record<string, string> = {
+  "open-direct": "variant05",
+  "bright-wide": "variant04",
+  "soft-closed-lashes": "variant01",
+  "side-glance": "variant03",
+};
 
 // ---- trait sheet Claude must fill (the whole "model contract") ----
 const TRAIT_TOOL = {
@@ -106,9 +112,12 @@ const TRAIT_TOOL = {
       expression: { type: "string", enum: Object.keys(LIPS) },
       nose: { type: "string", enum: Object.keys(NOSES) },
       brows: { type: "string", enum: Object.keys(BROWS) },
+      eyes: { type: "string", enum: Object.keys(EYES) },
+      hair_alternates: { type: "array", items: { type: "string", enum: Object.keys(HAIR_STYLES) }, maxItems: 2,
+        description: "Second and third closest hair silhouettes, best first. Used for redraws and tie-breaking." },
       clothing: { type: "string", enum: Object.keys(BODIES), description: "What the visible top half is wearing (rendered in the app's ink black)." },
     },
-    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing", "nose", "brows"],
+    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing", "nose", "brows", "eyes", "hair_alternates"],
   },
 } as const;
 
@@ -134,16 +143,26 @@ Deno.serve(async (req) => {
     const { data: { user } } = await asUser.auth.getUser();
     if (!user) return json({ error: "not signed in" }, 401);
 
-    let body: { photo_path?: string; dry_run?: boolean } = {};
+    let body: { photo_path?: string; dry_run?: boolean; redo?: boolean; alt?: number } = {};
     try { body = await req.json(); } catch { /* empty body is fine */ }
 
     // source photo: caller's current avatar upload (or explicit path for tests)
     const { data: prof } = await svc.from("profiles").select("avatar_url").eq("id", user.id).single();
-    const photoPath = body.photo_path ?? prof?.avatar_url;
-    if (!photoPath) return json({ error: "no photo uploaded yet" }, 400);
+    let photoPath = body.photo_path ?? prof?.avatar_url;
+    if (!photoPath || body.redo || photoPath.endsWith(".svg")) {
+      // avatar_url points at an inked SVG after the first run — the original
+      // photo is still in the user's folder; newest non-generated file wins.
+      const { data: files } = await svc.storage.from("avatars").list(user.id, {
+        limit: 100, sortBy: { column: "created_at", order: "desc" },
+      });
+      const orig = (files ?? []).find((f) => !f.name.startsWith("inked-") && !f.name.endsWith(".svg"));
+      if (!orig) return json({ error: "no photo to redraw from — upload one first" }, 400);
+      photoPath = `${user.id}/${orig.name}`;
+    }
     const { data: photo, error: dlErr } = await svc.storage.from("avatars").download(photoPath);
     if (dlErr || !photo) return json({ error: "photo not readable" }, 400);
     const mime = photoPath.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+    const photoB64 = b64(await photo.arrayBuffer());
 
     // ---- Claude reads the photo, fills the trait sheet ----
     const cr = await fetch("https://api.anthropic.com/v1/messages", {
@@ -161,7 +180,7 @@ Deno.serve(async (req) => {
         messages: [{
           role: "user",
           content: [
-            { type: "image", source: { type: "base64", media_type: mime, data: b64(await photo.arrayBuffer()) } },
+            { type: "image", source: { type: "base64", media_type: mime, data: photoB64 } },
             { type: "text", text: "Fill in the visual trait sheet for this person's profile photo. Judge only what is clearly visible. The hair_style menu describes silhouettes — pick the one a caricature artist would choose to make this person instantly recognizable." },
           ],
         }],
@@ -172,19 +191,69 @@ Deno.serve(async (req) => {
     const traits = cj?.content?.find((c: { type: string }) => c.type === "tool_use")?.input;
     if (!traits) return json({ error: "no traits returned" }, 502);
 
+    // ---- hair choice: critic pass on first run, cycling on redraws ----
+    const candidates = [traits.hair_style, ...(traits.hair_alternates ?? [])]
+      .filter((h: string, i: number, a: string[]) => HAIR_STYLES[h] && a.indexOf(h) === i);
+    let hairLabel = candidates[0] ?? "short-neat-side-part";
+    let altIndex = 0;
+    const baseParams = () => {
+      const q = new URLSearchParams({ size: "256", backgroundColor: "f6f1ea", gestureProbability: "0" });
+      q.set("seed", user.id);
+      q.set("body", BODIES[traits.clothing] ?? "variant08");
+      q.set("beardProbability", traits.beard === "none" ? "0" : "100");
+      if (traits.beard !== "none") q.set("beard", BEARDS[traits.beard] ?? "variant02");
+      q.set("glassesProbability", traits.glasses === "none" ? "0" : "100");
+      if (traits.glasses !== "none") q.set("glasses", GLASSES[traits.glasses] ?? "variant03");
+      q.set("lips", LIPS[traits.expression] ?? "variant02");
+      q.set("nose", NOSES[traits.nose] ?? "variant03");
+      q.set("brows", BROWS[traits.brows] ?? "variant04");
+      q.set("eyes", EYES[traits.eyes] ?? "variant05");
+      return q;
+    };
+    if (traits.headwear === "none" && candidates.length > 1) {
+      if (body.redo && typeof body.alt === "number") {
+        altIndex = ((body.alt % candidates.length) + candidates.length) % candidates.length;
+        hairLabel = candidates[altIndex];
+      } else if (!body.redo) {
+        // critic pass: render the top two, let vision pick the closer likeness
+        try {
+          const pngOf = async (label: string) => {
+            const q = baseParams(); q.set("hair", HAIR_STYLES[label]);
+            const r = await fetch("https://api.dicebear.com/9.x/notionists/png?" + q.toString());
+            return b64(await r.arrayBuffer());
+          };
+          const [pa, pb] = await Promise.all([pngOf(candidates[0]), pngOf(candidates[1])]);
+          const vr = await fetch("https://api.anthropic.com/v1/messages", {
+            method: "POST",
+            headers: { "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "claude-sonnet-5", max_tokens: 100,
+              tools: [{ name: "pick_render", description: "Choose the avatar whose hair silhouette better matches the person in the photo.",
+                input_schema: { type: "object", properties: { choice: { type: "string", enum: ["first", "second"] } }, required: ["choice"] } }],
+              tool_choice: { type: "tool", name: "pick_render" },
+              messages: [{ role: "user", content: [
+                { type: "text", text: "The photo:" },
+                { type: "image", source: { type: "base64", media_type: mime, data: photoB64 } },
+                { type: "text", text: "First avatar:" },
+                { type: "image", source: { type: "base64", media_type: "image/png", data: pa } },
+                { type: "text", text: "Second avatar:" },
+                { type: "image", source: { type: "base64", media_type: "image/png", data: pb } },
+                { type: "text", text: "Which avatar's hair better matches the photo?" },
+              ] }],
+            }),
+          });
+          const vj = await vr.json();
+          const pick = vj?.content?.find((c: { type: string }) => c.type === "tool_use")?.input?.choice;
+          if (pick === "second") { hairLabel = candidates[1]; altIndex = 1; }
+        } catch { /* critic is best-effort; primary stands */ }
+      }
+    }
+
     // ---- deterministic render from the parts library ----
-    const p = new URLSearchParams({ size: "512", backgroundColor: "f6f1ea", gestureProbability: "0" });
-    p.set("seed", user.id); // stable per-user fallback features (eyes only now)
-    p.set("body", BODIES[traits.clothing] ?? "variant08");
-    p.set("beardProbability", traits.beard === "none" ? "0" : "100");
-    if (traits.beard !== "none") p.set("beard", BEARDS[traits.beard] ?? "variant02");
-    p.set("nose", NOSES[traits.nose] ?? "variant03");
-    p.set("brows", BROWS[traits.brows] ?? "variant02");
-    p.set("glassesProbability", traits.glasses === "none" ? "0" : "100");
-    if (traits.glasses !== "none") p.set("glasses", GLASSES[traits.glasses] ?? "variant03");
-    p.set("lips", LIPS[traits.expression] ?? "variant02");
+    const p = baseParams();
+    p.set("size", "512");
     p.set("hair", (traits.headwear === "none")
-      ? (HAIR_STYLES[traits.hair_style] ?? "variant05")
+      ? (HAIR_STYLES[hairLabel] ?? "variant05")
       : "hat");
     const dr = await fetch("https://api.dicebear.com/9.x/notionists/svg?" + p.toString());
     if (!dr.ok) return json({ error: "renderer failed: " + dr.status }, 502);
@@ -194,15 +263,27 @@ Deno.serve(async (req) => {
       svg = svg.replace(/<g transform="translate\(266 207\)">[\s\S]*?<\/g>/, BEANIE_GROUP);
     }
 
-    if (body.dry_run) return json({ ok: true, traits, svg_bytes: svg.length, applied: false });
+    if (body.dry_run) return json({ ok: true, traits, hair_used: hairLabel, alt_index: altIndex, alt_count: candidates.length, svg_bytes: svg.length, applied: false });
 
     const path = `${user.id}/inked-${Date.now()}.svg`;
     const up = await svc.storage.from("avatars").upload(path, new Blob([svg], { type: "image/svg+xml" }), {
       contentType: "image/svg+xml", upsert: true,
     });
     if (up.error) return json({ error: up.error.message }, 500);
-    await svc.from("profiles").update({ avatar_url: path }).eq("id", user.id);
-    return json({ ok: true, traits, avatar_url: path });
+    // persist the chosen parts so the in-app face editor starts from this draft
+    const parts = {
+      hair: traits.headwear === "none" ? (HAIR_STYLES[hairLabel] ?? "variant05") : "hat",
+      beanie: traits.headwear === "beanie",
+      beard: traits.beard === "none" ? "none" : (BEARDS[traits.beard] ?? "variant02"),
+      glasses: traits.glasses === "none" ? "none" : (GLASSES[traits.glasses] ?? "variant03"),
+      lips: LIPS[traits.expression] ?? "variant02",
+      nose: NOSES[traits.nose] ?? "variant03",
+      brows: BROWS[traits.brows] ?? "variant04",
+      eyes: EYES[traits.eyes] ?? "variant05",
+      body: BODIES[traits.clothing] ?? "variant08",
+    };
+    await svc.from("profiles").update({ avatar_url: path, avatar_parts: parts }).eq("id", user.id);
+    return json({ ok: true, traits, hair_used: hairLabel, alt_index: altIndex, alt_count: candidates.length, avatar_url: path });
   } catch (e) {
     return json({ error: String(e) }, 500);
   }

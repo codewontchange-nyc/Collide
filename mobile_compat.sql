@@ -375,3 +375,6 @@ alter table pois add column if not exists address text;
 alter table pois add column if not exists hours text;
 alter table pois add column if not exists link text;
 alter table pois add column if not exists images text[] not null default '{}';
+
+-- p59: manual face editor — persisted part choices (seeded by inkify, edited in-app)
+alter table profiles add column if not exists avatar_parts jsonb;
