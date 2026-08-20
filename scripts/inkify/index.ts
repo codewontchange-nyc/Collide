@@ -1,9 +1,10 @@
-// inkify v2 — draw the user into the world, repeatably.
-// Claude (vision) reads the uploaded photo ONCE and outputs a small trait
-// sheet; a deterministic renderer then assembles the avatar from the same
-// notionists parts library the whole cast uses. Same traits -> identical
-// avatar, every time. The style lives in the parts library, not in an
-// image model's mood — that's what makes it uniform and ownable.
+// inkify v3 — draw the user into the world, repeatably.
+// Claude (vision) reads the uploaded photo ONCE and picks from LABELED style
+// menus (hair silhouette, glasses shape, expression, clothing); a deterministic
+// renderer maps each label to a hand-audited notionists part. Same photo ->
+// same traits -> identical avatar, every time. The full 64-variant hair
+// catalog was visually labeled by hand — likeness in line art is mostly hair
+// silhouette, so that menu carries the resemblance.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const CORS = {
@@ -20,33 +21,74 @@ const b64 = (buf: ArrayBuffer) => {
   return btoa(s);
 };
 
+// ---- hand-audited label -> part maps (from the variant contact sheets) ----
+const HAIR_STYLES: Record<string, string> = {
+  "bald-or-shaved": "variant60",
+  "buzz-very-short": "variant15",
+  "short-neat-side-part": "variant05",
+  "short-textured-crop": "variant31",
+  "short-curly": "variant01",
+  "big-curly-mop": "variant20",
+  "afro-round": "variant43",
+  "quiff-pompadour": "variant13",
+  "slicked-back": "variant29",
+  "flat-top": "variant44",
+  "spiky": "variant42",
+  "mohawk": "variant51",
+  "side-shave-swept-over": "variant54",
+  "pixie-with-bangs": "variant47",
+  "chin-bob-straight": "variant10",
+  "chin-bob-wavy": "variant11",
+  "bob-with-headband": "variant08",
+  "shoulder-length-straight": "variant23",
+  "shoulder-length-waves": "variant28",
+  "shoulder-shag-layered": "variant37",
+  "long-straight-center-part": "variant41",
+  "long-voluminous-curls": "variant58",
+  "high-ponytail": "variant45",
+  "top-bun": "variant48",
+  "double-buns": "variant59",
+  "braids-or-pigtails": "variant39",
+  "curly-top-knot": "variant40",
+  "silver-updo": "variant61",
+  "headscarf": "variant63",
+};
+const GLASSES: Record<string, string> = {
+  "clear-rectangular": "variant03",
+  "clear-round": "variant11",
+  "sunglasses": "variant09",
+};
+const LIPS: Record<string, string> = {
+  "big-open-smile": "variant16",
+  "soft-closed-smile": "variant05",
+  "neutral": "variant02",
+};
+const BODIES: Record<string, string> = {
+  "tank-or-sleeveless": "variant10",
+  "tshirt-or-crew": "variant02",
+  "open-jacket-or-hoodie": "variant09",
+  "collared-shirt-or-blazer": "variant06",
+  "other": "variant08",
+};
+const BEARDS: Record<string, string> = { full: "variant02", goatee: "variant01", mustache: "variant10" };
+
 // ---- trait sheet Claude must fill (the whole "model contract") ----
 const TRAIT_TOOL = {
   name: "set_traits",
-  description: "Record the person's visual traits for avatar generation.",
+  description: "Record the person's visual traits for avatar generation. Pick the CLOSEST option in each menu; the hair silhouette (length, volume, parting, texture) is the most important likeness signal, so weigh it carefully.",
   input_schema: {
     type: "object",
     properties: {
       headwear: { type: "string", enum: ["none", "beanie", "cap"] },
+      hair_style: { type: "string", enum: Object.keys(HAIR_STYLES), description: "Closest hair silhouette. Ignored if headwear is worn." },
       beard: { type: "string", enum: ["none", "mustache", "goatee", "full"] },
-      glasses: { type: "boolean" },
-      hair_length: { type: "string", enum: ["bald", "short", "medium", "long"] },
-      hair_texture: { type: "string", enum: ["straight", "wavy", "coily"] },
+      glasses: { type: "string", enum: ["none", ...Object.keys(GLASSES)] },
+      expression: { type: "string", enum: Object.keys(LIPS) },
+      clothing: { type: "string", enum: Object.keys(BODIES), description: "What the visible top half is wearing (rendered in the app's ink black)." },
     },
-    required: ["headwear", "beard", "glasses", "hair_length", "hair_texture"],
+    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing"],
   },
 } as const;
-
-// ---- deterministic trait -> parts mapping (extend over time; NEVER random) ----
-const BEARDS: Record<string, string> = { full: "variant02", goatee: "variant01", mustache: "variant10" };
-// Coarse v1 hair buckets — variants chosen once, fixed forever. Likeness at
-// avatar size comes mostly from beard/headwear/glasses; refine labels later.
-const HAIR: Record<string, Record<string, string>> = {
-  bald: { straight: "variant01", wavy: "variant01", coily: "variant01" },
-  short: { straight: "variant02", wavy: "variant14", coily: "variant27" },
-  medium: { straight: "variant05", wavy: "variant19", coily: "variant33" },
-  long: { straight: "variant10", wavy: "variant22", coily: "variant40" },
-};
 
 // Cuffed-beanie parts drawn in the library's own ink language (flat black,
 // paper seams, label patch, temple tuck) — swapped in for the cap asset.
@@ -91,14 +133,14 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         model: "claude-sonnet-5",
-        max_tokens: 300,
+        max_tokens: 400,
         tools: [TRAIT_TOOL],
         tool_choice: { type: "tool", name: "set_traits" },
         messages: [{
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: mime, data: b64(await photo.arrayBuffer()) } },
-            { type: "text", text: "Fill in the visual trait sheet for this person's profile photo. Judge only what is clearly visible." },
+            { type: "text", text: "Fill in the visual trait sheet for this person's profile photo. Judge only what is clearly visible. The hair_style menu describes silhouettes — pick the one a caricature artist would choose to make this person instantly recognizable." },
           ],
         }],
       }),
@@ -110,13 +152,15 @@ Deno.serve(async (req) => {
 
     // ---- deterministic render from the parts library ----
     const p = new URLSearchParams({ size: "512", backgroundColor: "f6f1ea", gestureProbability: "0" });
-    p.set("seed", user.id); // stable per-user fallback features (eyes/nose/lips/brows)
-    p.set("body", "variant08"); // uniform Collide black layers — everyone wears the town's colors
+    p.set("seed", user.id); // stable per-user fallback features (eyes/nose/brows)
+    p.set("body", BODIES[traits.clothing] ?? "variant08");
     p.set("beardProbability", traits.beard === "none" ? "0" : "100");
     if (traits.beard !== "none") p.set("beard", BEARDS[traits.beard]);
-    p.set("glassesProbability", traits.glasses ? "100" : "0");
+    p.set("glassesProbability", traits.glasses === "none" ? "0" : "100");
+    if (traits.glasses !== "none") p.set("glasses", GLASSES[traits.glasses] ?? "variant03");
+    p.set("lips", LIPS[traits.expression] ?? "variant02");
     p.set("hair", (traits.headwear === "none")
-      ? (HAIR[traits.hair_length]?.[traits.hair_texture] ?? "variant02")
+      ? (HAIR_STYLES[traits.hair_style] ?? "variant05")
       : "hat");
     const dr = await fetch("https://api.dicebear.com/9.x/notionists/svg?" + p.toString());
     if (!dr.ok) return json({ error: "renderer failed: " + dr.status }, 502);
