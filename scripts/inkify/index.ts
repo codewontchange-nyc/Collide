@@ -70,7 +70,27 @@ const BODIES: Record<string, string> = {
   "collared-shirt-or-blazer": "variant06",
   "other": "variant08",
 };
-const BEARDS: Record<string, string> = { full: "variant02", goatee: "variant01", mustache: "variant10" };
+const BEARDS: Record<string, string> = {
+  "full-beard": "variant02",
+  "medium-beard": "variant01",
+  "stubble": "variant06",
+  "goatee": "variant08",
+  "goatee-with-mustache": "variant11",
+  "mustache": "variant10",
+  "thin-mustache": "variant04",
+  "soul-patch": "variant12",
+};
+const NOSES: Record<string, string> = {
+  "small-button": "variant09",
+  "straight-average": "variant03",
+  "long-pointed": "variant06",
+  "broad-rounded": "variant19",
+};
+const BROWS: Record<string, string> = {
+  "thick-bold": "variant03",
+  "thin-arched": "variant06",
+  "thin-straight": "variant02",
+};
 
 // ---- trait sheet Claude must fill (the whole "model contract") ----
 const TRAIT_TOOL = {
@@ -81,12 +101,14 @@ const TRAIT_TOOL = {
     properties: {
       headwear: { type: "string", enum: ["none", "beanie", "cap"] },
       hair_style: { type: "string", enum: Object.keys(HAIR_STYLES), description: "Closest hair silhouette. Ignored if headwear is worn." },
-      beard: { type: "string", enum: ["none", "mustache", "goatee", "full"] },
+      beard: { type: "string", enum: ["none", ...Object.keys(BEARDS)] },
       glasses: { type: "string", enum: ["none", ...Object.keys(GLASSES)] },
       expression: { type: "string", enum: Object.keys(LIPS) },
+      nose: { type: "string", enum: Object.keys(NOSES) },
+      brows: { type: "string", enum: Object.keys(BROWS) },
       clothing: { type: "string", enum: Object.keys(BODIES), description: "What the visible top half is wearing (rendered in the app's ink black)." },
     },
-    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing"],
+    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing", "nose", "brows"],
   },
 } as const;
 
@@ -152,10 +174,12 @@ Deno.serve(async (req) => {
 
     // ---- deterministic render from the parts library ----
     const p = new URLSearchParams({ size: "512", backgroundColor: "f6f1ea", gestureProbability: "0" });
-    p.set("seed", user.id); // stable per-user fallback features (eyes/nose/brows)
+    p.set("seed", user.id); // stable per-user fallback features (eyes only now)
     p.set("body", BODIES[traits.clothing] ?? "variant08");
     p.set("beardProbability", traits.beard === "none" ? "0" : "100");
-    if (traits.beard !== "none") p.set("beard", BEARDS[traits.beard]);
+    if (traits.beard !== "none") p.set("beard", BEARDS[traits.beard] ?? "variant02");
+    p.set("nose", NOSES[traits.nose] ?? "variant03");
+    p.set("brows", BROWS[traits.brows] ?? "variant02");
     p.set("glassesProbability", traits.glasses === "none" ? "0" : "100");
     if (traits.glasses !== "none") p.set("glasses", GLASSES[traits.glasses] ?? "variant03");
     p.set("lips", LIPS[traits.expression] ?? "variant02");
