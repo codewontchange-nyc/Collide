@@ -59,7 +59,7 @@ const GLASSES: Record<string, string> = {
   "sunglasses": "variant09",
 };
 const LIPS: Record<string, string> = {
-  "big-open-smile": "variant16",
+  "big-open-smile": "variant30",
   "soft-closed-smile": "variant05",
   "neutral": "variant02",
 };
@@ -88,8 +88,8 @@ const NOSES: Record<string, string> = {
 };
 const BROWS: Record<string, string> = {
   "thick-bold": "variant03",
-  "thin-arched": "variant06",
-  "thin-straight": "variant02",
+  "thin-arched": "variant05",
+  "thin-straight": "variant04",
 };
 
 // ---- trait sheet Claude must fill (the whole "model contract") ----

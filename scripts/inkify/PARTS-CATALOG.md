@@ -50,13 +50,13 @@ goatee-with-mustache=11 · mustache=10 · thin-mustache=04 · soul-patch=12
 clear-rectangular=03 · clear-round=11 · sunglasses=09 (01/02/04-07/10 = other shades)
 
 ## lips / expression (3 of 30)
-big-open-smile=16 · soft-closed-smile=05 · neutral=02
+big-open-smile=30 (16 reads as grimace on-face) · soft-closed-smile=05 · neutral=02
 
 ## nose (4 of 20)
 small-button=09 · straight-average=03 · long-pointed=06 · broad-rounded=19
 
 ## brows (3 of 13)
-thick-bold=03 · thin-arched=06 · thin-straight=02
+thick-bold=03 · thin-arched=05 (warm arc) · thin-straight=04 (calm; 02/06/07 read worried on-face)
 
 ## body / clothing (5 of 25, all-dark brand family)
 tank-or-sleeveless=10 · tshirt-or-crew=02 · open-jacket-or-hoodie=09 ·
