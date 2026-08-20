@@ -927,7 +927,7 @@ function edOpenFaceEd(uid,saved){
   strip.innerHTML=cat.vals.map(function(v){
    var lab=v==="none"?"✕ none":v==="cap"?"cap":v==="beanie"?"beanie":"";
    return '<button type="button" class="fe-th'+(p[active]===v?" on":"")+'" data-v="'+v+'">'
-    +'<img loading="lazy" src="'+edFeUrl(thumbParts(active,v),uid,96)+'" alt=""/>'
+    +'<img loading="lazy" src="'+edFeUrl(thumbParts(active,v),uid,128)+'" alt=""/>'
     +(lab?'<i>'+lab+'</i>':"")+'</button>'}).join("");
   var on=strip.querySelector(".fe-th.on");on&&on.scrollIntoView({inline:"center",block:"nearest"})}
  cats.addEventListener("click",function(ev){var b=ev.target.closest(".fe-cat");if(!b)return;

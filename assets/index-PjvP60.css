@@ -671,3 +671,10 @@
 .fe-save{width:100%;border:none;border-radius:999px;background:#17181a;color:#fffdf9;
  font:700 15px Inter;padding:14px 0;cursor:pointer;margin-top:2px}
 .fe-save:active{transform:scale(.985)}
+
+/* ---------- p60: face editor strip = 2 rows, bigger thumbs ---------- */
+.fe-strip{display:grid;grid-auto-flow:column;grid-template-rows:repeat(2,auto);grid-auto-columns:max-content;
+ gap:10px;min-height:224px;align-items:start}
+.fe-th,.fe-th img{width:102px}
+.fe-th img{height:102px}
+.fe-th i{font-size:11px;padding:3px 0}
