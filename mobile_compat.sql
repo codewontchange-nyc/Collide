@@ -635,3 +635,6 @@ insert into maker_windows (maker_id, dow, start_min, end_min, slot_min) values
 ('a31882fd-ea14-4363-9ce4-6746eb58f3fd', 6, 8*60, 12*60, 120),
 ('c2b3cf76-ef83-4e48-95de-013c26fb8dcf', 6, 14*60, 18*60, 120)
 on conflict do nothing;
+
+-- p72: madlib onboarding — phone on profiles
+alter table profiles add column if not exists phone text;

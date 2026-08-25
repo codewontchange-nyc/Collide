@@ -980,3 +980,43 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .brand{font-family:'Cormorant Garamond',Georgia,serif;text-transform:lowercase;
  font-weight:500;letter-spacing:.005em;background:none;-webkit-background-clip:initial;
  background-clip:initial;-webkit-text-fill-color:var(--ink);color:var(--ink);font-size:54px}
+
+/* ---------- p72: madlib onboarding — front-page story ---------- */
+.onb{position:relative;min-height:100vh;padding:24px 22px 40px;overflow:hidden;background:var(--paper)}
+.onb-sky{position:absolute;inset:0 0 auto 0;height:190px;pointer-events:none;overflow:hidden}
+.onb-sky .map-cloud{position:absolute}
+.onb-sky .map-bird{position:absolute}
+@keyframes onbDrift{from{transform:translateX(-30%)}to{transform:translateX(320%)}}
+@keyframes onbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@keyframes onbUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.onb-l{animation:onbUp .7s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i,0)*.16s)}
+.onb-mast{position:relative;text-align:center;padding-top:52px}
+.onb-mast svg{margin-bottom:8px}
+.onb-kick{font:600 10.5px Inter;letter-spacing:.22em;text-transform:uppercase;color:#8a7e75}
+.onb-date{font:italic 500 13px 'Cormorant Garamond',Georgia,serif;color:#5c534d;margin-top:3px;
+ border-bottom:3px double var(--ink);padding-bottom:12px}
+.onb-head{font:800 34px/1.05 Newsreader,Georgia,serif;text-transform:uppercase;letter-spacing:.01em;
+ color:var(--ink);text-align:center;margin:20px 0 2px}
+.onb-dev{font:italic 600 12px 'Cormorant Garamond',Georgia,serif;color:#8a7e75;text-align:center;
+ letter-spacing:.12em;margin-bottom:22px}
+.onb-story{max-width:440px;margin:0 auto}
+.onb-story p{font:500 19px/1.75 Newsreader,Georgia,serif;color:#3d3833;margin:0 0 16px;text-align:left}
+.onb-blank{display:inline-block;border:none;border-bottom:2px dashed rgba(36,29,26,.45);background:none;
+ font:italic 600 19px 'Cormorant Garamond',Georgia,serif;color:var(--ink);text-align:center;
+ padding:0 2px 1px;margin:0 2px;outline:none;vertical-align:baseline;border-radius:0;
+ transition:border-color .2s;max-width:100%}
+.onb-blank:focus{border-bottom:2px solid var(--ink)}
+.onb-blank::placeholder{color:#b7ab9e;font-style:italic}
+.onb-stamp{display:inline-block;font:700 13.5px Inter;color:var(--teal-ink);
+ border:1.5px solid var(--teal-ink);border-radius:4px;padding:2px 8px;transform:rotate(-1.6deg);
+ background:rgba(24,133,122,.06);white-space:nowrap}
+.onb-close{font-style:italic;color:#6b645c!important;text-align:center!important}
+.onb-err{font:600 13.5px Inter;color:var(--danger);text-align:center;margin:6px 0}
+.onb-run{display:block;width:100%;max-width:340px;margin:20px auto 0;border:none;border-radius:999px;
+ background:var(--ink);color:var(--paper);font:800 16px Inter;padding:15px 0;cursor:pointer;
+ box-shadow:0 10px 26px rgba(18,14,12,.24);transition:opacity .2s,transform .15s}
+.onb-run:disabled{opacity:.35;box-shadow:none}
+.onb-run:not(:disabled):active{transform:scale(.97)}
+.onb-fine{font:500 12px Inter!important;color:#8a7e75!important;text-align:center!important;
+ margin-top:16px!important;line-height:1.6!important}
+.onb-out{border:none;background:none;color:#8a7e75;text-decoration:underline;font:inherit;cursor:pointer;padding:0}
