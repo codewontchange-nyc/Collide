@@ -659,3 +659,7 @@ insert into cities (code, name, short, status, sort) values
  ('nola','New Orleans','NOLA','coming_soon',6),
  ('dc','Washington, D.C.','DC','coming_soon',7)
 on conflict (code) do nothing;
+
+-- p75: LA/CHI inking; homebase groundwork
+update cities set status='inking' where code in ('la','chi');
+alter table profiles add column if not exists home_city text not null default 'nyc' references cities(code);

@@ -912,7 +912,7 @@ function edCityTease(c){
  o.innerHTML='<div class="ct-card">'
   +'<div class="ct-kick">collide \u00b7 next edition</div>'
   +'<div class="ct-name">'+c.name+'</div>'
-  +'<div class="ct-copy">The cartographer is inking '+(c.code==="atl"?"Peachtree":"the streets")+' as we speak. First press soon \u2014 New York has you till then.</div>'
+  +'<div class="ct-copy">The cartographer is inking '+({atl:"Peachtree",chi:"the L",la:"Sunset",sf:"the hills",nola:"the Quarter",dc:"the Mall"}[c.code]||"the streets")+' as we speak. First press soon \u2014 New York has you till then.</div>'
   +'<button type="button" class="ct-back">back to New York \u2192</button></div>';
  o.addEventListener("click",function(ev){(ev.target===o||ev.target.closest(".ct-back"))&&o.remove()});
  document.body.appendChild(o)}
