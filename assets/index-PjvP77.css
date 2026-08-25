@@ -1074,3 +1074,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 
 /* p76: inked status tag */
 .cs.inked{color:var(--teal-ink)}
+
+/* ---------- p77: city scoping — profile city row ---------- */
+.ed-cityrow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+.ed-cityrow-l{font:700 10px Inter;letter-spacing:.14em;text-transform:uppercase;color:#8a7e75;margin-right:2px}
+.ed-citychip{border:1.5px solid rgba(23,20,17,.3);border-radius:999px;background:none;
+ font:800 11px Inter;letter-spacing:.04em;color:#4c4742;padding:6px 11px;cursor:pointer;
+ -webkit-tap-highlight-color:transparent}
+.ed-citychip.on{background:#17181a;border-color:#17181a;color:#fffdf9}
+.ed-citychip.off{opacity:.35;cursor:default}

@@ -668,3 +668,58 @@ alter table profiles add column if not exists home_city text not null default 'n
 alter table cities drop constraint if exists cities_status_check;
 alter table cities add constraint cities_status_check check (status in ('live','inked','inking','coming_soon'));
 update cities set status='inked' where code='atl';
+-- ============ p77: full city scoping via request header ============
+create or replace function req_city() returns text
+language sql stable as $$
+  select coalesce(nullif(current_setting('request.headers', true)::json->>'x-collide-city',''),'nyc')
+$$;
+
+alter table activities   add column if not exists city text not null default 'nyc' references cities(code);
+alter table map_events   add column if not exists city text not null default 'nyc' references cities(code);
+alter table pois         add column if not exists city text not null default 'nyc' references cities(code);
+alter table yaps         add column if not exists city text not null default 'nyc' references cities(code);
+alter table communities  add column if not exists city text not null default 'nyc' references cities(code);
+alter table announcements add column if not exists city text not null default 'nyc' references cities(code);
+alter table makers       add column if not exists city text not null default 'nyc' references cities(code);
+
+create or replace function set_req_city() returns trigger
+language plpgsql as $$ begin new.city := req_city(); return new; end $$;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['activities','map_events','pois','yaps','communities','announcements','makers'] loop
+    execute format('drop trigger if exists %I_city_tg on %I', t, t);
+    execute format('create trigger %I_city_tg before insert on %I for each row execute function set_req_city()', t, t);
+    execute format('drop policy if exists %I_city_r on %I', t, t);
+    execute format('create policy %I_city_r on %I as restrictive for select to authenticated using (city = req_city())', t, t);
+  end loop;
+end $$;
+
+-- classifieds RPC runs as definer (bypasses RLS) — filter explicitly
+drop function if exists directory_listings();
+create or replace function directory_listings()
+returns table(profile_id uuid, display_name text, avatar_url text, kind text,
+              headline text, offers text[], bio text, rate text, booking_url text, community_name text,
+              booking_mode text, price_cents int, deposit_cents int, payment_handle text, has_windows boolean,
+              contact text, links jsonb, gallery text[], socials jsonb)
+language sql security definer set search_path = public as $$
+  select p.id, p.display_name, p.avatar_url, 'maker'::text,
+         m.headline, m.offers, m.bio, m.rate, m.booking_url, null::text,
+         m.booking_mode, m.price_cents, m.deposit_cents, m.payment_handle,
+         exists (select 1 from maker_windows w where w.maker_id = m.profile_id),
+         m.contact, m.links, m.gallery, p.socials
+    from makers m join profiles p on p.id = m.profile_id
+   where m.active and (m.trial_ends_at is null or m.trial_ends_at > now())
+     and m.city = req_city()
+  union all
+  select p.id, p.display_name, p.avatar_url, 'facilitator'::text,
+         'Facilitator of ' || c.name, null, c.blurb, null, null, c.name,
+         null, null, null, null, false,
+         null, '[]'::jsonb, '{}'::text[], p.socials
+    from staff s
+    join profiles p on p.id = s.profile_id
+    join communities c on c.id = s.community_id
+   where s.role = 'facilitator' and c.city = req_city();
+$$;
+grant execute on function directory_listings() to authenticated;
