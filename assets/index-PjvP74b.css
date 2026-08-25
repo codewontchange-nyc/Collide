@@ -1062,3 +1062,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 #ed-city-ban span{font:italic 500 12px 'Cormorant Garamond',Georgia,serif;color:#5c534d;line-height:1.4}
 #ed-city-ban button{align-self:flex-start;margin-top:4px;border:none;border-radius:999px;background:var(--ink);
  color:var(--paper);font:700 11px Inter;padding:6px 12px;cursor:pointer}
+
+/* p74b: city switch hides venue landmarks + community pins too */
+.ed-off-ev .map-venue,.ed-off-ev .community-pin{display:none}
