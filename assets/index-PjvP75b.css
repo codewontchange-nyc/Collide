@@ -1065,3 +1065,9 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 
 /* p74b: city switch hides venue landmarks + community pins too */
 .ed-off-ev .map-venue,.ed-off-ev .community-pin{display:none}
+
+/* ---------- p75b: map corner alignment + legend/logo polish ---------- */
+.map-logo{background:#17181a}
+#ed-lg-btn{border:none;width:48px;height:48px;left:14px;
+ bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+#yap-fab{right:14px;bottom:calc(78px + env(safe-area-inset-bottom,0px))}
