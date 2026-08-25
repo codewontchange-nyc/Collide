@@ -870,3 +870,6 @@
 button.navtab.ed-nav-cl{background:none;border:none;font:inherit;cursor:pointer;
  -webkit-tap-highlight-color:transparent}
 .ed-mkr-note{font:italic 600 11px Newsreader,serif;color:#8a8378;letter-spacing:0;text-transform:none}
+
+button.navtab.ed-nav-cl span{font:600 11px Inter,-apple-system,sans-serif}
+button.navtab.ed-nav-cl{color:inherit;padding:0}
