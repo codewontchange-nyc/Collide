@@ -954,3 +954,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .ed-sfx{will-change:transform,filter,opacity}
 .ed-dirpage .cad,.ed-dirpage .dir-fac{transition:none}
 .ed-profpage .prof-body>*,.ed-profpage .bk-inline{transition:none}
+
+/* ---------- p69b: breathing room between profile sections ---------- */
+.ed-profpage .prof-card{margin-top:22px}
+.ed-profpage .prof-img{margin-top:22px}
+.ed-profpage .prof-hero{margin-top:14px;margin-bottom:6px}
+.ed-profpage .bk-inline{margin-top:22px}
+.ed-profpage .prof-body>*:first-child{margin-top:14px}
