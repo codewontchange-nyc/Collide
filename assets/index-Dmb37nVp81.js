@@ -1208,8 +1208,23 @@ function EdDirPage(){
   edDirLoad().then(function(r){on&&set(r)}).catch(function(){on&&set([])});
   window.scrollTo(0,0);
   return function(){on=!1}},[]);
- (0,_.useEffect)(function(){rows&&edSfxBind(".ed-dirpage .cad,.ed-dirpage .dir-fac",!0);
-  return function(){edSfxEls=[]}},[rows]);
+ (0,_.useEffect)(function(){
+  if(!rows)return;
+  var items=[].slice.call(document.querySelectorAll(".ed-dirpage .cad,.ed-dirpage .dir-fac"));
+  items.map(function(el){return{el:el,r:el.getBoundingClientRect()}})
+   .sort(function(a,b){return(a.r.top-b.r.top)||(a.r.left-b.r.left)})
+   .forEach(function(x,i){
+    x.el.style.animationDelay=(.1+i*.055).toFixed(3)+"s";
+    if(x.el.classList.contains("cad")){
+     var id=x.el.dataset.pid||String(i),h=0,k;for(k=0;k<id.length;k++)h+=id.charCodeAt(k);
+     x.el.style.setProperty("--rot",(((h%5)-2)*.22).toFixed(2)+"deg")}});
+  var total=100+items.length*55+560;
+  var tm=setTimeout(function(){
+   items.forEach(function(el){el.style.transition="transform .45s ease,opacity .45s ease,filter .45s ease"});
+   edSfxBind(".ed-dirpage .cad,.ed-dirpage .dir-fac",!0);
+   setTimeout(function(){items.forEach(function(el){el.style.transition=""})},520)
+  },total);
+  return function(){clearTimeout(tm);edSfxEls=[]}},[rows]);
  return EdH("div",{className:"app ed-dirpage"},
   EdH("div",{className:"dir-mast"},
    EdH("div",{className:"dir-kick"},"est. 2026 · goods & services · book a neighbor"),
