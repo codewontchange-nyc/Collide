@@ -893,3 +893,17 @@ html.ed-shrunk .mast-brand{transform:scale(.82)}
 html.ed-shrunk .ed-mast{padding:5px 0 9px;margin-bottom:12px}
 html.ed-shrunk .ed-mast .ed-date{font-size:21px}
 html.ed-shrunk .ed-mast .ed-kicker{display:none}
+
+/* ---------- p67: classifieds & maker profiles as real pages ---------- */
+.ed-dirpage .dir-mast{position:sticky;top:0;z-index:30;background:var(--paper);
+ margin:0 0 4px;padding:10px 0 2px;text-align:center}
+html.ed-shrunk .ed-dirpage .dir-title{font-size:20px;margin:2px 0 6px}
+html.ed-shrunk .ed-dirpage .dir-kick{display:none}
+.ed-dirpage .dir-body{padding-bottom:8px}
+.ed-profpage{padding-bottom:16px}
+.ed-profpage .prof-bar{position:sticky;top:0;z-index:30;background:var(--paper);
+ display:flex;align-items:center;gap:10px;padding:14px 0 10px;
+ border-bottom:1px solid rgba(23,20,17,.15)}
+.ed-profpage .prof-ctabar{position:sticky;bottom:14px;padding:0;background:none;border:none;margin-top:16px}
+.ed-profpage .prof-cta{box-shadow:0 8px 22px rgba(18,14,12,.28)}
+.bk-inline{margin-top:14px}
