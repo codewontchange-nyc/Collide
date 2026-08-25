@@ -959,7 +959,7 @@ function edOpenFaceEd(uid,saved){
    t.textContent="That’s you ✓";setTimeout(function(){location.reload()},700)
   }catch(e){t.textContent="Couldn’t save — try again";setTimeout(function(){t.remove()},2200);busy=false}});
  renderCats();renderStrip();updPrev()}
-addEventListener("scroll",function(){document.documentElement.classList.toggle("ed-shrunk",(window.scrollY||0)>34)},{passive:!0});
+addEventListener("scroll",function(){var y=window.scrollY||0,el=document.documentElement;y>48?el.classList.add("ed-shrunk"):y<16&&el.classList.remove("ed-shrunk")},{passive:!0});
 var edDirCache={t:0,d:null};
 async function edDirLoad(){
  if(edDirCache.d&&Date.now()-edDirCache.t<60000)return edDirCache.d;
@@ -1063,14 +1063,14 @@ function edProfHtml(g){
    +(m&&m.headline?'<div class="prof-head dark">'+edDirEsc(m.headline)+'</div>'
     :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')+'</div>'}
  if(m&&m.offers&&m.offers.length)
-  h+='<div class="prof-card"><div class="prof-k">On the menu</div><div class="prof-chips">'
+  h+='<div class="prof-card inv"><div class="prof-k">On the menu</div><div class="prof-chips">'
    +m.offers.map(function(x){return '<span class="prof-chip">'+edDirEsc(x)+'</span>'}).join("")+'</div>'
    +(m.rate?'<div class="prof-rate">'+edDirEsc(m.rate)+'</div>':'')+'</div>';
  if(gal[1])h+='<div class="prof-img"><img src="'+edMkMedia(gal[1])+'" alt=""/></div>';
  if(m&&m.bio)h+='<div class="prof-card"><div class="prof-k">Why book me</div><div class="prof-bio">“'+edDirEsc(m.bio)+'”</div></div>';
  if(gal[2])h+='<div class="prof-img"><img src="'+edMkMedia(gal[2])+'" alt=""/></div>';
  if(g.fac&&g.fac.length)
-  h+='<div class="prof-card"><div class="prof-k">Around town</div><div class="prof-fac">🏘 Facilitates '
+  h+='<div class="prof-card inv"><div class="prof-k">Around town</div><div class="prof-fac">🏘 Facilitates '
    +g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" & ")+'</div>'
    +(f0&&f0.bio?'<div class="prof-bio sm">'+edDirEsc(f0.bio)+'</div>':'')+'</div>';
  var lk=(m&&m.links)||[];if(typeof lk==="string")try{lk=JSON.parse(lk)}catch(e){lk=[]}
@@ -1081,7 +1081,7 @@ function edProfHtml(g){
    +socKeys.map(function(p){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(p.toUrl(soc[p.key]))+'">'+edDirEsc(p.key==="website"?"Website":"@"+String(soc[p.key]).replace(/^@+/,""))+' ↗</a>'}).join("")
    +'</div></div>';
  if(m&&m.contact)
-  h+='<div class="prof-card"><div class="prof-k">Get in touch</div><div class="prof-contact">📮 '+edDirEsc(m.contact)+'</div></div>';
+  h+='<div class="prof-card inv" id="prof-contact"><div class="prof-k">Get in touch</div><div class="prof-contact">📮 '+edDirEsc(m.contact)+'</div></div>';
  return h}
 async function edBookMount(el,m){
  var me=(await W.auth.getUser()).data.user;if(!me||!document.body.contains(el))return;
@@ -1102,6 +1102,7 @@ async function edBookMount(el,m){
    tk||slots.push({s:s,e:e})}});
   slots.sort(function(a,b){return a.s-b.s});days.push({d:d,slots:slots})}
  var sel=days.findIndex(function(x){return x.slots.length}),pick=null;
+ setTimeout(function(){try{el.scrollIntoView({behavior:"smooth",block:"start"})}catch(e){}},80);
  el.innerHTML='<div class="prof-k" style="margin:2px 0 8px">Book a slot</div>'
   +'<div class="bk-pay">'+edDirEsc(edBkPayLine(m))+'</div>'
   +'<div class="bk-days"></div><div class="bk-slots"></div><div class="bk-confirm"></div><div class="bk-mine"></div>';
@@ -1154,23 +1155,28 @@ function EdMakerPage(){
  var g={maker:null,fac:[]};
  rows.forEach(function(r){if(r.profile_id===id)r.kind==="maker"?g.maker=r:g.fac.push(r)});
  var m=g.maker,base=m||g.fac[0];
+ var goBack=function(){window.history.length>1?nav(-1):nav("/classifieds")};
  if(!base)return EdH("div",{className:"app ed-profpage"},
-  EdH("div",{className:"prof-bar"},EdH("button",{className:"prof-back",onClick:function(){nav("/classifieds")}},"‹ back")),
+  EdH("div",{className:"prof-bar"},EdH("button",{className:"prof-back",onClick:goBack},"\u2039 back")),
   EdH("div",{className:"bk-none",style:{padding:"30px 0",textAlign:"center"}},"Not in the paper anymore."));
+ var scrollToBook=function(){
+  if(!booking){setBooking(!0);return}
+  var el=document.querySelector(".bk-inline");el&&el.scrollIntoView({behavior:"smooth",block:"start"})};
+ var scrollToContact=function(){
+  var el=document.getElementById("prof-contact");el&&el.scrollIntoView({behavior:"smooth",block:"center"})};
+ var ctas=[];
+ if(m&&m.has_windows)ctas.push(EdH("button",{className:"prof-cta",key:"bk",onClick:scrollToBook},
+  booking?"Choose a time \u2193":"Book a slot"+(m.booking_mode==="prepaid"&&m.price_cents?" \u00b7 "+edBkMoney(m.price_cents):m.booking_mode==="deposit"&&m.deposit_cents?" \u00b7 "+edBkMoney(m.deposit_cents)+" deposit":"")));
+ else if(m&&m.booking_url)ctas.push(EdH("a",{className:"prof-cta",key:"url",target:"_blank",rel:"noopener noreferrer",href:m.booking_url},"Book their time \u2197"));
+ if(m&&m.contact)ctas.push(EdH("button",{className:"prof-cta line",key:"ct",onClick:scrollToContact},"\ud83d\udcee Contact"));
  return EdH("div",{className:"app ed-profpage"},
   EdH("div",{className:"prof-bar"},
-   EdH("button",{className:"prof-back",onClick:function(){window.history.length>1?nav(-1):nav("/classifieds")}},"‹ back"),
+   EdH("button",{className:"prof-back",onClick:goBack},"\u2039 back"),
    EdH("span",{className:"prof-bar-n"},base.display_name)),
   EdH("div",{className:"prof-body",dangerouslySetInnerHTML:{__html:edProfHtml(g)}}),
   m&&m.has_windows&&booking?EdH("div",{className:"prof-card bk-inline",ref:function(el){el&&!el.__edbk&&(el.__edbk=1,edBookMount(el,m))}},
-   EdH("div",{className:"dir-loading"},"opening the book…")):null,
-  m&&m.has_windows&&!booking?EdH("div",{className:"prof-ctabar"},
-   EdH("button",{className:"prof-cta",onClick:function(){setBooking(!0)}},
-    "Book a slot"+(m.booking_mode==="prepaid"&&m.price_cents?" · "+edBkMoney(m.price_cents):m.booking_mode==="deposit"&&m.deposit_cents?" · "+edBkMoney(m.deposit_cents)+" deposit":""))):null,
-  !m||m.has_windows?null:m.booking_url?EdH("div",{className:"prof-ctabar"},
-   EdH("a",{className:"prof-cta",target:"_blank",rel:"noopener noreferrer",href:m.booking_url},"Book their time ↗")):
-   m.contact?EdH("div",{className:"prof-ctabar"},
-    EdH("div",{className:"prof-cta ghost"},"📮 "+m.contact)):null)}
+   EdH("div",{className:"dir-loading"},"opening the book\u2026")):null,
+  ctas.length?EdH("div",{className:"prof-ctabar"},ctas):null)}
 function EdMakers(){
  var nav=ft();
  var st=(0,_.useState)(null),d=st[0],set=st[1];

@@ -907,3 +907,45 @@ html.ed-shrunk .ed-dirpage .dir-kick{display:none}
 .ed-profpage .prof-ctabar{position:sticky;bottom:14px;padding:0;background:none;border:none;margin-top:16px}
 .ed-profpage .prof-cta{box-shadow:0 8px 22px rgba(18,14,12,.28)}
 .bk-inline{margin-top:14px}
+
+/* ---------- p68: maker profile full-screen pass ---------- */
+html{scrollbar-width:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
+.ed-profpage *{scrollbar-width:none}
+.ed-profpage *::-webkit-scrollbar{display:none}
+.ed-profpage{padding-bottom:96px}
+.ed-profpage .prof-bar{padding:12px 0 10px;gap:12px}
+.ed-profpage .prof-back{font:800 15px Inter;border:1.5px solid rgba(23,20,17,.75);
+ border-radius:999px;padding:9px 16px;background:var(--surface,#fffdf9);color:#17181a;
+ -webkit-tap-highlight-color:transparent}
+.ed-profpage .prof-back:active{transform:scale(.95)}
+.ed-profpage .prof-bar-n{font:700 16px Newsreader,serif}
+.ed-profpage .prof-hero{margin-top:10px;border-radius:18px}
+.ed-profpage .prof-hero img{aspect-ratio:4/3;max-height:44vh}
+.ed-profpage .prof-name{font-size:22px}
+.ed-profpage .prof-head{font-size:13px}
+.ed-profpage .prof-hero-av{padding:20px 14px}
+.ed-profpage .prof-card{padding:13px 15px;border-radius:16px;margin-top:10px}
+.ed-profpage .prof-k{font-size:10px;margin-bottom:7px}
+.ed-profpage .prof-chip{font-size:11.5px;padding:5px 11px}
+.ed-profpage .prof-bio{font-size:15px}
+.ed-profpage .prof-img{margin-top:10px;border-radius:16px}
+.ed-profpage .prof-img img{aspect-ratio:16/10}
+.ed-profpage .prof-link{font-size:11.5px;padding:6px 12px}
+.ed-profpage .prof-rate{font-size:12px;margin-top:8px}
+.prof-card.inv{background:#17181a;color:#f9f4ec;box-shadow:0 6px 18px rgba(18,14,12,.24)}
+.prof-card.inv .prof-k{color:#a89f93}
+.prof-card.inv .prof-chip{border-color:rgba(249,244,236,.8);color:#f9f4ec}
+.prof-card.inv .prof-rate{color:#ff8d99}
+.prof-card.inv .prof-bio{color:#efe8dd}
+.prof-card.inv .prof-fac{color:#8fd4c4}
+.prof-card.inv .prof-contact{color:#f9f4ec}
+.prof-card.inv .prof-link{border-color:rgba(249,244,236,.8);color:#f9f4ec}
+.ed-profpage .prof-ctabar{position:fixed;left:0;right:0;bottom:0;z-index:35;margin:0;
+ padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));
+ background:color-mix(in srgb, var(--paper) 94%, transparent);
+ -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+ border-top:1px solid rgba(23,20,17,.12);display:flex;gap:10px;max-width:var(--maxw);
+ left:50%;transform:translateX(-50%);width:100%}
+.ed-profpage .prof-cta{flex:2;box-shadow:none;padding:13px 0;font-size:14.5px}
+.ed-profpage .prof-cta.line{flex:1;background:none;border:1.5px solid #17181a;color:#17181a;font-weight:700}
