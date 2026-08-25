@@ -988,21 +988,43 @@ async function edOpenDirectory(){
  var by=edDirGroup(rows),ids=Object.keys(by);
  var makers=ids.filter(function(k){return by[k].maker}),facOnly=ids.filter(function(k){return !by[k].maker&&by[k].fac.length});
  var h='';
- h+='<div class="dir-sec">Makers for hire</div>';
- makers.forEach(function(k){var g=by[k],m=g.maker;
-  h+='<div class="dir-ad" data-pid="'+k+'">'
-   +'<div class="dir-adhead">'+edDirAv(m.avatar_url,m.display_name,34)
-   +'<div><div class="dir-name">'+edDirEsc(m.display_name)+'</div>'
-   +'<div class="dir-headline">'+edDirEsc(m.headline)+'</div></div>'
-   +(m.rate?'<div class="dir-rate">'+edDirEsc(m.rate)+'</div>':'')+'</div>'
-   +(m.offers&&m.offers.length?'<div class="dir-offers">'+m.offers.map(edDirEsc).join(" · ")+'</div>':'')
-   +(m.bio?'<div class="dir-bio">“'+edDirEsc(m.bio)+'”</div>':'')
-   +(g.fac.length?'<div class="dir-also">also facilitates '+g.fac.map(function(f){return edDirEsc(f.community_name)}).join(" & ")+'</div>':'')
-   +(m.has_windows?'<button type="button" class="dir-book dir-bookslot" data-mk="'+m.profile_id+'">Book a slot'+(m.booking_mode==="prepaid"&&m.price_cents?' · '+edBkMoney(m.price_cents):m.booking_mode==="deposit"&&m.deposit_cents?' · '+edBkMoney(m.deposit_cents)+' deposit':'')+' ⟶</button>'
-     :m.contact?'<div class="dir-book dir-touch">Get in touch ⟶</div>'
-     :m.booking_url?'<a class="dir-book" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(m.booking_url)+'">Book their time ⟶</a>'
-     :'<div class="dir-book dir-ask">see their page ⟶</div>')
-   +'</div>'});
+ h+='<div class="dir-sec">Makers for hire</div><div class="dir-cols">';
+ makers.forEach(function(k,ki){var g=by[k],m=g.maker;
+  var nm=edDirEsc(m.display_name),hl=m.headline||"",big=hl,sub="";
+  var dash=hl.indexOf("\u2014");if(dash<0)dash=hl.indexOf(" - ");
+  if(dash>0){big=hl.slice(0,dash).trim();sub=hl.slice(dash).replace(/^[\u2014-]+\s*/,"").trim()}
+  big=edDirEsc(big);sub=edDirEsc(sub);
+  var v=(m.profile_id.charCodeAt(0)+m.profile_id.charCodeAt(3)+ki)%4;
+  var offers=(m.offers||[]).slice(0,4);
+  var lead=offers.length?'<div class="cad-list">'+offers.map(function(o){return '<div class="cad-line"><span>'+edDirEsc(o)+'</span><i></i></div>'}).join("")+'</div>':"";
+  var stars=offers.map(edDirEsc).join(' <b class="cad-star">\u2605</b> ');
+  var also=g.fac.length?'<div class="cad-also">also facilitates '+g.fac.map(function(f){return edDirEsc(f.community_name)}).join(" &amp; ")+'</div>':"";
+  var note='<div class="cad-note">\u261e '+(m.has_windows?'tap for page &amp; booking':m.contact?'tap for page &amp; contact':'tap for their page')+'</div>';
+  var rate=m.rate?edDirEsc(m.rate):"";
+  var inner="";
+  if(v===0){inner='<div class="cad-intro">'+nm.toUpperCase()+',</div>'
+   +'<div class="cad-big">'+big+'</div>'
+   +(sub?'<div class="cad-sub">\u2014 '+sub+' \u2014</div>':"")
+   +'<div class="cad-hr"></div>'+lead
+   +(rate?'<div class="cad-rate">'+rate+'</div>':"")+also+note}
+  else if(v===1){inner='<div class="cad-band">'+nm.toUpperCase()+'</div>'
+   +'<div class="cad-it">'+edDirEsc(hl)+'</div>'
+   +'<div class="cad-hr thin"></div>'
+   +'<div class="cad-mid">'+stars+'</div>'
+   +(m.bio?'<div class="cad-bio">\u201c'+edDirEsc(m.bio)+'\u201d</div>':"")
+   +(rate?'<div class="cad-rate">'+rate+'</div>':"")+also+note}
+  else if(v===2){var pm=rate.match(/\$\s?\d+[\d.,]*/);var pr=pm?pm[0]:"";var rest=pr?rate.slice(rate.indexOf(pr)+pr.length):"";
+   inner=(pr?'<div class="cad-price">'+pr+'<span>'+edDirEsc(rest)+'</span></div>':'<div class="cad-big">'+big+'</div>')
+   +'<div class="cad-caps">'+nm.toUpperCase()+'</div>'
+   +(sub?'<div class="cad-sub">\u2014 '+sub+' \u2014</div>':(pr?'<div class="cad-sub">'+big+'</div>':""))
+   +'<div class="cad-hr"></div>'+lead+also+note}
+  else{inner='<div class="cad-eng">'+edDirAv(m.avatar_url,m.display_name,58)+'</div>'
+   +'<div class="cad-caps">'+nm.toUpperCase()+'</div>'
+   +'<div class="cad-it">'+edDirEsc(hl)+'</div>'
+   +'<div class="cad-mid">'+stars+'</div>'
+   +(rate?'<div class="cad-rate">'+rate+'</div>':"")+also+note}
+  h+='<div class="cad cad'+v+'" data-pid="'+k+'">'+inner+'</div>'});
+ h+='</div>';
  if(facOnly.length){h+='<div class="dir-sec">Community facilitators</div><div class="dir-faccol">';
  facOnly.forEach(function(k){var g=by[k],f=g.fac[0];
   h+='<div class="dir-fac" data-pid="'+k+'">'+edDirAv(f.avatar_url,f.display_name,26)

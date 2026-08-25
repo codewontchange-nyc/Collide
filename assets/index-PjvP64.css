@@ -826,3 +826,39 @@
 .mk-gth button{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
  border:none;background:#17181a;color:#fff;font-size:10px;line-height:1;cursor:pointer}
 .mk-lrow{margin-bottom:6px}
+
+/* ---------- p64: classified typography feed ---------- */
+.dir-cols{columns:2;column-gap:14px;column-rule:1px solid rgba(23,20,17,.55);padding-top:4px}
+.cad{break-inside:avoid;margin:0 0 14px;padding:10px 8px 9px;background:none;cursor:pointer;
+ -webkit-tap-highlight-color:transparent;text-align:center;overflow-wrap:break-word}
+.cad0{border-top:3px solid #17181a;border-bottom:3px solid #17181a}
+.cad1{border:1.5px solid #17181a;box-shadow:0 0 0 1px #f9f4ec inset,0 0 0 2.5px #17181a inset;padding:12px 9px}
+.cad2{border-top:1px solid #17181a;border-bottom:1px solid #17181a;
+ box-shadow:0 3px 0 -2px #17181a,0 -3px 0 -2px #17181a}
+.cad3{border:1px solid #17181a;padding:12px 8px 9px}
+.cad-intro{font:600 10px Inter;letter-spacing:.14em;color:#17181a}
+.cad-big{font:900 22px/1.02 Newsreader,Georgia,serif;color:#17181a;text-transform:uppercase;
+ letter-spacing:.01em;margin:3px 0 1px;transform:scaleY(1.12);transform-origin:center}
+.cad-caps{font:800 15px Newsreader,serif;letter-spacing:.08em;text-transform:uppercase;color:#17181a;margin-top:4px}
+.cad-sub{font:italic 600 11.5px Newsreader,serif;color:#3d3833;margin:2px 0}
+.cad-band{background:#17181a;color:#f9f4ec;font:800 13px Inter;letter-spacing:.12em;
+ padding:5px 4px;margin:-4px -3px 6px}
+.cad-it{font:italic 700 13px Newsreader,serif;color:#17181a;line-height:1.25}
+.cad-hr{border-top:1px solid #17181a;margin:6px 12px}
+.cad-hr.thin{border-top-width:.5px;margin:5px 22px}
+.cad-list{margin:5px 2px 2px;text-align:left}
+.cad-line{display:flex;align-items:baseline;gap:4px;font:600 11.5px Inter;color:#17181a;padding:2px 0}
+.cad-line span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cad-line i{flex:1;min-width:12px;border-bottom:2px dotted rgba(23,20,17,.5);transform:translateY(-3px)}
+.cad-mid{font:600 10.5px Inter;letter-spacing:.05em;text-transform:uppercase;color:#17181a;
+ line-height:1.9;margin:4px 0}
+.cad-star{font-size:8px;vertical-align:2px;color:#17181a}
+.cad-bio{font:italic 500 12px Newsreader,serif;color:#4c4742;line-height:1.35;margin:4px 2px}
+.cad-price{font:900 34px/1 Newsreader,serif;color:#17181a;margin:2px 0 0}
+.cad-price span{font:700 13px Inter;margin-left:2px}
+.cad-rate{font:800 12.5px Inter;color:#a8323e;margin-top:5px}
+.cad-eng .dir-av{border-radius:50%;border:1px solid #17181a;margin:0 auto}
+.cad-also{font:600 9.5px Inter;letter-spacing:.04em;text-transform:uppercase;color:#177e6b;margin-top:5px}
+.cad-note{font:italic 600 10.5px Newsreader,serif;color:#6b645c;margin-top:6px;
+ border-top:1px dotted rgba(23,20,17,.35);padding-top:5px}
+.cad:active{background:rgba(23,20,17,.05)}
