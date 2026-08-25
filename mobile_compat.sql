@@ -723,3 +723,8 @@ language sql security definer set search_path = public as $$
    where s.role = 'facilitator' and c.city = req_city();
 $$;
 grant execute on function directory_listings() to authenticated;
+
+-- p79b: own maker listing always visible regardless of current city
+drop policy if exists makers_city_r on makers;
+create policy makers_city_r on makers as restrictive for select to authenticated
+  using (city = req_city() or profile_id = auth.uid());
