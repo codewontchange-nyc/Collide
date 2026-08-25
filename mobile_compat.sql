@@ -540,3 +540,98 @@ insert into maker_windows (maker_id, dow, start_min, end_min, slot_min) values
 ('f66da730-3a82-494f-99e7-eb8c32f2daf0', 3, 6*60, 8*60, 30),
 ('f66da730-3a82-494f-99e7-eb8c32f2daf0', 6, 7*60, 9*60+30, 30)
 on conflict do nothing;
+-- ============ p63: rich maker profiles — gallery, links, contact ============
+alter table makers add column if not exists contact text;
+alter table makers add column if not exists links jsonb not null default '[]';
+alter table makers add column if not exists gallery text[] not null default '{}';
+
+-- members may manage gallery images under event-media/mk/<their uid>/
+drop policy if exists mk_gallery_ins on storage.objects;
+create policy mk_gallery_ins on storage.objects for insert to authenticated
+  with check (bucket_id='event-media' and (storage.foldername(name))[1]='mk'
+              and (storage.foldername(name))[2]=auth.uid()::text);
+drop policy if exists mk_gallery_del on storage.objects;
+create policy mk_gallery_del on storage.objects for delete to authenticated
+  using (bucket_id='event-media' and (storage.foldername(name))[1]='mk'
+         and (storage.foldername(name))[2]=auth.uid()::text);
+
+drop function if exists directory_listings();
+create or replace function directory_listings()
+returns table(profile_id uuid, display_name text, avatar_url text, kind text,
+              headline text, offers text[], bio text, rate text, booking_url text, community_name text,
+              booking_mode text, price_cents int, deposit_cents int, payment_handle text, has_windows boolean,
+              contact text, links jsonb, gallery text[], socials jsonb)
+language sql security definer set search_path = public as $$
+  select p.id, p.display_name, p.avatar_url, 'maker'::text,
+         m.headline, m.offers, m.bio, m.rate, m.booking_url, null::text,
+         m.booking_mode, m.price_cents, m.deposit_cents, m.payment_handle,
+         exists (select 1 from maker_windows w where w.maker_id = m.profile_id),
+         m.contact, m.links, m.gallery, p.socials
+    from makers m join profiles p on p.id = m.profile_id
+   where m.active and (m.trial_ends_at is null or m.trial_ends_at > now())
+  union all
+  select p.id, p.display_name, p.avatar_url, 'facilitator'::text,
+         'Facilitator of ' || c.name, null, c.blurb, null, null, c.name,
+         null, null, null, null, false,
+         null, '[]'::jsonb, '{}'::text[], p.socials
+    from staff s
+    join profiles p on p.id = s.profile_id
+    join communities c on c.id = s.community_id
+   where s.role = 'facilitator';
+$$;
+grant execute on function directory_listings() to authenticated;
+
+-- ---- Kathleen books as DJ Leah Rose ----
+update makers set
+  headline='DJ Leah Rose — all-vinyl sets',
+  offers=array['Club & rooftop sets','Wedding selections','Listening-bar takeovers'],
+  bio='Kathleen by day, Leah Rose after dark. Strictly vinyl, strictly feeling.',
+  rate='$45/hr', booking_mode='prepaid', price_cents=4500, payment_handle='@kathleen-reid',
+  links='[{"label":"Mixcloud","url":"https://mixcloud.com/djleahrose"},{"label":"Instagram","url":"https://instagram.com/djleahrose"}]'::jsonb,
+  gallery=array['mk/demo/leah-1.jpg','mk/demo/leah-2.jpg','mk/demo/leah-3.jpg']
+ where profile_id='615cd0ad-d2f4-410d-83da-3d282f6377cb';
+
+-- ---- Code books for hacking ----
+update makers set
+  headline='Hacking, kindly — apps & automations',
+  offers=array['App prototypes','Automation spells','Debug exorcisms'],
+  bio='Bring me the thing that "should be simple." I build small software that feels hand-made.',
+  rate='$90/hr', booking_mode='deposit', price_cents=9000, deposit_cents=3000, payment_handle='@codewontchange',
+  links='[{"label":"GitHub","url":"https://github.com/codewontchange-nyc"}]'::jsonb,
+  gallery=array['mk/demo/code-1.jpg','mk/demo/code-2.jpg']
+ where profile_id='308abd7b-e52e-4945-8c1f-e0c86e221e6a';
+
+-- ---- everyone else gets a listing ----
+insert into makers (profile_id, headline, offers, bio, rate, booking_mode, price_cents, deposit_cents, payment_handle, contact, links, gallery) values
+('464dab6e-24db-484c-a9c1-f2415d5bf5cf','Live sound & party sets',array['DJ sets','Live-sound runs','Playlist doctoring'],'I make rooms feel like the good part of the night.','$60/hr','prepaid',6000,0,'@jules-riv',null,'[{"label":"SoundCloud","url":"https://soundcloud.com/julesriv"}]'::jsonb,array['mk/demo/jules-1.jpg','mk/demo/jules-2.jpg']),
+('a54e1d9e-4d71-432e-ad1b-88c16c4472d6','Crate-digging tours & record hunts',array['Shop crawls','Wantlist hunting','Collection triage'],'Three shops, two hours, one record you didn''t know you needed.','$40/tour','deposit',4000,1500,'@kofi-digs',null,'[]'::jsonb,array['mk/demo/kofi-1.jpg']),
+('66bf4b26-272f-4e93-b7a8-04921a539726','Food tours & pop-up consulting',array['Neighborhood eats tours','Pop-up menus','Vendor scouting'],'I know where the line is worth it.','$50/tour','deposit',5000,2000,'@marcus-eats',null,'[]'::jsonb,array['mk/demo/marcus-1.jpg','mk/demo/marcus-2.jpg']),
+('41432059-cf6f-4f06-a6cb-cb6f043cca7e','Personal training — kind but relentless',array['1:1 sessions','Small-group runs','Program design'],'Your future self called. She''s stronger.','$55/session','prepaid',5500,0,'@maya-flows',null,'[]'::jsonb,array['mk/demo/maya-1.jpg']),
+('71db2f36-47ad-4f45-be97-a9bd08f37e85','Event & street photography',array['Event coverage','Portraits on film','Photo walks'],'I shoot the in-between moments — that''s where the party lives.','$120/event','deposit',12000,4000,'@tommy-shoots',null,'[{"label":"Portfolio","url":"https://tommynguyen.pics"}]'::jsonb,array['mk/demo/tommy-1.jpg','mk/demo/tommy-2.jpg']),
+('83650c46-a97a-4997-8e87-aed5fe23dec6','Web dev tutoring & code review',array['1:1 tutoring','Code reviews','Interview prep'],'Gentle with beginners, ruthless with bugs.','$45/hr','free',0,0,null,null,'[]'::jsonb,'{}'),
+('c9dee35c-dbec-4c50-a078-178fe945138e','Illustration & show flyers',array['Gig posters','Logo sketches','Zine layouts'],'Hand-drawn, slightly weird, exactly right.','from $80','free',0,0,null,'DM @sofia.draws on IG — commissions open monthly','[{"label":"Instagram","url":"https://instagram.com/sofia.draws"}]'::jsonb,array['mk/demo/sofia-1.jpg','mk/demo/sofia-2.jpg'])
+on conflict (profile_id) do nothing;
+
+-- Zoe: contact-instead-of-booking example
+update makers set contact='Text for tables: (917) 555-0707 · tastings by invitation'
+ where profile_id='c88fc704-0bc3-4a83-bb84-95710c6af9af';
+
+-- windows so the rest are actually bookable
+insert into maker_windows (maker_id, dow, start_min, end_min, slot_min) values
+('308abd7b-e52e-4945-8c1f-e0c86e221e6a', 5, 13*60, 17*60, 90),
+('308abd7b-e52e-4945-8c1f-e0c86e221e6a', 3, 18*60, 21*60, 90),
+('464dab6e-24db-484c-a9c1-f2415d5bf5cf', 5, 19*60, 23*60, 120),
+('464dab6e-24db-484c-a9c1-f2415d5bf5cf', 6, 19*60, 23*60, 120),
+('a54e1d9e-4d71-432e-ad1b-88c16c4472d6', 6, 11*60, 15*60, 120),
+('66bf4b26-272f-4e93-b7a8-04921a539726', 0, 11*60, 15*60, 120),
+('66bf4b26-272f-4e93-b7a8-04921a539726', 6, 17*60, 21*60, 120),
+('41432059-cf6f-4f06-a6cb-cb6f043cca7e', 1, 7*60, 10*60, 60),
+('41432059-cf6f-4f06-a6cb-cb6f043cca7e', 4, 7*60, 10*60, 60),
+('41432059-cf6f-4f06-a6cb-cb6f043cca7e', 6, 8*60, 11*60, 60),
+('71db2f36-47ad-4f45-be97-a9bd08f37e85', 5, 16*60, 20*60, 120),
+('71db2f36-47ad-4f45-be97-a9bd08f37e85', 0, 10*60, 14*60, 120),
+('83650c46-a97a-4997-8e87-aed5fe23dec6', 2, 19*60, 21*60, 60),
+('83650c46-a97a-4997-8e87-aed5fe23dec6', 0, 15*60, 18*60, 60),
+('a31882fd-ea14-4363-9ce4-6746eb58f3fd', 6, 8*60, 12*60, 120),
+('c2b3cf76-ef83-4e48-95de-013c26fb8dcf', 6, 14*60, 18*60, 120)
+on conflict do nothing;

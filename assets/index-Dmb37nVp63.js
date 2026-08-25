@@ -977,20 +977,20 @@ function edDirGroup(rows){
 async function edOpenDirectory(){
  if(document.querySelector(".ed-dir"))return;
  var o=document.createElement("div");o.className="ed-dir";
- o.innerHTML='<div class="dir-mast"><button class="dir-x" aria-label="Close">✕</button>'
+ o.innerHTML='<div class="dir-mast"><button class="dir-back" aria-label="Back">‹ back</button>'
   +'<div class="dir-kick">est. 2026 · goods &amp; services · book a neighbor</div>'
   +'<h1 class="dir-title">The Collide Classifieds</h1>'
   +'<div class="dir-rule"></div></div>'
   +'<div class="dir-body"><div class="dir-loading">setting the type…</div></div>';
  document.body.appendChild(o);
- o.querySelector(".dir-x").addEventListener("click",function(){o.remove()});
+ o.querySelector(".dir-back").addEventListener("click",function(){o.remove()});
  var rows=await edDirLoad();if(!document.body.contains(o))return;
  var by=edDirGroup(rows),ids=Object.keys(by);
  var makers=ids.filter(function(k){return by[k].maker}),facOnly=ids.filter(function(k){return !by[k].maker&&by[k].fac.length});
  var h='';
  h+='<div class="dir-sec">Makers for hire</div>';
  makers.forEach(function(k){var g=by[k],m=g.maker;
-  h+='<div class="dir-ad">'
+  h+='<div class="dir-ad" data-pid="'+k+'">'
    +'<div class="dir-adhead">'+edDirAv(m.avatar_url,m.display_name,34)
    +'<div><div class="dir-name">'+edDirEsc(m.display_name)+'</div>'
    +'<div class="dir-headline">'+edDirEsc(m.headline)+'</div></div>'
@@ -999,20 +999,23 @@ async function edOpenDirectory(){
    +(m.bio?'<div class="dir-bio">“'+edDirEsc(m.bio)+'”</div>':'')
    +(g.fac.length?'<div class="dir-also">also facilitates '+g.fac.map(function(f){return edDirEsc(f.community_name)}).join(" & ")+'</div>':'')
    +(m.has_windows?'<button type="button" class="dir-book dir-bookslot" data-mk="'+m.profile_id+'">Book a slot'+(m.booking_mode==="prepaid"&&m.price_cents?' · '+edBkMoney(m.price_cents):m.booking_mode==="deposit"&&m.deposit_cents?' · '+edBkMoney(m.deposit_cents)+' deposit':'')+' ⟶</button>'
+     :m.contact?'<div class="dir-book dir-touch">Get in touch ⟶</div>'
      :m.booking_url?'<a class="dir-book" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(m.booking_url)+'">Book their time ⟶</a>'
-     :'<div class="dir-book dir-ask">inquire in town 🕊</div>')
+     :'<div class="dir-book dir-ask">see their page ⟶</div>')
    +'</div>'});
  h+='<div class="dir-sec">Community facilitators</div><div class="dir-faccol">';
  facOnly.forEach(function(k){var g=by[k],f=g.fac[0];
-  h+='<div class="dir-fac">'+edDirAv(f.avatar_url,f.display_name,26)
+  h+='<div class="dir-fac" data-pid="'+k+'">'+edDirAv(f.avatar_url,f.display_name,26)
    +'<div><div class="dir-name sm">'+edDirEsc(f.display_name)+'</div>'
    +'<div class="dir-facline">'+g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" · ")+'</div></div></div>'});
  h+='</div><div class="dir-foot">place your ad — become a maker from your profile · first 3 months on the house</div>';
  o.querySelector(".dir-body").innerHTML=h;
  o.querySelector(".dir-body").addEventListener("click",function(ev){
-  var b=ev.target.closest(".dir-bookslot");if(!b)return;
-  var mk=rows.find(function(r){return r.kind==="maker"&&r.profile_id===b.dataset.mk});
-  mk&&edOpenBooking(mk)})}
+  var b=ev.target.closest(".dir-bookslot");
+  if(b){var mk=rows.find(function(r){return r.kind==="maker"&&r.profile_id===b.dataset.mk});
+   mk&&edOpenBooking(mk);return}
+  var card=ev.target.closest("[data-pid]");
+  card&&by[card.dataset.pid]&&edOpenMakerProfile(by[card.dataset.pid])})}
 function EdMakers(){
  var st=(0,_.useState)(null),d=st[0],set=st[1];
  (0,_.useEffect)(function(){var on=!0;
@@ -1174,10 +1177,60 @@ async function edOpenMakerSched(uid){
    await W.from("bookings").update({status:"canceled"}).eq("id",t.dataset.id);
    bks=bks.filter(function(x){return x.id!==t.dataset.id});rBks();return}});
  rBks();rPay();rWins();rAdd()}
+function edMkMedia(p){try{return W.storage.from("event-media").getPublicUrl(p).data.publicUrl}catch(e){return ""}}
+function edOpenMakerProfile(g){
+ if(document.querySelector(".ed-prof"))return;
+ var m=g.maker,f0=g.fac&&g.fac[0],base=m||f0;if(!base)return;
+ var name=base.display_name,gal=(m&&m.gallery||[]).filter(Boolean);
+ var o=document.createElement("div");o.className="ed-prof";
+ var h='<div class="prof-bar"><button class="prof-back">‹ back</button><span class="prof-bar-n">'+edDirEsc(name)+'</span></div>';
+ if(gal.length){
+  h+='<div class="prof-hero"><img src="'+edMkMedia(gal[0])+'" alt=""/>'
+   +'<div class="prof-hero-tx"><div class="prof-name">'+edDirEsc(name)+'</div>'
+   +(m&&m.headline?'<div class="prof-head">'+edDirEsc(m.headline)+'</div>':'')+'</div></div>'}
+ else{
+  h+='<div class="prof-hero prof-hero-av">'+edDirAv(base.avatar_url,name,120)
+   +'<div class="prof-name dark">'+edDirEsc(name)+'</div>'
+   +(m&&m.headline?'<div class="prof-head dark">'+edDirEsc(m.headline)+'</div>'
+    :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')+'</div>'}
+ if(m&&m.offers&&m.offers.length)
+  h+='<div class="prof-card"><div class="prof-k">On the menu</div><div class="prof-chips">'
+   +m.offers.map(function(x){return '<span class="prof-chip">'+edDirEsc(x)+'</span>'}).join("")+'</div>'
+   +(m.rate?'<div class="prof-rate">'+edDirEsc(m.rate)+'</div>':'')+'</div>';
+ if(gal[1])h+='<div class="prof-img"><img src="'+edMkMedia(gal[1])+'" alt=""/></div>';
+ if(m&&m.bio)h+='<div class="prof-card"><div class="prof-k">Why book me</div><div class="prof-bio">“'+edDirEsc(m.bio)+'”</div></div>';
+ if(gal[2])h+='<div class="prof-img"><img src="'+edMkMedia(gal[2])+'" alt=""/></div>';
+ if(g.fac&&g.fac.length)
+  h+='<div class="prof-card"><div class="prof-k">Around town</div><div class="prof-fac">🏘 Facilitates '
+   +g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" & ")+'</div>'
+   +(f0&&f0.bio?'<div class="prof-bio sm">'+edDirEsc(f0.bio)+'</div>':'')+'</div>';
+ var lk=(m&&m.links)||[];if(typeof lk==="string")try{lk=JSON.parse(lk)}catch(e){lk=[]}
+ var soc=base.socials||{},socKeys=[];try{socKeys=Au.filter(function(p){return soc[p.key]})}catch(e){}
+ if(lk.length||socKeys.length)
+  h+='<div class="prof-card"><div class="prof-k">Out in the world</div><div class="prof-links">'
+   +lk.map(function(l){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(l.url)+'">'+edDirEsc(l.label||"Link")+' ↗</a>'}).join("")
+   +socKeys.map(function(p){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(p.toUrl(soc[p.key]))+'">'+edDirEsc(p.key==="website"?"Website":"@"+soc[p.key])+' ↗</a>'}).join("")
+   +'</div></div>';
+ if(m&&m.contact)
+  h+='<div class="prof-card"><div class="prof-k">Get in touch</div><div class="prof-contact">📮 '+edDirEsc(m.contact)+'</div></div>';
+ h+='<div class="prof-pad"></div>';
+ var cta='';
+ if(m&&m.has_windows)cta='<button class="prof-cta" type="button">Book a slot'
+  +(m.booking_mode==="prepaid"&&m.price_cents?' · '+edBkMoney(m.price_cents):m.booking_mode==="deposit"&&m.deposit_cents?' · '+edBkMoney(m.deposit_cents)+' deposit':'')+'</button>';
+ else if(m&&m.booking_url)cta='<a class="prof-cta" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(m.booking_url)+'">Book their time ↗</a>';
+ else if(m&&m.contact)cta='<div class="prof-cta ghost">📮 '+edDirEsc(m.contact)+'</div>';
+ o.innerHTML='<div class="prof-scroll">'+h+'</div>'+(cta?'<div class="prof-ctabar">'+cta+'</div>':'');
+ document.body.appendChild(o);
+ o.querySelector(".prof-back").addEventListener("click",function(){o.remove()});
+ var cb=o.querySelector("button.prof-cta");
+ cb&&cb.addEventListener("click",function(){edOpenBooking(m)})}
 function edOpenMakerEd(uid){
  W.from("makers").select("*").eq("profile_id",uid).maybeSingle().then(function(r){
   var m=r.data,isNew=!m;
-  m=m||{headline:"",offers:[],bio:"",rate:"",booking_url:"",active:!0,trial_ends_at:null};
+  m=m||{headline:"",offers:[],bio:"",rate:"",booking_url:"",active:!0,trial_ends_at:null,contact:"",links:[],gallery:[]};
+  var lk=m.links||[];if(typeof lk==="string")try{lk=JSON.parse(lk)}catch(e){lk=[]}
+  while(lk.length<3)lk.push({label:"",url:""});
+  var gal=(m.gallery||[]).slice();
   var w=edSheet('<div class="fe-head"><b>'+(isNew?"Become a maker":"Your maker listing")+'</b>'
    +(isNew?'':'<button class="fe-redraw" id="mksched" type="button">📅 schedule</button>')+'</div>'
    +(isNew?'<p class="mk-pitch">Show what you make, sell, or teach — and let people book your time. Paid upgrade, <b>free for your first 3 months</b>.</p>'
@@ -1185,18 +1238,47 @@ function edOpenMakerEd(uid){
    +'<label class="mk-l">Headline</label><input class="mk-i" id="mkh" maxlength="60" placeholder="Portrait photographer" value="'+edDirEsc(m.headline)+'"/>'
    +'<label class="mk-l">What you offer <i>(comma separated)</i></label><input class="mk-i" id="mko" placeholder="Mini sessions, Prints, Lessons" value="'+edDirEsc((m.offers||[]).join(", "))+'"/>'
    +'<label class="mk-l">One-liner bio</label><input class="mk-i" id="mkb" maxlength="120" placeholder="Why you?" value="'+edDirEsc(m.bio||"")+'"/>'
-   +'<label class="mk-l">Rate blurb <i>(shown on your ad)</i></label><input class="mk-i" id="mkr" placeholder="$50/hr" value="'+edDirEsc(m.rate||"")+'"/>'
+   +'<label class="mk-l">Rate blurb</label><input class="mk-i" id="mkr" placeholder="$50/hr" value="'+edDirEsc(m.rate||"")+'"/>'
+   +'<label class="mk-l">Contact <i>(instead of — or besides — booking)</i></label><input class="mk-i" id="mkc" maxlength="90" placeholder="DM @you · text (xxx) xxx-xxxx" value="'+edDirEsc(m.contact||"")+'"/>'
+   +'<label class="mk-l">Gallery <i>(shows on your page)</i></label><div class="mk-gal" id="mkgal"></div>'
+   +'<input type="file" id="mkgf" accept="image/*" multiple style="display:none"/>'
+   +'<button type="button" class="fe-save sm ghosty" id="mkga">＋ Add photos</button>'
+   +'<label class="mk-l" style="margin-top:14px">Links <i>(portfolio, mixes, socials)</i></label>'
+   +lk.slice(0,3).map(function(l,i){return '<div class="mk-row mk-lrow"><span style="flex:.6"><input class="mk-i" data-ll="'+i+'" maxlength="18" placeholder="Label" value="'+edDirEsc(l.label||"")+'"/></span><span><input class="mk-i" data-lu="'+i+'" inputmode="url" placeholder="https://…" value="'+edDirEsc(l.url||"")+'"/></span></div>'}).join("")
    +'<label class="mk-tog"><input type="checkbox" id="mka"'+(m.active?" checked":"")+'/> Listed in the classifieds</label>'
    +'<button class="fe-save" id="mks" type="button">'+(isNew?"Open my listing":"Save listing")+'</button>'
    +(isNew?'':'<button class="mk-del" id="mkd" type="button">Remove my listing</button>'));
+  var gEl=w.querySelector("#mkgal");
+  function rGal(){gEl.innerHTML=gal.map(function(p,i){
+   return '<span class="mk-gth"><img src="'+edMkMedia(p)+'" alt=""/><button type="button" data-gi="'+i+'">✕</button></span>'}).join("")||'<span class="bk-none">no photos yet</span>'}
+  gEl.addEventListener("click",function(ev){var b=ev.target.closest("button[data-gi]");if(!b)return;
+   gal.splice(+b.dataset.gi,1);rGal()});
+  w.querySelector("#mkga").addEventListener("click",function(){w.querySelector("#mkgf").click()});
+  w.querySelector("#mkgf").addEventListener("change",async function(ev){
+   var fs=[...ev.target.files];if(!fs.length)return;
+   var t=edFeToast("Uploading "+fs.length+"…");
+   for(var i=0;i<fs.length;i++){
+    var ext=(fs[i].name.split(".").pop()||"jpg").toLowerCase();
+    var path="mk/"+uid+"/"+crypto.randomUUID()+"."+ext;
+    var up=await W.storage.from("event-media").upload(path,fs[i],{contentType:fs[i].type||"image/jpeg"});
+    up.error||gal.push(path)}
+   t.remove();rGal()});
+  rGal();
   var sc=w.querySelector("#mksched");
   sc&&sc.addEventListener("click",function(){edKillSheet();setTimeout(function(){edOpenMakerSched(uid)},60)});
   w.querySelector("#mks").addEventListener("click",async function(){
    var t=edFeToast("Setting your ad…");
    try{
+    var links=[];
+    [0,1,2].forEach(function(i){
+     var la=w.querySelector('[data-ll="'+i+'"]'),ur=w.querySelector('[data-lu="'+i+'"]');
+     var u=ur?ur.value.trim():"";if(!u)return;
+     /^https?:/.test(u)||(u="https://"+u);
+     links.push({label:(la&&la.value.trim())||"Link",url:u})});
     var row={profile_id:uid,headline:w.querySelector("#mkh").value.trim(),
      offers:w.querySelector("#mko").value.split(",").map(function(s){return s.trim()}).filter(Boolean),
      bio:w.querySelector("#mkb").value.trim()||null,rate:w.querySelector("#mkr").value.trim()||null,
+     contact:w.querySelector("#mkc").value.trim()||null,links:links,gallery:gal,
      active:w.querySelector("#mka").checked,updated_at:new Date().toISOString()};
     var res=await W.from("makers").upsert(row);if(res.error)throw res.error;
     edDirCache.t=0;t.textContent="You\u2019re in the paper ✓";
