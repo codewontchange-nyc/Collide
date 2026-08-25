@@ -865,3 +865,8 @@
 
 .cad-big{overflow-wrap:normal;word-break:keep-all}
 .cad-big.sm{font-size:16.5px;letter-spacing:.03em}
+
+/* ---------- p65: classifieds in main nav + featured-only carousel ---------- */
+button.navtab.ed-nav-cl{background:none;border:none;font:inherit;cursor:pointer;
+ -webkit-tap-highlight-color:transparent}
+.ed-mkr-note{font:italic 600 11px Newsreader,serif;color:#8a8378;letter-spacing:0;text-transform:none}
