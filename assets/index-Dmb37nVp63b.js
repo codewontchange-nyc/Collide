@@ -1003,12 +1003,13 @@ async function edOpenDirectory(){
      :m.booking_url?'<a class="dir-book" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(m.booking_url)+'">Book their time ⟶</a>'
      :'<div class="dir-book dir-ask">see their page ⟶</div>')
    +'</div>'});
- h+='<div class="dir-sec">Community facilitators</div><div class="dir-faccol">';
+ if(facOnly.length){h+='<div class="dir-sec">Community facilitators</div><div class="dir-faccol">';
  facOnly.forEach(function(k){var g=by[k],f=g.fac[0];
   h+='<div class="dir-fac" data-pid="'+k+'">'+edDirAv(f.avatar_url,f.display_name,26)
    +'<div><div class="dir-name sm">'+edDirEsc(f.display_name)+'</div>'
    +'<div class="dir-facline">'+g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" · ")+'</div></div></div>'});
- h+='</div><div class="dir-foot">place your ad — become a maker from your profile · first 3 months on the house</div>';
+ h+='</div>'}
+ h+='<div class="dir-foot">place your ad — become a maker from your profile · first 3 months on the house</div>';
  o.querySelector(".dir-body").innerHTML=h;
  o.querySelector(".dir-body").addEventListener("click",function(ev){
   var b=ev.target.closest(".dir-bookslot");
