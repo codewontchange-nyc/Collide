@@ -1071,3 +1071,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 #ed-lg-btn{border:none;width:48px;height:48px;left:14px;
  bottom:calc(78px + env(safe-area-inset-bottom,0px))}
 #yap-fab{right:14px;bottom:calc(78px + env(safe-area-inset-bottom,0px))}
+
+/* p76: inked status tag */
+.cs.inked{color:var(--teal-ink)}

@@ -881,6 +881,26 @@ async function edCities(){
  edCityList=r.data||[];return edCityList}
 function edCityClose(){var p=document.querySelector(".ed-city-panel");p&&p.remove();
  var t=document.querySelector(".ed-city-tease");t&&t.remove()}
+function edCitySky(on){
+ document.querySelectorAll(".ed-xsky").forEach(function(e){e.remove()});
+ if(!on)return;
+ var NS="http://www.w3.org/2000/svg";
+ var cl=document.querySelector(".map-clouds"),bd=document.querySelector(".map-birds");
+ var CP="M24 62 C11 62 5 52 12 43 C6 33 18 26 28 32 C30 17 50 13 58 25 C65 11 89 13 90 31 C107 29 115 45 103 55 C109 64 96 67 88 63 C80 67 32 67 24 62 Z";
+ var i;
+ if(cl)for(i=0;i<4;i++){var d=90+Math.random()*80;
+  var s=document.createElementNS(NS,"svg");
+  s.setAttribute("class","map-cloud ed-xsky");s.setAttribute("viewBox","0 0 120 74");s.setAttribute("fill","none");
+  s.style.cssText="top:"+(5+Math.random()*70).toFixed(1)+"%;width:"+(7+Math.random()*14).toFixed(1)+"%;animation-duration:"+d.toFixed(0)+"s;animation-delay:-"+(Math.random()*d).toFixed(0)+"s;opacity:"+(.68+Math.random()*.25).toFixed(2);
+  s.innerHTML='<path d="'+CP+'" fill="#fff" stroke="#111" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>';
+  cl.appendChild(s)}
+ if(bd)for(var f=0;f<2;f++){var n=3+Math.floor(Math.random()*3),ltr=Math.random()<.5,dur=38+Math.random()*30,delay=-Math.random()*dur,yy=6+Math.random()*60,drift=Math.random()*28-14,sz=1.1+Math.random()*.8,dx=ltr?112:-112;
+  for(i=0;i<n;i++){var off=i*sz*.9*(ltr?-1:1),vy=i===0?0:(i%2?-1:1)*Math.ceil(i/2)*sz*.55,x0=(ltr?-6:106)+off;
+   var b2=document.createElementNS(NS,"svg");
+   b2.setAttribute("class","map-bird ed-xsky");b2.setAttribute("viewBox","0 0 26 14");
+   b2.style.cssText="--bx0:"+x0.toFixed(1)+"%;--bx1:"+(x0+dx).toFixed(1)+"%;--by0:"+(yy+vy).toFixed(1)+"%;--by1:"+(yy+vy+drift).toFixed(1)+"%;--dur:"+dur.toFixed(0)+"s;--delay:"+delay.toFixed(1)+"s;--flap:"+(.5+Math.random()*.35).toFixed(2)+"s;--flapd:-"+(Math.random()*.8).toFixed(2)+"s;width:"+sz.toFixed(2)+"%";
+   b2.innerHTML='<path class="w1" d="M2 10 Q8 2 13 8 Q18 2 24 10"/><path class="w2" d="M2 6 Q8 10 13 7 Q18 10 24 6"/>';
+   bd.appendChild(b2)}}}
 function edCityCur(){return localStorage.getItem("ed.city")||"nyc"}
 function edCityArt(p){try{return W.storage.from("map").getPublicUrl(p).data.publicUrl}catch(e){return null}}
 function edCityApply(c){
@@ -888,6 +908,7 @@ function edCityApply(c){
  var chip=document.getElementById("ed-city");if(!img||!cv)return;
  var ban=document.getElementById("ed-city-ban");ban&&ban.remove();
  if(!c||c.code==="nyc"){
+  edCitySky(!1);
   localStorage.removeItem("ed.city");
   img.__ednyc&&(img.src=img.__ednyc);
   cv.classList.remove("ed-off-ev","ed-off-poi","ed-off-yap");
@@ -900,8 +921,10 @@ function edCityApply(c){
  cv.classList.add("ed-off-ev","ed-off-poi","ed-off-yap");
  chip&&(chip.querySelector("b").textContent=c.short);
  window.__edClTick&&window.__edClTick();
+ edCitySky(!0);
  var b=document.createElement("div");b.id="ed-city-ban";
- b.innerHTML='<b>'+c.name+' \u00b7 first press</b><span>The ink is fresh \u2014 pins land here at launch.</span>'
+ b.innerHTML='<b>'+c.name+' \u00b7 '+(c.status==="inked"?"map inked":"first press")+'</b>'
+  +'<span>'+(c.status==="inked"?"Launch details coming \u2014 pins land here on day one.":"The ink is fresh \u2014 pins land here at launch.")+'</span>'
   +'<button type="button">back to NYC</button>';
  b.querySelector("button").addEventListener("click",function(){edCityApply(null)});
  var logo=document.querySelector(".map-logo");
@@ -923,6 +946,7 @@ async function edCityOpen(){
  var p=document.createElement("div");p.className="ed-city-panel";
  p.innerHTML=cs.map(function(c){
   var st=c.status==="live"?'<i class="cs live">you\u2019re here \u2713</i>'
+   :c.status==="inked"?'<i class="cs inked">map inked \u00b7 details soon</i>'
    :c.status==="inking"?'<i class="cs ink">map\u2019s being inked</i>'
    :'<i class="cs soon">coming soon</i>';
   return '<button type="button" class="ed-city-row '+c.status+'" data-c="'+c.code+'">'

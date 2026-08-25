@@ -663,3 +663,8 @@ on conflict (code) do nothing;
 -- p75: LA/CHI inking; homebase groundwork
 update cities set status='inking' where code in ('la','chi');
 alter table profiles add column if not exists home_city text not null default 'nyc' references cities(code);
+
+-- p76: 'inked' status (map done, launch pending); atl=inked
+alter table cities drop constraint if exists cities_status_check;
+alter table cities add constraint cities_status_check check (status in ('live','inked','inking','coming_soon'));
+update cities set status='inked' where code='atl';
