@@ -1003,7 +1003,7 @@ async function edOpenDirectory(){
   var rate=m.rate?edDirEsc(m.rate):"";
   var inner="";
   if(v===0){inner='<div class="cad-intro">'+nm.toUpperCase()+',</div>'
-   +'<div class="cad-big">'+big+'</div>'
+   +'<div class="cad-big'+(big.length>14?" sm":"")+'">'+big+'</div>'
    +(sub?'<div class="cad-sub">\u2014 '+sub+' \u2014</div>':"")
    +'<div class="cad-hr"></div>'+lead
    +(rate?'<div class="cad-rate">'+rate+'</div>':"")+also+note}
@@ -1014,7 +1014,7 @@ async function edOpenDirectory(){
    +(m.bio?'<div class="cad-bio">\u201c'+edDirEsc(m.bio)+'\u201d</div>':"")
    +(rate?'<div class="cad-rate">'+rate+'</div>':"")+also+note}
   else if(v===2){var pm=rate.match(/\$\s?\d+[\d.,]*/);var pr=pm?pm[0]:"";var rest=pr?rate.slice(rate.indexOf(pr)+pr.length):"";
-   inner=(pr?'<div class="cad-price">'+pr+'<span>'+edDirEsc(rest)+'</span></div>':'<div class="cad-big">'+big+'</div>')
+   inner=(pr?'<div class="cad-price">'+pr+'<span>'+edDirEsc(rest)+'</span></div>':'<div class="cad-big'+(big.length>14?" sm":"")+'">'+big+'</div>')
    +'<div class="cad-caps">'+nm.toUpperCase()+'</div>'
    +(sub?'<div class="cad-sub">\u2014 '+sub+' \u2014</div>':(pr?'<div class="cad-sub">'+big+'</div>':""))
    +'<div class="cad-hr"></div>'+lead+also+note}

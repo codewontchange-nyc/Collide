@@ -862,3 +862,6 @@
 .cad-note{font:italic 600 10.5px Newsreader,serif;color:#6b645c;margin-top:6px;
  border-top:1px dotted rgba(23,20,17,.35);padding-top:5px}
 .cad:active{background:rgba(23,20,17,.05)}
+
+.cad-big{overflow-wrap:normal;word-break:keep-all}
+.cad-big.sm{font-size:16.5px;letter-spacing:.03em}
