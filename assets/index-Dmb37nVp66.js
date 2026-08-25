@@ -959,6 +959,7 @@ function edOpenFaceEd(uid,saved){
    t.textContent="That’s you ✓";setTimeout(function(){location.reload()},700)
   }catch(e){t.textContent="Couldn’t save — try again";setTimeout(function(){t.remove()},2200);busy=false}});
  renderCats();renderStrip();updPrev()}
+addEventListener("scroll",function(){document.documentElement.classList.toggle("ed-shrunk",(window.scrollY||0)>34)},{passive:!0});
 var edDirCache={t:0,d:null};
 async function edDirLoad(){
  if(edDirCache.d&&Date.now()-edDirCache.t<60000)return edDirCache.d;
@@ -975,15 +976,21 @@ function edDirGroup(rows){
   r.kind==="maker"?g.maker=r:g.fac.push(r)});
  return by}
 async function edOpenDirectory(){
- if(document.querySelector(".ed-dir"))return;
+ var ex=document.querySelector(".ed-dir");if(ex){ex.remove();return}
  var o=document.createElement("div");o.className="ed-dir";
- o.innerHTML='<div class="dir-mast"><button class="dir-back" aria-label="Back">‹ back</button>'
+ o.innerHTML='<div class="dir-mast">'
   +'<div class="dir-kick">est. 2026 · goods &amp; services · book a neighbor</div>'
   +'<h1 class="dir-title">The Collide Classifieds</h1>'
   +'<div class="dir-rule"></div></div>'
   +'<div class="dir-body"><div class="dir-loading">setting the type…</div></div>';
  document.body.appendChild(o);
- o.querySelector(".dir-back").addEventListener("click",function(){o.remove()});
+ o.addEventListener("scroll",function(){o.classList.toggle("dir-shrunk",o.scrollTop>30)},{passive:!0});
+ function edDirNavClose(ev){
+  if(!document.body.contains(o)){document.removeEventListener("click",edDirNavClose,!0);return}
+  var t=ev.target.closest(".bottomnav a.navtab");if(!t)return;
+  o.remove();var p=document.querySelector(".ed-prof");p&&p.remove();
+  document.removeEventListener("click",edDirNavClose,!0)}
+ document.addEventListener("click",edDirNavClose,!0);
  var rows=await edDirLoad();if(!document.body.contains(o))return;
  var by=edDirGroup(rows),ids=Object.keys(by);
  var makers=ids.filter(function(k){return by[k].maker}),facOnly=ids.filter(function(k){return !by[k].maker&&by[k].fac.length});

@@ -873,3 +873,23 @@ button.navtab.ed-nav-cl{background:none;border:none;font:inherit;cursor:pointer;
 
 button.navtab.ed-nav-cl span{font:600 11px Inter,-apple-system,sans-serif}
 button.navtab.ed-nav-cl{color:inherit;padding:0}
+
+/* ---------- p66: nav-friendly classifieds + shrinking sticky headers ---------- */
+.ed-dir{z-index:40;bottom:calc(var(--nav-h,60px) + var(--safe-bottom,0px));padding-top:0}
+.dir-mast{padding:12px 0 2px}
+.dir-title{transition:font-size .2s ease,margin .2s ease}
+.dir-kick{transition:opacity .15s}
+.ed-dir.dir-shrunk .dir-title{font-size:20px;margin:2px 0 6px}
+.ed-dir.dir-shrunk .dir-kick{display:none}
+.masthead{position:sticky;top:0;z-index:30;background:var(--paper);
+ transition:padding .18s ease,margin .18s ease}
+.mast-brand{transition:transform .18s ease;transform-origin:left center}
+html.ed-shrunk .masthead{padding-bottom:6px;margin-bottom:14px}
+html.ed-shrunk .mast-brand{transform:scale(.82)}
+.ed-mast{position:sticky;top:0;z-index:30;background:var(--paper);
+ transition:padding .18s ease,margin .18s ease}
+.ed-mast .ed-date{transition:font-size .18s ease}
+.ed-mast .ed-kicker{transition:opacity .15s}
+html.ed-shrunk .ed-mast{padding:5px 0 9px;margin-bottom:12px}
+html.ed-shrunk .ed-mast .ed-date{font-size:21px}
+html.ed-shrunk .ed-mast .ed-kicker{display:none}
