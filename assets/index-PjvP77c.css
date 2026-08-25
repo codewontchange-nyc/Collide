@@ -1083,3 +1083,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
  -webkit-tap-highlight-color:transparent}
 .ed-citychip.on{background:#17181a;border-color:#17181a;color:#fffdf9}
 .ed-citychip.off{opacity:.35;cursor:default}
+
+/* p77c: dropdown row fit */
+.ed-city-panel{width:252px}
+.ed-city-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

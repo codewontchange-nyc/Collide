@@ -946,8 +946,8 @@ async function edCityOpen(){
  var p=document.createElement("div");p.className="ed-city-panel";
  p.innerHTML=cs.map(function(c){
   var st=c.status==="live"?'<i class="cs live">you\u2019re here \u2713</i>'
-   :c.status==="inked"?'<i class="cs inked">map inked \u00b7 details soon</i>'
-   :c.status==="inking"?'<i class="cs ink">map\u2019s being inked</i>'
+   :c.status==="inked"?'<i class="cs inked">details soon</i>'
+   :c.status==="inking"?'<i class="cs ink">being inked</i>'
    :'<i class="cs soon">coming soon</i>';
   return '<button type="button" class="ed-city-row '+c.status+'" data-c="'+c.code+'">'
    +'<b>'+c.short+'</b><span>'+c.name+'</span>'+st+'</button>'}).join("");
