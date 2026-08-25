@@ -1106,3 +1106,43 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .ed-mkcard{padding-top:15px}
 .onb-sel{appearance:none;-webkit-appearance:none;text-align:center;text-align-last:center;
  width:auto!important;min-width:7.5ch;padding-right:4px}
+
+/* ---------- p80: cascading entrances — classifieds + you're in ---------- */
+.feed>*{animation:ed-cascade .6s cubic-bezier(.22,1,.36,1) both}
+.feed>*:nth-child(1){animation-delay:0.02s}
+.feed>*:nth-child(2){animation-delay:0.10s}
+.feed>*:nth-child(3){animation-delay:0.18s}
+.feed>*:nth-child(4){animation-delay:0.26s}
+.feed>*:nth-child(5){animation-delay:0.34s}
+.feed>*:nth-child(6){animation-delay:0.42s}
+.feed .tl-group>*{animation:ed-cascade .55s cubic-bezier(.22,1,.36,1) backwards}
+.feed .tl-group>*:nth-child(1){animation-delay:0.08s}
+.feed .tl-group>*:nth-child(2){animation-delay:0.14s}
+.feed .tl-group>*:nth-child(3){animation-delay:0.20s}
+.feed .tl-group>*:nth-child(4){animation-delay:0.26s}
+.feed .tl-group>*:nth-child(5){animation-delay:0.32s}
+.feed .tl-group>*:nth-child(6){animation-delay:0.38s}
+.feed .tl-group>*:nth-child(7){animation-delay:0.44s}
+.feed .tl-group>*:nth-child(8){animation-delay:0.50s}
+.feed .tl-group>*:nth-child(9){animation-delay:0.56s}
+.feed .tl-group>*:nth-child(10){animation-delay:0.62s}
+.ed-dirpage .dir-mast{animation:ed-cascade .5s cubic-bezier(.22,1,.36,1) both}
+.ed-dirpage .dir-sec{animation:ed-cascade .55s cubic-bezier(.22,1,.36,1) both;animation-delay:.08s}
+.ed-dirpage .cad{animation:ed-cascade .55s cubic-bezier(.22,1,.36,1) backwards}
+.ed-dirpage .cad:nth-child(1){animation-delay:0.12s}
+.ed-dirpage .cad:nth-child(2){animation-delay:0.18s}
+.ed-dirpage .cad:nth-child(3){animation-delay:0.24s}
+.ed-dirpage .cad:nth-child(4){animation-delay:0.30s}
+.ed-dirpage .cad:nth-child(5){animation-delay:0.36s}
+.ed-dirpage .cad:nth-child(6){animation-delay:0.42s}
+.ed-dirpage .cad:nth-child(7){animation-delay:0.48s}
+.ed-dirpage .cad:nth-child(8){animation-delay:0.54s}
+.ed-dirpage .cad:nth-child(9){animation-delay:0.60s}
+.ed-dirpage .cad:nth-child(10){animation-delay:0.66s}
+.ed-dirpage .cad:nth-child(11){animation-delay:0.72s}
+.ed-dirpage .cad:nth-child(12){animation-delay:0.78s}
+.ed-dirpage .cad:nth-child(13){animation-delay:0.84s}
+.ed-dirpage .cad:nth-child(14){animation-delay:0.90s}
+.ed-dirpage .cad:nth-child(n+15){animation-delay:.95s}
+.ed-dirpage .dir-fac{animation:ed-cascade .5s cubic-bezier(.22,1,.36,1) backwards;animation-delay:.5s}
+.ed-dirpage .dir-foot{animation:ed-cascade .5s cubic-bezier(.22,1,.36,1) both;animation-delay:.6s}
