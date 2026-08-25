@@ -874,6 +874,52 @@ function edLgOpen(){
  back.appendChild(p);document.body.appendChild(back);
  var t=document.getElementById("ed-lg-btn");t&&t.classList.add("lg-open");
  requestAnimationFrame(function(){back.classList.add("ed-lg-in")})}
+var edCityList=null;
+async function edCities(){
+ if(edCityList)return edCityList;
+ var r=await W.from("cities").select("*").order("sort");
+ edCityList=r.data||[];return edCityList}
+function edCityClose(){var p=document.querySelector(".ed-city-panel");p&&p.remove();
+ var t=document.querySelector(".ed-city-tease");t&&t.remove()}
+function edCityTease(c){
+ edCityClose();
+ var o=document.createElement("div");o.className="ed-city-tease";
+ o.innerHTML='<div class="ct-card">'
+  +'<div class="ct-kick">collide \u00b7 next edition</div>'
+  +'<div class="ct-name">'+c.name+'</div>'
+  +'<div class="ct-copy">The cartographer is inking '+(c.code==="atl"?"Peachtree":"the streets")+' as we speak. First press soon \u2014 New York has you till then.</div>'
+  +'<button type="button" class="ct-back">back to New York \u2192</button></div>';
+ o.addEventListener("click",function(ev){(ev.target===o||ev.target.closest(".ct-back"))&&o.remove()});
+ document.body.appendChild(o)}
+async function edCityOpen(){
+ if(document.querySelector(".ed-city-panel"))return edCityClose();
+ var host=document.getElementById("ed-city");if(!host)return;
+ var cs=await edCities();
+ var p=document.createElement("div");p.className="ed-city-panel";
+ p.innerHTML=cs.map(function(c){
+  var st=c.status==="live"?'<i class="cs live">you\u2019re here \u2713</i>'
+   :c.status==="inking"?'<i class="cs ink">map\u2019s being inked</i>'
+   :'<i class="cs soon">coming soon</i>';
+  return '<button type="button" class="ed-city-row '+c.status+'" data-c="'+c.code+'">'
+   +'<b>'+c.short+'</b><span>'+c.name+'</span>'+st+'</button>'}).join("");
+ p.addEventListener("click",function(ev){
+  var r=ev.target.closest(".ed-city-row");if(!r)return;
+  var c=edCityList.find(function(x){return x.code===r.dataset.c});
+  if(!c||c.status==="coming_soon")return;
+  if(c.status==="live"){edCityClose();return}
+  edCityTease(c)});
+ host.parentElement.appendChild(p);
+ requestAnimationFrame(function(){p.classList.add("in")});
+ function away(ev){if(!ev.target.closest(".ed-city-panel")&&!ev.target.closest("#ed-city")){edCityClose();document.removeEventListener("click",away,!0)}}
+ document.addEventListener("click",away,!0)}
+function edCityMount(){
+ if(document.getElementById("ed-city"))return;
+ var logo=document.querySelector(".map-logo");if(!logo)return;
+ var b=document.createElement("button");b.id="ed-city";b.type="button";
+ b.setAttribute("aria-label","Choose your city");
+ b.innerHTML='<b>NYC</b><i>\u25be</i>';
+ b.addEventListener("click",function(ev){ev.stopPropagation();edCityOpen()});
+ logo.parentElement.appendChild(b)}
 function edLgMount(){
  if(document.getElementById("ed-lg-btn"))return;
  var b=document.createElement("button");b.id="ed-lg-btn";
@@ -881,9 +927,10 @@ function edLgMount(){
  b.innerHTML='<svg viewBox="0 0 20 20" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="4" cy="4.5" r="1.6" fill="currentColor" stroke="none"/><path d="M8.2 4.5h8"/><circle cx="4" cy="10" r="1.6" fill="currentColor" stroke="none"/><path d="M8.2 10h8"/><circle cx="4" cy="15.5" r="1.6" fill="currentColor" stroke="none"/><path d="M8.2 15.5h8"/></svg>';
  b.addEventListener("click",edLgOpen);
  document.body.appendChild(b);
- edLgApply()}
+ edLgApply();setTimeout(edCityMount,50)}
 function edLgUnmount(){var b=document.getElementById("ed-lg-btn");b&&b.remove();
- var k=document.querySelector(".ed-lg-back");k&&k.remove()}
+ var k=document.querySelector(".ed-lg-back");k&&k.remove();
+ var c=document.getElementById("ed-city");c&&c.remove();edCityClose()}
 var edFeBeanie='<g transform="translate(266 207)">'
 +'<path d="M228 350 C200 148 322 38 476 30 C562 26 650 40 710 72 C812 122 862 210 854 344 C802 322 700 312 554 312 C400 312 286 328 228 350 Z" fill="#000"/>'
 +'<path d="M196 352 C196 306 224 284 266 282 L812 282 C852 284 876 306 876 348 C876 392 850 414 808 414 L272 418 C228 418 196 396 196 352 Z" fill="#000" stroke="#f6f1ea" stroke-width="10"/>'

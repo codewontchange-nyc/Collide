@@ -1020,3 +1020,36 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .onb-fine{font:500 12px Inter!important;color:#8a7e75!important;text-align:center!important;
  margin-top:16px!important;line-height:1.6!important}
 .onb-out{border:none;background:none;color:#8a7e75;text-decoration:underline;font:inherit;cursor:pointer;padding:0}
+
+/* ---------- p73: city selector + next-edition teaser ---------- */
+#ed-city{position:absolute;top:14px;right:14px;z-index:30;height:46px;display:flex;align-items:center;gap:6px;
+ background:var(--surface);border:none;border-radius:999px;padding:0 16px;box-shadow:var(--shadow-2);
+ cursor:pointer;-webkit-tap-highlight-color:transparent}
+#ed-city b{font:800 14px Inter;letter-spacing:.06em;color:var(--ink)}
+#ed-city i{font-style:normal;font-size:11px;color:#8a7e75}
+#ed-city:active{transform:scale(.95)}
+.ed-city-panel{position:absolute;top:68px;right:14px;z-index:31;width:238px;background:var(--surface);
+ border-radius:16px;box-shadow:0 16px 40px rgba(18,14,12,.28);padding:6px;opacity:0;
+ transform:translateY(-6px) scale(.97);transform-origin:top right;transition:opacity .18s,transform .2s cubic-bezier(.2,.9,.3,1.2)}
+.ed-city-panel.in{opacity:1;transform:none}
+.ed-city-row{display:flex;align-items:center;gap:9px;width:100%;border:none;background:none;
+ padding:11px 12px;border-radius:11px;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.ed-city-row b{font:800 13px Inter;letter-spacing:.04em;color:var(--ink);width:44px;flex:none}
+.ed-city-row span{font:italic 500 13px 'Cormorant Garamond',Georgia,serif;color:#5c534d;flex:1;min-width:0}
+.ed-city-row .cs{font:600 10px Inter;font-style:normal;letter-spacing:.05em;text-transform:uppercase;
+ white-space:nowrap;flex:none}
+.cs.live{color:var(--teal-ink)}
+.cs.ink{color:#a8323e}
+.cs.soon{color:#b7ab9e}
+.ed-city-row.live:active,.ed-city-row.inking:active{background:rgba(23,20,17,.05)}
+.ed-city-row.coming_soon{cursor:default;opacity:.55}
+.ed-city-tease{position:fixed;inset:0;z-index:46;background:rgba(23,20,17,.42);display:grid;
+ place-items:center;padding:26px}
+.ct-card{background:var(--paper);border:1.5px solid var(--ink);border-radius:4px;max-width:330px;
+ padding:26px 24px;text-align:center;box-shadow:6px 6px 0 rgba(23,20,17,.3)}
+.ct-kick{font:600 10px Inter;letter-spacing:.2em;text-transform:uppercase;color:#8a7e75;margin-bottom:8px}
+.ct-name{font:800 34px Newsreader,Georgia,serif;color:var(--ink);border-bottom:3px double var(--ink);
+ padding-bottom:12px;margin-bottom:12px}
+.ct-copy{font:italic 500 15.5px 'Cormorant Garamond',Georgia,serif;color:#5c534d;line-height:1.5;margin-bottom:18px}
+.ct-back{border:none;border-radius:999px;background:var(--ink);color:var(--paper);font:700 13.5px Inter;
+ padding:11px 20px;cursor:pointer}

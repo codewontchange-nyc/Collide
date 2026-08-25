@@ -638,3 +638,24 @@ on conflict do nothing;
 
 -- p72: madlib onboarding — phone on profiles
 alter table profiles add column if not exists phone text;
+-- ============ p73: cities — multi-city groundwork ============
+create table if not exists cities (
+  code text primary key,
+  name text not null,
+  short text not null,
+  status text not null default 'coming_soon' check (status in ('live','inking','coming_soon')),
+  map_image_path text,
+  sort int not null default 100
+);
+alter table cities enable row level security;
+drop policy if exists cities_sel on cities;
+create policy cities_sel on cities for select to authenticated using (true);
+insert into cities (code, name, short, status, sort) values
+ ('nyc','New York','NYC','live',1),
+ ('atl','Atlanta','ATL','inking',2),
+ ('chi','Chicago','CHI','coming_soon',3),
+ ('la','Los Angeles','LA','coming_soon',4),
+ ('sf','San Francisco','SF','coming_soon',5),
+ ('nola','New Orleans','NOLA','coming_soon',6),
+ ('dc','Washington, D.C.','DC','coming_soon',7)
+on conflict (code) do nothing;
