@@ -441,3 +441,102 @@ insert into makers (profile_id, headline, offers, bio, rate, booking_url) values
  array['Private dinners','Menu design','Wine pairing'],
  'The person behind Dinner No. 7. Your table next?','from $80/head',null)
 on conflict (profile_id) do nothing;
+-- ============ p62: in-house booking — windows, slots, pay modes ============
+alter table makers add column if not exists booking_mode text not null default 'free'
+  check (booking_mode in ('free','deposit','prepaid'));
+alter table makers add column if not exists price_cents int not null default 0;
+alter table makers add column if not exists deposit_cents int not null default 0;
+alter table makers add column if not exists payment_handle text;
+
+-- recurring weekly availability windows (gig-style, several per day)
+create table if not exists maker_windows (
+  id uuid primary key default gen_random_uuid(),
+  maker_id uuid not null references makers(profile_id) on delete cascade,
+  dow int not null check (dow between 0 and 6),        -- 0 = Sunday
+  start_min int not null check (start_min between 0 and 1439),
+  end_min int not null check (end_min between 1 and 1440),
+  slot_min int not null default 60 check (slot_min in (15,30,45,60,90,120)),
+  created_at timestamptz not null default now(),
+  check (end_min > start_min)
+);
+alter table maker_windows enable row level security;
+drop policy if exists mw_sel on maker_windows;
+create policy mw_sel on maker_windows for select to authenticated using (true);
+drop policy if exists mw_ins on maker_windows;
+create policy mw_ins on maker_windows for insert to authenticated with check (maker_id = auth.uid());
+drop policy if exists mw_del on maker_windows;
+create policy mw_del on maker_windows for delete to authenticated using (maker_id = auth.uid());
+
+create table if not exists bookings (
+  id uuid primary key default gen_random_uuid(),
+  maker_id uuid not null references makers(profile_id) on delete cascade,
+  booker_id uuid not null references profiles(id) on delete cascade,
+  starts_at timestamptz not null,
+  ends_at timestamptz not null,
+  note text,
+  status text not null default 'pending' check (status in ('pending','confirmed','declined','canceled')),
+  pay_mode text not null default 'free',
+  amount_cents int not null default 0,
+  paid boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists bookings_no_double on bookings (maker_id, starts_at)
+  where status in ('pending','confirmed');
+alter table bookings enable row level security;
+drop policy if exists bk_sel on bookings;
+create policy bk_sel on bookings for select to authenticated
+  using (booker_id = auth.uid() or maker_id = auth.uid());
+drop policy if exists bk_ins on bookings;
+create policy bk_ins on bookings for insert to authenticated
+  with check (booker_id = auth.uid() and booker_id <> maker_id);
+drop policy if exists bk_upd on bookings;
+create policy bk_upd on bookings for update to authenticated
+  using (maker_id = auth.uid() or booker_id = auth.uid());
+
+-- busy times only — lets any member compute open slots without seeing who booked
+create or replace function maker_busy(mid uuid)
+returns table(starts_at timestamptz, ends_at timestamptz)
+language sql security definer set search_path = public as $$
+  select b.starts_at, b.ends_at from bookings b
+   where b.maker_id = mid and b.status in ('pending','confirmed') and b.ends_at > now();
+$$;
+grant execute on function maker_busy(uuid) to authenticated;
+
+-- directory rows now carry booking config
+drop function if exists directory_listings();
+create or replace function directory_listings()
+returns table(profile_id uuid, display_name text, avatar_url text, kind text,
+              headline text, offers text[], bio text, rate text, booking_url text, community_name text,
+              booking_mode text, price_cents int, deposit_cents int, payment_handle text, has_windows boolean)
+language sql security definer set search_path = public as $$
+  select p.id, p.display_name, p.avatar_url, 'maker'::text,
+         m.headline, m.offers, m.bio, m.rate, m.booking_url, null::text,
+         m.booking_mode, m.price_cents, m.deposit_cents, m.payment_handle,
+         exists (select 1 from maker_windows w where w.maker_id = m.profile_id)
+    from makers m join profiles p on p.id = m.profile_id
+   where m.active and (m.trial_ends_at is null or m.trial_ends_at > now())
+  union all
+  select p.id, p.display_name, p.avatar_url, 'facilitator'::text,
+         'Facilitator of ' || c.name, null, c.blurb, null, null, c.name,
+         null, null, null, null, false
+    from staff s
+    join profiles p on p.id = s.profile_id
+    join communities c on c.id = s.community_id
+   where s.role = 'facilitator';
+$$;
+grant execute on function directory_listings() to authenticated;
+
+-- demo config: Kathleen prepaid $45, windows Tue/Thu evenings + Sat morning;
+-- Andre deposit $10 of $30, early runs; Zoe stays free-to-book inquiry style
+update makers set booking_mode='prepaid', price_cents=4500, payment_handle='@kathleen-reid'
+ where profile_id='615cd0ad-d2f4-410d-83da-3d282f6377cb';
+update makers set booking_mode='deposit', price_cents=3000, deposit_cents=1000, payment_handle='@andre-runs'
+ where profile_id='f66da730-3a82-494f-99e7-eb8c32f2daf0';
+insert into maker_windows (maker_id, dow, start_min, end_min, slot_min) values
+('615cd0ad-d2f4-410d-83da-3d282f6377cb', 2, 18*60, 21*60, 60),
+('615cd0ad-d2f4-410d-83da-3d282f6377cb', 4, 18*60, 21*60, 60),
+('615cd0ad-d2f4-410d-83da-3d282f6377cb', 6, 10*60, 13*60, 60),
+('f66da730-3a82-494f-99e7-eb8c32f2daf0', 1, 6*60, 8*60, 30),
+('f66da730-3a82-494f-99e7-eb8c32f2daf0', 3, 6*60, 8*60, 30),
+('f66da730-3a82-494f-99e7-eb8c32f2daf0', 6, 7*60, 9*60+30, 30)
+on conflict do nothing;

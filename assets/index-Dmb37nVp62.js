@@ -998,7 +998,8 @@ async function edOpenDirectory(){
    +(m.offers&&m.offers.length?'<div class="dir-offers">'+m.offers.map(edDirEsc).join(" · ")+'</div>':'')
    +(m.bio?'<div class="dir-bio">“'+edDirEsc(m.bio)+'”</div>':'')
    +(g.fac.length?'<div class="dir-also">also facilitates '+g.fac.map(function(f){return edDirEsc(f.community_name)}).join(" & ")+'</div>':'')
-   +(m.booking_url?'<a class="dir-book" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(m.booking_url)+'">Book their time ⟶</a>'
+   +(m.has_windows?'<button type="button" class="dir-book dir-bookslot" data-mk="'+m.profile_id+'">Book a slot'+(m.booking_mode==="prepaid"&&m.price_cents?' · '+edBkMoney(m.price_cents):m.booking_mode==="deposit"&&m.deposit_cents?' · '+edBkMoney(m.deposit_cents)+' deposit':'')+' ⟶</button>'
+     :m.booking_url?'<a class="dir-book" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(m.booking_url)+'">Book their time ⟶</a>'
      :'<div class="dir-book dir-ask">inquire in town 🕊</div>')
    +'</div>'});
  h+='<div class="dir-sec">Community facilitators</div><div class="dir-faccol">';
@@ -1007,7 +1008,11 @@ async function edOpenDirectory(){
    +'<div><div class="dir-name sm">'+edDirEsc(f.display_name)+'</div>'
    +'<div class="dir-facline">'+g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" · ")+'</div></div></div>'});
  h+='</div><div class="dir-foot">place your ad — become a maker from your profile · first 3 months on the house</div>';
- o.querySelector(".dir-body").innerHTML=h}
+ o.querySelector(".dir-body").innerHTML=h;
+ o.querySelector(".dir-body").addEventListener("click",function(ev){
+  var b=ev.target.closest(".dir-bookslot");if(!b)return;
+  var mk=rows.find(function(r){return r.kind==="maker"&&r.profile_id===b.dataset.mk});
+  mk&&edOpenBooking(mk)})}
 function EdMakers(){
  var st=(0,_.useState)(null),d=st[0],set=st[1];
  (0,_.useEffect)(function(){var on=!0;
@@ -1022,42 +1027,193 @@ function EdMakers(){
     EdH("span",{className:"ed-mkr-av",dangerouslySetInnerHTML:{__html:edDirAv(m.avatar_url,m.display_name,44)}}),
     EdH("span",{className:"ed-mkr-n"},m.display_name),
     EdH("span",{className:"ed-mkr-h"},m.headline))})))}
+function edBkMoney(c){return c%100===0?"$"+(c/100):"$"+(c/100).toFixed(2)}
+function edBkFmtMin(m){var h=Math.floor(m/60),mm=m%60,ap=h<12?"a":"p",h12=h%12===0?12:h%12;return h12+(mm?":"+(mm<10?"0":"")+mm:"")+ap}
+function edBkFmtDate(d){return d.toLocaleDateString(void 0,{weekday:"short",month:"short",day:"numeric"})}
+function edBkFmtTime(d){var h=d.getHours(),m=d.getMinutes();return edBkFmtMin(h*60+m)}
+var edBkDOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function edBkPayLine(m){
+ if(m.booking_mode==="prepaid"&&m.price_cents)return edBkMoney(m.price_cents)+" · prepaid to lock your slot";
+ if(m.booking_mode==="deposit"&&m.deposit_cents)return edBkMoney(m.deposit_cents)+" deposit holds it"+(m.price_cents?" · "+edBkMoney(m.price_cents)+" total":"");
+ return "Free to book"}
+function edBkAmount(m){return m.booking_mode==="prepaid"?(m.price_cents||0):m.booking_mode==="deposit"?(m.deposit_cents||0):0}
+async function edOpenBooking(m){
+ var me=(await W.auth.getUser()).data.user;if(!me)return;
+ if(me.id===m.profile_id)return edOpenMakerSched(me.id);
+ var rs=await Promise.all([
+  W.from("maker_windows").select("*").eq("maker_id",m.profile_id),
+  W.rpc("maker_busy",{mid:m.profile_id}),
+  W.from("bookings").select("*").eq("maker_id",m.profile_id).eq("booker_id",me.id).in("status",["pending","confirmed"]).gte("ends_at",new Date().toISOString())]);
+ var wins=rs[0].data||[],busy=rs[1].data||[],mine=rs[2].data||[];
+ var days=[],i,now=Date.now();
+ for(i=0;i<14;i++){var d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+i);
+  var dw=wins.filter(function(w){return w.dow===d.getDay()}),slots=[];
+  dw.forEach(function(w){for(var t=w.start_min;t+w.slot_min<=w.end_min;t+=w.slot_min){
+   var s=new Date(d);s.setMinutes(t);var e=new Date(d);e.setMinutes(t+w.slot_min);
+   if(s.getTime()<=now)continue;
+   var tk=busy.some(function(b){return new Date(b.starts_at)<e&&new Date(b.ends_at)>s});
+   tk||slots.push({s:s,e:e})}});
+  slots.sort(function(a,b){return a.s-b.s});days.push({d:d,slots:slots})}
+ var sel=days.findIndex(function(x){return x.slots.length}),pick=null;
+ var w=edSheet('<div class="fe-head"><b>Book '+edDirEsc(m.display_name)+'</b></div>'
+  +'<div class="bk-pay">'+edDirEsc(edBkPayLine(m))+'</div>'
+  +'<div class="bk-days"></div><div class="bk-slots"></div><div class="bk-confirm"></div><div class="bk-mine"></div>');
+ var dEl=w.querySelector(".bk-days"),sEl=w.querySelector(".bk-slots"),cEl=w.querySelector(".bk-confirm"),mEl=w.querySelector(".bk-mine");
+ function rDays(){dEl.innerHTML=days.map(function(x,ix){
+  return '<button type="button" class="bk-day'+(ix===sel?" on":"")+(x.slots.length?"":" off")+'" data-i="'+ix+'">'
+   +'<i>'+edBkDOW[x.d.getDay()]+'</i><b>'+x.d.getDate()+'</b><em>'+(x.slots.length?x.slots.length+" open":"—")+'</em></button>'}).join("")}
+ function rSlots(){var x=days[sel];
+  sEl.innerHTML=!x||!x.slots.length?'<div class="bk-none">no open slots this day</div>'
+   :x.slots.map(function(sl,ix){return '<button type="button" class="bk-slot'+(pick===ix?" on":"")+'" data-i="'+ix+'">'+edBkFmtTime(sl.s)+'</button>'}).join("")}
+ function rConfirm(){
+  if(pick==null||sel<0){cEl.innerHTML="";return}
+  var sl=days[sel].slots[pick],amt=edBkAmount(m);
+  cEl.innerHTML='<div class="bk-sum">'+edBkFmtDate(sl.s)+' · '+edBkFmtTime(sl.s)+'–'+edBkFmtTime(sl.e)+'</div>'
+   +'<input class="mk-i" id="bkn" maxlength="140" placeholder="Anything they should know? (optional)"/>'
+   +'<button class="fe-save" id="bkgo" type="button">'+(amt?"Hold slot · then pay "+edBkMoney(amt):"Book it")+'</button>';
+  cEl.querySelector("#bkgo").addEventListener("click",async function(){
+   var t=edFeToast("Inking it in…");
+   try{
+    var row={maker_id:m.profile_id,booker_id:me.id,starts_at:sl.s.toISOString(),ends_at:sl.e.toISOString(),
+     note:cEl.querySelector("#bkn").value.trim()||null,
+     status:amt?"pending":"confirmed",pay_mode:m.booking_mode||"free",amount_cents:amt};
+    var res=await W.from("bookings").insert(row);if(res.error)throw res.error;
+    t.remove();
+    cEl.innerHTML=amt?'<div class="bk-done">Slot held ✓<br/><b>Send '+edBkMoney(amt)+(m.payment_handle?" to "+edDirEsc(m.payment_handle):"")+'</b><br/>'+edDirEsc(m.display_name.split(" ")[0])+' confirms once it lands.</div>'
+     :'<div class="bk-done">Booked ✓ — it\u2019s on both your calendars.</div>';
+    sEl.innerHTML="";dEl.innerHTML=""
+   }catch(e){t.textContent=String(e.message||"").indexOf("duplicate")>=0?"Someone just took that slot":"Couldn\u2019t book — try again";setTimeout(function(){t.remove()},2200)}})}
+ function rMine(){mEl.innerHTML=mine.length?'<div class="bk-mine-h">Your bookings with '+edDirEsc(m.display_name.split(" ")[0])+'</div>'
+  +mine.map(function(b){var s=new Date(b.starts_at);
+   return '<div class="bk-row"><span>'+edBkFmtDate(s)+' · '+edBkFmtTime(s)+'</span>'
+    +'<span class="bk-st '+b.status+'">'+(b.status==="pending"?(b.amount_cents?"awaiting "+edBkMoney(b.amount_cents):"pending"):"confirmed"+(b.amount_cents&&!b.paid?" · unpaid":""))+'</span>'
+    +'<button type="button" class="bk-cxl" data-id="'+b.id+'">✕</button></div>'}).join(""):""}
+ dEl.addEventListener("click",function(ev){var b=ev.target.closest(".bk-day");if(!b||b.classList.contains("off"))return;sel=+b.dataset.i;pick=null;rDays();rSlots();rConfirm()});
+ sEl.addEventListener("click",function(ev){var b=ev.target.closest(".bk-slot");if(!b)return;pick=+b.dataset.i;rSlots();rConfirm()});
+ mEl.addEventListener("click",async function(ev){var b=ev.target.closest(".bk-cxl");if(!b)return;
+  if(!confirm("Cancel this booking?"))return;
+  await W.from("bookings").update({status:"canceled"}).eq("id",b.dataset.id);
+  mine=mine.filter(function(x){return x.id!==b.dataset.id});rMine()});
+ rDays();rSlots();rConfirm();rMine()}
+async function edOpenMakerSched(uid){
+ var rs=await Promise.all([
+  W.from("makers").select("*").eq("profile_id",uid).maybeSingle(),
+  W.from("maker_windows").select("*").eq("maker_id",uid).order("dow").order("start_min"),
+  W.from("bookings").select("*, booker:profiles!bookings_booker_id_fkey(display_name)").eq("maker_id",uid).gte("ends_at",new Date(Date.now()-864e5).toISOString()).in("status",["pending","confirmed"]).order("starts_at")]);
+ var mk=rs[0].data||{},wins=rs[1].data||[],bks=rs[2].data||[];
+ var w=edSheet('<div class="fe-head"><b>Schedule &amp; bookings</b></div>'
+  +'<div class="bk-reqs"></div>'
+  +'<div class="mk-l" style="margin-top:16px">How people book you</div><div class="bk-paycfg"></div>'
+  +'<div class="mk-l" style="margin-top:16px">Availability windows</div><div class="bk-wins"></div><div class="bk-add"></div>');
+ var rEl=w.querySelector(".bk-reqs"),pEl=w.querySelector(".bk-paycfg"),wEl=w.querySelector(".bk-wins"),aEl=w.querySelector(".bk-add");
+ function rBks(){
+  var pend=bks.filter(function(b){return b.status==="pending"}),conf=bks.filter(function(b){return b.status==="confirmed"});
+  var h="";
+  if(pend.length){h+='<div class="mk-l">Requests</div>'+pend.map(function(b){var s=new Date(b.starts_at);
+   return '<div class="bk-req"><div><b>'+edDirEsc((b.booker&&b.booker.display_name)||"Someone")+'</b> · '+edBkFmtDate(s)+' '+edBkFmtTime(s)
+    +(b.amount_cents?' · <span class="bk-amt">'+edBkMoney(b.amount_cents)+(b.paid?" paid ✓":" due")+'</span>':"")
+    +(b.note?'<div class="bk-note">“'+edDirEsc(b.note)+'”</div>':"")+'</div>'
+    +'<div class="bk-req-a">'+(b.amount_cents&&!b.paid?'<button type="button" class="bk-b pay" data-id="'+b.id+'">got paid</button>':"")
+    +'<button type="button" class="bk-b ok" data-id="'+b.id+'">confirm</button>'
+    +'<button type="button" class="bk-b no" data-id="'+b.id+'">decline</button></div></div>'}).join("")}
+  if(conf.length){h+='<div class="mk-l">Upcoming</div>'+conf.map(function(b){var s=new Date(b.starts_at);
+   return '<div class="bk-row"><span><b>'+edDirEsc((b.booker&&b.booker.display_name)||"Someone")+'</b> · '+edBkFmtDate(s)+' '+edBkFmtTime(s)+'</span>'
+    +(b.amount_cents?'<span class="bk-st '+(b.paid?"confirmed":"pending")+'">'+(b.paid?"paid ✓":edBkMoney(b.amount_cents)+" due")+'</span>':"")
+    +(b.amount_cents&&!b.paid?'<button type="button" class="bk-b pay sm" data-id="'+b.id+'">got paid</button>':"")
+    +'<button type="button" class="bk-cxl" data-id="'+b.id+'" data-k="cancel">✕</button></div>'}).join("")}
+  rEl.innerHTML=h||'<div class="bk-none">No bookings yet — open some windows below 👇</div>'}
+ function rPay(){var md=mk.booking_mode||"free";
+  pEl.innerHTML='<div class="bk-modes">'+["free","deposit","prepaid"].map(function(k){
+   return '<button type="button" class="fe-cat'+(md===k?" on":"")+'" data-m="'+k+'">'+k+'</button>'}).join("")+'</div>'
+   +'<div class="mk-row">'
+   +(md!=="free"?'<span><label class="mk-l">Session price</label><input class="mk-i" id="bpp" inputmode="decimal" value="'+((mk.price_cents||0)/100||"")+'" placeholder="45"/></span>':"")
+   +(md==="deposit"?'<span><label class="mk-l">Deposit</label><input class="mk-i" id="bpd" inputmode="decimal" value="'+((mk.deposit_cents||0)/100||"")+'" placeholder="10"/></span>':"")
+   +'</div>'
+   +(md!=="free"?'<label class="mk-l">Payment handle <i>(venmo / cashapp / zelle)</i></label><input class="mk-i" id="bph" value="'+edDirEsc(mk.payment_handle||"")+'" placeholder="@you"/>':"")
+   +'<button class="fe-save sm" id="bps" type="button">Save booking setup</button>'}
+ function rWins(){wEl.innerHTML=wins.length?wins.map(function(x){
+  return '<div class="bk-row"><span><b>'+edBkDOW[x.dow]+'</b> · '+edBkFmtMin(x.start_min)+'–'+edBkFmtMin(x.end_min)+' · '+x.slot_min+'m slots</span>'
+   +'<button type="button" class="bk-cxl" data-id="'+x.id+'" data-k="win">✕</button></div>'}).join("")
+  :'<div class="bk-none">No windows yet — you\u2019re unbookable 🥲</div>'}
+ var nd=1;
+ function tOpts(sel){var h="",m;for(m=5*60;m<=23*60+30;m+=30)h+='<option value="'+m+'"'+(m===sel?" selected":"")+'>'+edBkFmtMin(m)+'</option>';return h}
+ function rAdd(){aEl.innerHTML='<div class="bk-addrow"><div class="bk-modes">'+edBkDOW.map(function(l,ix){
+  return '<button type="button" class="fe-cat dsm'+(ix===nd?" on":"")+'" data-d="'+ix+'">'+l.charAt(0)+'</button>'}).join("")+'</div>'
+  +'<div class="mk-row"><span><label class="mk-l">From</label><select class="mk-i" id="bws">'+tOpts(9*60)+'</select></span>'
+  +'<span><label class="mk-l">To</label><select class="mk-i" id="bwe">'+tOpts(12*60)+'</select></span>'
+  +'<span><label class="mk-l">Slots</label><select class="mk-i" id="bwl">'+[15,30,45,60,90,120].map(function(x){return '<option'+(x===60?" selected":"")+'>'+x+'</option>'}).join("")+'</select></span></div>'
+  +'<button class="fe-save sm ghosty" id="bwa" type="button">＋ Add window</button></div>'}
+ w.addEventListener("click",async function(ev){
+  var t=ev.target.closest("button");if(!t)return;
+  if(t.dataset.m){mk.booking_mode=t.dataset.m;rPay();return}
+  if(t.dataset.d!=null&&t.classList.contains("dsm")){nd=+t.dataset.d;rAdd();return}
+  if(t.id==="bps"){
+   var pp=pEl.querySelector("#bpp"),pd=pEl.querySelector("#bpd"),ph=pEl.querySelector("#bph");
+   var up={booking_mode:mk.booking_mode||"free",
+    price_cents:pp?Math.round(parseFloat(pp.value||"0")*100)||0:mk.price_cents||0,
+    deposit_cents:pd?Math.round(parseFloat(pd.value||"0")*100)||0:(mk.booking_mode==="deposit"?mk.deposit_cents||0:0),
+    payment_handle:ph?ph.value.trim()||null:mk.payment_handle};
+   var r=await W.from("makers").update(up).eq("profile_id",uid);
+   var ts=edFeToast(r.error?"Couldn\u2019t save":"Booking setup saved ✓");Object.assign(mk,up);edDirCache.t=0;
+   setTimeout(function(){ts.remove()},1400);return}
+  if(t.id==="bwa"){
+   var s=+aEl.querySelector("#bws").value,e=+aEl.querySelector("#bwe").value,l=+aEl.querySelector("#bwl").value;
+   if(e<=s){var tt=edFeToast("Window ends before it starts 🤨");setTimeout(function(){tt.remove()},1600);return}
+   var r2=await W.from("maker_windows").insert({maker_id:uid,dow:nd,start_min:s,end_min:e,slot_min:l}).select().single();
+   r2.data&&(wins.push(r2.data),wins.sort(function(a,b){return a.dow-b.dow||a.start_min-b.start_min}),rWins());return}
+  if(t.classList.contains("bk-cxl")&&t.dataset.k==="win"){
+   await W.from("maker_windows").delete().eq("id",t.dataset.id);
+   wins=wins.filter(function(x){return x.id!==t.dataset.id});rWins();return}
+  if(t.classList.contains("bk-b")){
+   var id=t.dataset.id,b=bks.find(function(x){return x.id===id});if(!b)return;
+   if(t.classList.contains("pay")){await W.from("bookings").update({paid:!0}).eq("id",id);b.paid=!0;rBks();return}
+   if(t.classList.contains("ok")){await W.from("bookings").update({status:"confirmed"}).eq("id",id);b.status="confirmed";rBks();return}
+   if(t.classList.contains("no")){await W.from("bookings").update({status:"declined"}).eq("id",id);bks=bks.filter(function(x){return x.id!==id});rBks();return}}
+  if(t.classList.contains("bk-cxl")&&t.dataset.k==="cancel"){
+   if(!confirm("Cancel this booking?"))return;
+   await W.from("bookings").update({status:"canceled"}).eq("id",t.dataset.id);
+   bks=bks.filter(function(x){return x.id!==t.dataset.id});rBks();return}});
+ rBks();rPay();rWins();rAdd()}
 function edOpenMakerEd(uid){
  W.from("makers").select("*").eq("profile_id",uid).maybeSingle().then(function(r){
   var m=r.data,isNew=!m;
   m=m||{headline:"",offers:[],bio:"",rate:"",booking_url:"",active:!0,trial_ends_at:null};
-  var w=edSheet('<div class="fe-head"><b>'+(isNew?"Become a maker":"Your maker listing")+'</b></div>'
+  var w=edSheet('<div class="fe-head"><b>'+(isNew?"Become a maker":"Your maker listing")+'</b>'
+   +(isNew?'':'<button class="fe-redraw" id="mksched" type="button">📅 schedule</button>')+'</div>'
    +(isNew?'<p class="mk-pitch">Show what you make, sell, or teach — and let people book your time. Paid upgrade, <b>free for your first 3 months</b>.</p>'
     :'<p class="mk-pitch">'+(m.trial_ends_at?'On the house until '+new Date(m.trial_ends_at).toLocaleDateString(void 0,{month:"short",day:"numeric"})+'.':'')+'</p>')
    +'<label class="mk-l">Headline</label><input class="mk-i" id="mkh" maxlength="60" placeholder="Portrait photographer" value="'+edDirEsc(m.headline)+'"/>'
    +'<label class="mk-l">What you offer <i>(comma separated)</i></label><input class="mk-i" id="mko" placeholder="Mini sessions, Prints, Lessons" value="'+edDirEsc((m.offers||[]).join(", "))+'"/>'
    +'<label class="mk-l">One-liner bio</label><input class="mk-i" id="mkb" maxlength="120" placeholder="Why you?" value="'+edDirEsc(m.bio||"")+'"/>'
-   +'<div class="mk-row"><span><label class="mk-l">Rate</label><input class="mk-i" id="mkr" placeholder="$50/hr" value="'+edDirEsc(m.rate||"")+'"/></span>'
-   +'<span><label class="mk-l">Booking link</label><input class="mk-i" id="mku" inputmode="url" placeholder="calendly.com/you" value="'+edDirEsc(m.booking_url||"")+'"/></span></div>'
+   +'<label class="mk-l">Rate blurb <i>(shown on your ad)</i></label><input class="mk-i" id="mkr" placeholder="$50/hr" value="'+edDirEsc(m.rate||"")+'"/>'
    +'<label class="mk-tog"><input type="checkbox" id="mka"'+(m.active?" checked":"")+'/> Listed in the classifieds</label>'
    +'<button class="fe-save" id="mks" type="button">'+(isNew?"Open my listing":"Save listing")+'</button>'
    +(isNew?'':'<button class="mk-del" id="mkd" type="button">Remove my listing</button>'));
+  var sc=w.querySelector("#mksched");
+  sc&&sc.addEventListener("click",function(){edKillSheet();setTimeout(function(){edOpenMakerSched(uid)},60)});
   w.querySelector("#mks").addEventListener("click",async function(){
    var t=edFeToast("Setting your ad…");
    try{
-    var url=w.querySelector("#mku").value.trim();
-    url&&!/^https?:/.test(url)&&(url="https://"+url);
     var row={profile_id:uid,headline:w.querySelector("#mkh").value.trim(),
      offers:w.querySelector("#mko").value.split(",").map(function(s){return s.trim()}).filter(Boolean),
      bio:w.querySelector("#mkb").value.trim()||null,rate:w.querySelector("#mkr").value.trim()||null,
-     booking_url:url||null,active:w.querySelector("#mka").checked,updated_at:new Date().toISOString()};
+     active:w.querySelector("#mka").checked,updated_at:new Date().toISOString()};
     var res=await W.from("makers").upsert(row);if(res.error)throw res.error;
-    edDirCache.t=0;t.textContent="You’re in the paper ✓";setTimeout(function(){t.remove();edKillSheet()},900)
-   }catch(e){t.textContent="Couldn’t save — try again";setTimeout(function(){t.remove()},2000)}});
+    edDirCache.t=0;t.textContent="You\u2019re in the paper ✓";
+    setTimeout(function(){t.remove();edKillSheet();isNew&&edOpenMakerSched(uid)},900)
+   }catch(e){t.textContent="Couldn\u2019t save — try again";setTimeout(function(){t.remove()},2000)}});
   var del=w.querySelector("#mkd");
   del&&del.addEventListener("click",async function(){
    if(!confirm("Remove your listing from the classifieds?"))return;
    await W.from("makers").delete().eq("profile_id",uid);edDirCache.t=0;edKillSheet()})})}
 function EdMakerBtn(p){
  var st=(0,_.useState)(null),m=st[0],set=st[1];
+ var s2=(0,_.useState)(0),pend=s2[0],setPend=s2[1];
  (0,_.useEffect)(function(){var on=!0;
-  p.uid&&W.from("makers").select("profile_id,active").eq("profile_id",p.uid).maybeSingle().then(function(r){on&&set(r.data||false)});
+  if(!p.uid)return;
+  W.from("makers").select("profile_id,active").eq("profile_id",p.uid).maybeSingle().then(function(r){on&&set(r.data||false)});
+  W.from("bookings").select("id",{count:"exact",head:!0}).eq("maker_id",p.uid).eq("status","pending").then(function(r){on&&setPend(r.count||0)});
   return function(){on=!1}},[p.uid]);
- return EdH("button",{className:"fe-open mk-open",onClick:function(){edOpenMakerEd(p.uid)}},
-  m===null?"…":m?"🛠 My maker listing":"🛠 Become a maker · free 3 months")}
+ return EdH("button",{className:"fe-open mk-open",onClick:function(){m&&pend>0?edOpenMakerSched(p.uid):edOpenMakerEd(p.uid)}},
+  m===null?"…":m?(pend>0?"🛠 Maker · "+pend+" request"+(pend>1?"s":"")+" ●":"🛠 My maker listing"):"🛠 Become a maker · free 3 months")}
 function qd(){let{user:e}=jc(),t=ft(),n=Wl(e),[r,i]=(0,_.useState)(null),[a,o]=(0,_.useState)([]),[s,c]=(0,_.useState)([]),[l,u]=(0,_.useState)({}),[d,f]=(0,_.useState)(!0),[p,m]=(0,_.useState)(null),[h,g]=(0,_.useState)(null),[v,y]=(0,_.useState)(null),[b,x]=(0,_.useState)(null),[S,C]=(0,_.useState)(!1),[w,T]=(0,_.useState)(!1),ee=(0,_.useRef)(null),te=(0,_.useRef)(null),E=(0,_.useRef)(null),{init:D}=Ud(te,ee,!!r?.image_path),O=(0,_.useRef)(null),[k,ne]=(0,_.useState)(null),[A,re]=(0,_.useState)(null);async function j(){let[e,t,n,r]=await Promise.all([Gl(),Jl(),iu(),ou()]);i(e),o(t),c(n),u(r),f(!1)}(0,_.useEffect)(()=>{j()},[]),(0,_.useEffect)(()=>eu(j,(e,t)=>{o(n=>e===`DELETE`||!Yl(t)?n.filter(e=>e.id!==t.id):e===`INSERT`?n.some(e=>e.id===t.id)?n:[...n,t]:n.map(e=>e.id===t.id?{...e,...t}:e))}),[]),(0,_.useEffect)(()=>Cu(j),[]),(0,_.useEffect)(()=>{let e=te.current;if(!e)return;let t=new IntersectionObserver(e=>e.forEach(e=>e.target.classList.toggle(`anim-off`,!e.isIntersecting)),{root:e,rootMargin:`15%`});return e.querySelectorAll(`.map-pin, .map-venue, .community-pin`).forEach(e=>t.observe(e)),()=>t.disconnect()},[a,s,r?.image_path]);let M=s.filter(e=>l[e.id]!==`member`),N=Kl(r?.image_path);function ie(e,t,r=`event`){if(n){t.preventDefault(),t.stopPropagation();try{t.currentTarget.setPointerCapture(t.pointerId)}catch{}O.current={id:e.id,sx:t.clientX,sy:t.clientY,moved:!1,kind:r},ne(e.id),re({x:e.x,y:e.y})}}function ae(e){let t=O.current;if(!t)return;(Math.abs(e.clientX-t.sx)>6||Math.abs(e.clientY-t.sy)>6)&&(t.moved=!0);let n=ee.current?.getBoundingClientRect();n&&re({x:Wd((e.clientX-n.left)/n.width),y:Wd((e.clientY-n.top)/n.height)})}async function oe(e){let t=O.current;if(!t)return;O.current=null;let{moved:n,kind:r}=t,i=A;if(ne(null),n&&i){let t={x:+i.x.toFixed(4),y:+i.y.toFixed(4)};try{r===`community`?await du(e.id,t):await Ql(e.id,t)}catch(e){alert(e.message)}j()}else r===`community`?g(e):m(e)}async function se(e){let t=e.target.files?.[0];if(E.current&&(E.current.value=``),t){T(!0);try{await ql(t),await j()}catch(e){alert(e.message)}finally{T(!1)}}}function ce(){let e=te.current?.getBoundingClientRect(),t=ee.current?.getBoundingClientRect();return!e||!t||!t.width||!t.height?{x:.5,y:.5}:{x:+Wd((e.left+e.width/2-t.left)/t.width).toFixed(4),y:+Wd((e.top+e.height/2-t.top)/t.height).toFixed(4)}}function P(){y({...Kd})}function le(e){m(null),y({...e})}async function ue(e){if(e.preventDefault(),!v.title.trim())return;T(!0);let t={emoji:v.emoji||`📍`,title:v.title.trim(),at_time:v.at_time?.trim()||null,place:v.place?.trim()||null,note:v.note?.trim()||null,link:v.link?.trim()||null,venue:v.venue||null};try{v.id?await Ql(v.id,t):await Zl({...t,...ce()}),y(null),await j()}catch(e){alert(e.message)}finally{T(!1)}}async function de(e){confirm(`Remove this event from the map?`)&&(await $l(e),m(null),j())}function fe(){x({name:``,emoji:`🏘️`,blurb:``})}function pe(e){g(null),x({id:e.id,name:e.name,emoji:e.emoji,blurb:e.blurb||``})}async function me(e){if(e.preventDefault(),!b.name.trim())return;T(!0);let t={name:b.name.trim(),emoji:b.emoji||`🏘️`,blurb:b.blurb?.trim()||null};try{b.id?await du(b.id,t):await uu({...t,...ce()}),x(null),await j()}catch(e){alert(e.message)}finally{T(!1)}}async function he(e){try{await su(e.id),await j()}catch(e){alert(e.message)}}return(0,G.jsxs)(`div`,{className:`map-screen`,children:[d?(0,G.jsx)(`div`,{className:`full-center`,children:(0,G.jsx)(`div`,{className:`spin`})}):N?(0,G.jsxs)(G.Fragment,{children:[(0,G.jsx)(`div`,{className:`map-viewport`,ref:te,children:(0,G.jsxs)(`div`,{className:`map-canvas`,ref:ee,children:[(0,G.jsx)(`img`,{className:`map-bg`,src:N,alt:`Community map`,draggable:`false`,onLoad:e=>D(e.currentTarget.naturalWidth,e.currentTarget.naturalHeight)}),(0,G.jsx)(kd,{}),(0,G.jsx)($,{}),(0,G.jsx)(EdYaps,{}),a.map(e=>{let t=k===e.id&&A?A:e,r=e.venue&&Vd[e.venue],i={key:e.id,style:{left:`${t.x*100}%`,top:`${t.y*100}%`},onPointerDown:n?t=>ie(e,t):void 0,onPointerMove:n?ae:void 0,onPointerUp:n?()=>oe(e):void 0,onClick:n?void 0:t=>edOpenPin(e,t.currentTarget),"aria-label":e.title};return r?(0,G.jsxs)(`button`,{...i,className:`map-venue ${e.activity_id&&edMyRsvps.has(e.activity_id)?`pin-in`:``} ${n?`draggable`:``} ${k===e.id?`dragging`:``}`,children:[(0,G.jsx)(Fd,{}),(0,G.jsx)(r,{}),(0,G.jsx)(`span`,{className:`venue-label`,children:e.title})]}):(0,G.jsx)(`button`,{...i,ref:t=>{t&&(t.__edPin=e)},className:`map-pin ${e.__poi?`poi-dot`:``} ${!e.__poi&&e.activity_id&&edMyRsvps.has(e.activity_id)?`pin-in`:``} ${n?`draggable`:``} ${k===e.id?`dragging`:``}`,children:(0,G.jsx)(`span`,{className:`map-pin-emoji`,children:e.emoji})})}),M.map(e=>{let t=k===e.id&&A?A:e,r=l[e.id]===`pending`;return(0,G.jsxs)(`button`,{className:`map-pin community-pin ${n?`draggable`:``} ${k===e.id?`dragging`:``}`,style:{left:`${t.x*100}%`,top:`${t.y*100}%`},onPointerDown:n?t=>ie(e,t,`community`):void 0,onPointerMove:n?ae:void 0,onPointerUp:n?()=>oe(e):void 0,onClick:n?void 0:()=>g(e),"aria-label":e.name,children:[(0,G.jsx)(`span`,{className:`map-pin-emoji`,children:e.emoji}),(0,G.jsxs)(`span`,{className:`community-label`,children:[e.name,r?` ✓`:``]})]},e.id)})]})}),n&&(0,G.jsxs)(G.Fragment,{children:[(0,G.jsx)(`button`,{className:`map-replace`,onClick:()=>E.current?.click(),disabled:w,"aria-label":`Replace map image`,children:`🖼️`}),(0,G.jsx)(`button`,{className:`map-fab`,onClick:()=>C(!0),children:`＋ Add`})]})]}):(0,G.jsxs)(`div`,{className:`map-setup`,children:[(0,G.jsx)(`div`,{className:`glyph`,children:`🗺️`}),(0,G.jsx)(`h2`,{children:n?`Set up the map`:`Map coming soon`}),(0,G.jsx)(`p`,{className:`muted`,children:n?`Upload a hand-drawn map of NYC to start pinning events.`:`Our community map is on its way.`}),n&&(0,G.jsx)(`button`,{className:`btn btn-top`,onClick:()=>E.current?.click(),disabled:w,children:w?`Uploading…`:`Upload the map`})]}),(0,G.jsx)(`div`,{className:`map-logo`,"aria-hidden":`true`,children:(0,G.jsx)(Gc,{size:30})}),(0,G.jsx)(`input`,{ref:E,type:`file`,accept:`image/*`,hidden:!0,onChange:se}),(0,G.jsx)(tu,{open:!!p,onClose:()=>m(null),title:p?.emoji?`${p.emoji} ${p.title}`:p?.title,children:p&&(0,G.jsxs)(`div`,{className:`map-detail`,children:[(p.at_time||p.place)&&(0,G.jsx)(`div`,{className:`map-detail-meta`,children:[p.at_time,p.place].filter(Boolean).join(` · `)}),p.note&&(0,G.jsx)(`p`,{className:`map-detail-note`,children:p.note}),p.link&&(0,G.jsx)(`a`,{className:`btn block btn-top`,href:p.link,target:`_blank`,rel:`noopener noreferrer`,children:`Open link ↗`}),n&&(0,G.jsxs)(G.Fragment,{children:[p.expires_at&&(0,G.jsxs)(`p`,{className:`muted`,style:{fontSize:13,marginTop:10},children:[`Leaves the map in `,Math.max(0,Math.ceil((new Date(p.expires_at)-Date.now())/864e5)),` day(s).`,` `,(0,G.jsx)(`button`,{className:`linklike`,style:{padding:0},onClick:async()=>{await Xl(p.id),m(null)},children:`Keep it another week`})]}),(0,G.jsxs)(`div`,{className:`map-detail-admin`,children:[(0,G.jsx)(`button`,{className:`btn ghost block`,onClick:()=>le(p),children:`Edit`}),(0,G.jsx)(`button`,{className:`btn ghost block map-del`,onClick:()=>de(p.id),children:`Remove`})]})]})]})}),(0,G.jsx)(tu,{open:!!v,onClose:()=>y(null),title:v?.id?`Edit event`:`Add an event`,children:v&&(0,G.jsxs)(`form`,{className:`form`,onSubmit:ue,children:[(0,G.jsx)(`span`,{className:`field-label`,children:`Pin emoji`}),(0,G.jsx)(EmojiPick,{value:v.emoji,onPick:e=>y(t=>({...t,emoji:e}))}),(0,G.jsx)(`span`,{className:`field-label`,children:`Big event? Give it a landmark`}),(0,G.jsxs)(`div`,{className:`when-pick`,children:[(0,G.jsx)(`button`,{type:`button`,className:`chip ${v.venue?``:`on`}`,onClick:()=>y(e=>({...e,venue:``})),children:`📍 Just a pin`}),Hd.map(e=>(0,G.jsx)(`button`,{type:`button`,className:`chip ${v.venue===e.key?`on`:``}`,onClick:()=>y(t=>({...t,venue:e.key})),children:e.label},e.key))]}),(0,G.jsx)(`input`,{className:`field`,placeholder:`Event name`,value:v.title,onChange:e=>y(t=>({...t,title:e.target.value})),autoFocus:!0,required:!0}),(0,G.jsxs)(`div`,{className:`row2`,children:[(0,G.jsx)(`input`,{className:`field`,placeholder:`When (e.g. Sat 7pm)`,value:v.at_time,onChange:e=>y(t=>({...t,at_time:e.target.value}))}),(0,G.jsx)(`input`,{className:`field`,placeholder:`Where`,value:v.place,onChange:e=>y(t=>({...t,place:e.target.value}))})]}),(0,G.jsx)(`textarea`,{className:`field area`,rows:2,placeholder:`Details (optional)`,value:v.note,onChange:e=>y(t=>({...t,note:e.target.value}))}),(0,G.jsx)(`input`,{className:`field`,type:`url`,inputMode:`url`,placeholder:`Link (optional)`,value:v.link,onChange:e=>y(t=>({...t,link:e.target.value}))}),(0,G.jsx)(`button`,{className:`btn block`,type:`submit`,disabled:w||!v.title.trim(),children:w?`Saving…`:v.id?`Save`:`Add to map`}),!v.id&&(0,G.jsx)(`p`,{className:`fineprint muted`,children:`It drops right where you're looking — drag to fine-tune.`})]})}),(0,G.jsx)(tu,{open:S,onClose:()=>C(!1),title:`Add to the map`,children:(0,G.jsxs)(`div`,{className:`host-actions`,children:[(0,G.jsx)(`button`,{className:`btn block`,onClick:()=>{C(!1),P()},children:`🎉 An event`}),(0,G.jsx)(`button`,{className:`btn ghost block`,onClick:()=>{C(!1),fe()},children:`🏘️ A community`})]})}),(0,G.jsx)(tu,{open:!!h,onClose:()=>g(null),title:h?`${h.emoji} ${h.name}`:``,children:h&&(0,G.jsxs)(`div`,{className:`map-detail`,children:[(0,G.jsx)(`div`,{className:`map-detail-meta`,children:`Community · a safe space to join`}),h.blurb&&(0,G.jsx)(`p`,{className:`map-detail-note`,children:h.blurb}),l[h.id]===`pending`?(0,G.jsx)(`p`,{className:`muted`,style:{marginTop:10},children:`Request sent — an organizer will let you in soon.`}):(0,G.jsx)(`button`,{className:`btn block btn-top`,onClick:()=>{he(h),g(null)},children:`Request to join`}),n&&(0,G.jsxs)(`div`,{className:`map-detail-admin`,children:[(0,G.jsx)(`button`,{className:`btn ghost block`,onClick:()=>pe(h),children:`Edit`}),(0,G.jsx)(`button`,{className:`btn ghost block`,onClick:()=>t(`/community/${h.id}`),children:`Open`}),(0,G.jsx)(`button`,{className:`btn ghost block map-del`,onClick:async()=>{if(confirm(`Delete ${h.name}? Its chat and feed go with it.`))try{await fu(h.id),g(null),j()}catch(e){alert(e.message)}},children:`Delete`})]})]})}),(0,G.jsx)(tu,{open:!!b,onClose:()=>x(null),title:b?.id?`Edit community`:`New community`,children:b&&(0,G.jsxs)(`form`,{className:`form`,onSubmit:me,children:[(0,G.jsx)(`span`,{className:`field-label`,children:`Pin emoji`}),(0,G.jsxs)(`div`,{className:`emoji-pick`,children:[[`🏘️`,`🌈`,`🎨`,`🏀`,`🎧`,`🌱`,`🐾`,`📚`,`🍳`,`🛹`].map(e=>(0,G.jsx)(`button`,{type:`button`,className:`emoji-opt ${b.emoji===e?`on`:``}`,onClick:()=>x(t=>({...t,emoji:e})),children:e},e)),(0,G.jsx)(`input`,{className:`field emoji-in`,value:b.emoji,maxLength:2,onChange:e=>x(t=>({...t,emoji:e.target.value})),"aria-label":`Custom emoji`})]}),(0,G.jsx)(`input`,{className:`field`,placeholder:`Community name`,value:b.name,onChange:e=>x(t=>({...t,name:e.target.value})),autoFocus:!0,required:!0}),(0,G.jsx)(`textarea`,{className:`field area`,rows:2,placeholder:`What's this space about? (optional)`,value:b.blurb,onChange:e=>x(t=>({...t,blurb:e.target.value}))}),(0,G.jsx)(`button`,{className:`btn block`,type:`submit`,disabled:w||!b.name.trim(),children:w?`Saving…`:b.id?`Save`:`Add to map`}),!b.id&&(0,G.jsx)(`p`,{className:`fineprint muted`,children:`Drops right where you're looking — drag to fine-tune. You're added as the first member.`})]})})]})}function Jd(){return(0,G.jsx)(`div`,{className:`app`,children:(0,G.jsx)(`div`,{className:`full-center`,children:(0,G.jsx)(`div`,{className:`spin`,role:`status`,"aria-label":`Loading`})})})}function Yd(){let e=ft(),t=F();return(0,_.useEffect)(()=>{(async()=>{try{let{data:t}=await W.auth.getSession();if(t?.session){let{data:n}=await W.from(`staff`).select(`id,role,community_id`).eq(`email`,t.session.user.email);window.__edStaff=!!(n&&n.length);window.__edStaffRole=n&&n.length?(n.some(x=>x.role===`owner`)?`owner`:`facilitator`):null;window.__edStaffCids=(n||[]).map(x=>x.community_id).filter(Boolean)}}catch(e){}})();let n=localStorage.getItem(`collide.connect`);if(n){(async()=>{try{let{data:t}=await W.auth.getSession();t?.session&&await Hc(Lc(n))}catch(e){}})();t.pathname.includes(`/c/`)||e(`/c/${n}`,{replace:!0})}},[]),null}function Xd(){let{loading:e,user:t,profile:n}=jc();return e?(0,G.jsx)(Jd,{}):t?!n||!n.display_name?(0,G.jsx)(Qc,{}):(0,G.jsxs)(G.Fragment,{children:[(0,G.jsx)(Yd,{}),(0,G.jsxs)(Wt,{children:[(0,G.jsx)(Ht,{path:`/c/:code`,element:(0,G.jsx)(_d,{})}),(0,G.jsx)(Ht,{path:`/event/:id`,element:(0,G.jsx)(bd,{})}),(0,G.jsx)(Ht,{path:`/community/:id`,element:(0,G.jsx)(wd,{})}),(0,G.jsxs)(Ht,{element:(0,G.jsx)(Fc,{}),children:[(0,G.jsx)(Ht,{path:`/`,element:(0,G.jsx)(Bt,{to:`/plans`,replace:!0})}),(0,G.jsx)(Ht,{path:`/map`,element:(0,G.jsx)(qd,{})}),(0,G.jsx)(Ht,{path:`/plans`,element:(0,G.jsx)(EdUp,{})}),(0,G.jsx)(Ht,{path:`/mine`,element:(0,G.jsx)(Du,{mineOnly:!0})}),(0,G.jsx)(Ht,{path:`/me`,element:(0,G.jsx)(hd,{})}),(0,G.jsx)(Ht,{path:`*`,element:(0,G.jsx)(Bt,{to:`/plans`,replace:!0})})]})]})]}):(0,G.jsx)(Xc,{})}var Zd=window.location.pathname.match(/\/c\/([A-Za-z0-9]+)/);Zd&&localStorage.setItem(`collide.connect`,Zd[1]),(0,v.createRoot)(document.getElementById(`root`)).render((0,G.jsx)(_.StrictMode,{children:(0,G.jsx)(Mn,{basename:`/Collide/`,children:(0,G.jsx)(Ac,{children:(0,G.jsx)(Xd,{})})})}));
