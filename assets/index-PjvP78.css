@@ -1087,3 +1087,11 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 /* p77c: dropdown row fit */
 .ed-city-panel{width:252px}
 .ed-city-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ---------- p78: city-scoped circle + elsewhere chips ---------- */
+.ed-away{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:12px}
+.ed-away-l{font:700 10px Inter;letter-spacing:.12em;text-transform:uppercase;color:#8a7e75}
+.ed-away-chip{border:1.5px dashed rgba(23,20,17,.35);border-radius:999px;background:none;
+ font:800 11px Inter;letter-spacing:.04em;color:#4c4742;padding:6px 12px;cursor:pointer;
+ -webkit-tap-highlight-color:transparent}
+.ed-away-chip:active{background:rgba(23,20,17,.05)}
