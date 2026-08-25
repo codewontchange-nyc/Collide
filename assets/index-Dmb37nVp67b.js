@@ -1078,7 +1078,7 @@ function edProfHtml(g){
  if(lk.length||socKeys.length)
   h+='<div class="prof-card"><div class="prof-k">Out in the world</div><div class="prof-links">'
    +lk.map(function(l){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(l.url)+'">'+edDirEsc(l.label||"Link")+' ↗</a>'}).join("")
-   +socKeys.map(function(p){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(p.toUrl(soc[p.key]))+'">'+edDirEsc(p.key==="website"?"Website":"@"+soc[p.key])+' ↗</a>'}).join("")
+   +socKeys.map(function(p){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(p.toUrl(soc[p.key]))+'">'+edDirEsc(p.key==="website"?"Website":"@"+String(soc[p.key]).replace(/^@+/,""))+' ↗</a>'}).join("")
    +'</div></div>';
  if(m&&m.contact)
   h+='<div class="prof-card"><div class="prof-k">Get in touch</div><div class="prof-contact">📮 '+edDirEsc(m.contact)+'</div></div>';
