@@ -1095,3 +1095,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
  font:800 11px Inter;letter-spacing:.04em;color:#4c4742;padding:6px 12px;cursor:pointer;
  -webkit-tap-highlight-color:transparent}
 .ed-away-chip:active{background:rgba(23,20,17,.05)}
+
+/* ---------- p79: edit-profile page + onboarding home select ---------- */
+.ed-editpage{padding-bottom:30px}
+.ed-editpage .prof-card{margin-top:14px}
+.ed-idcard{display:flex;align-items:center;gap:16px}
+.ed-idav :is(img,svg,div){border-radius:50%}
+.ed-homenote{font:italic 500 12px 'Cormorant Garamond',Georgia,serif;color:#8a7e75;margin-top:8px}
+.ed-editpage .fe-save{margin-top:16px}
+.ed-mkcard{padding-top:15px}
+.onb-sel{appearance:none;-webkit-appearance:none;text-align:center;text-align-last:center;
+ width:auto!important;min-width:7.5ch;padding-right:4px}
