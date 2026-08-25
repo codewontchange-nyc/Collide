@@ -378,3 +378,66 @@ alter table pois add column if not exists images text[] not null default '{}';
 
 -- p59: manual face editor — persisted part choices (seeded by inkify, edited in-app)
 alter table profiles add column if not exists avatar_parts jsonb;
+-- ============ p61: Makers — profile upgrade + directory ============
+create table if not exists makers (
+  profile_id uuid primary key references profiles(id) on delete cascade,
+  headline text not null default '',
+  offers text[] not null default '{}',
+  bio text,
+  rate text,
+  booking_url text,
+  active boolean not null default true,
+  trial_ends_at timestamptz default now() + interval '3 months',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table makers enable row level security;
+drop policy if exists makers_sel on makers;
+create policy makers_sel on makers for select to authenticated using (true);
+drop policy if exists makers_ins on makers;
+create policy makers_ins on makers for insert to authenticated with check (profile_id = auth.uid());
+drop policy if exists makers_upd on makers;
+create policy makers_upd on makers for update to authenticated using (profile_id = auth.uid());
+drop policy if exists makers_del on makers;
+create policy makers_del on makers for delete to authenticated using (profile_id = auth.uid());
+
+-- one call returns the whole classifieds page: paying/trial makers + facilitators
+create or replace function directory_listings()
+returns table(profile_id uuid, display_name text, avatar_url text, kind text,
+              headline text, offers text[], bio text, rate text, booking_url text, community_name text)
+language sql security definer set search_path = public as $$
+  select p.id, p.display_name, p.avatar_url, 'maker'::text,
+         m.headline, m.offers, m.bio, m.rate, m.booking_url, null::text
+    from makers m join profiles p on p.id = m.profile_id
+   where m.active and (m.trial_ends_at is null or m.trial_ends_at > now())
+  union all
+  select p.id, p.display_name, p.avatar_url, 'facilitator'::text,
+         'Facilitator of ' || c.name, null, c.blurb, null, null, c.name
+    from staff s
+    join profiles p on p.id = s.profile_id
+    join communities c on c.id = s.community_id
+   where s.role = 'facilitator';
+$$;
+grant execute on function directory_listings() to authenticated;
+
+-- seed makers (3-month free trial applies via default)
+insert into makers (profile_id, headline, offers, bio, rate, booking_url) values
+('615cd0ad-d2f4-410d-83da-3d282f6377cb','Record curation & vinyl appraisal',
+ array['Collection curation','Pressing appraisals','DJ-ready crates'],
+ 'I find the pressing worth owning. Strong opinions, gently delivered.','$45/hr',null),
+('308abd7b-e52e-4945-8c1f-e0c86e221e6a','Creative tech & app building',
+ array['App prototypes','Creative automation','Website tune-ups'],
+ 'I build small software that feels hand-made. This app, for instance.','ask',null),
+('a31882fd-ea14-4363-9ce4-6746eb58f3fd','Vintage sourcing & estate-sale scouting',
+ array['Personal sourcing','Estate-sale runs','Resale coaching'],
+ 'Your grandmother''s taste, my alarm clock. I get there first.','$60/find',null),
+('c2b3cf76-ef83-4e48-95de-013c26fb8dcf','Supper-club styling & tablescapes',
+ array['Dinner styling','Tablescapes','Small-event design'],
+ 'Twelve strangers deserve a beautiful table. I make the room do half the talking.','$150/event',null),
+('f66da730-3a82-494f-99e7-eb8c32f2daf0','Run coaching for reluctant runners',
+ array['Couch-to-5k plans','Form check-ins','Race-day pacing'],
+ '5am club president. I will make it weirdly fun.','$30/session',null),
+('c88fc704-0bc3-4a83-bb84-95710c6af9af','Private chef — long-table dinners',
+ array['Private dinners','Menu design','Wine pairing'],
+ 'The person behind Dinner No. 7. Your table next?','from $80/head',null)
+on conflict (profile_id) do nothing;

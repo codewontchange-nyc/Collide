@@ -678,3 +678,56 @@
 .fe-th,.fe-th img{width:102px}
 .fe-th img{height:102px}
 .fe-th i{font-size:11px;padding:3px 0}
+
+/* ---------- p61: makers carousel + classifieds directory ---------- */
+.ed-mkr-head{display:flex;align-items:baseline;justify-content:space-between}
+.ed-mkr-link{border:none;background:none;font:700 12.5px Inter;color:#a8323e;cursor:pointer;padding:0}
+.ed-mkr-car{display:flex;gap:10px;overflow-x:auto;padding:8px 0 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ed-mkr-car::-webkit-scrollbar{display:none}
+.ed-mkr-card{flex:none;width:132px;background:var(--surface,#fffdf9);border:1.5px solid rgba(23,20,17,.85);
+ border-radius:4px;padding:12px 10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;
+ align-items:center;gap:6px;box-shadow:3px 3px 0 rgba(23,20,17,.16)}
+.ed-mkr-av .dir-av{border-radius:50%}
+.ed-mkr-n{font:700 13px Inter;color:#17181a}
+.ed-mkr-h{font:italic 500 11px Newsreader,Georgia,serif;color:#6b645c;line-height:1.3}
+.ed-dir{position:fixed;inset:0;z-index:70;background:#f9f4ec;overflow-y:auto;padding:18px 16px 40px;
+ -webkit-overflow-scrolling:touch}
+.dir-mast{text-align:center;position:relative;padding-top:6px}
+.dir-x{position:absolute;right:0;top:0;border:none;background:none;font-size:18px;color:#4c4742;cursor:pointer;padding:6px}
+.dir-kick{font:600 10px Inter;letter-spacing:.18em;text-transform:uppercase;color:#8a8378}
+.dir-title{font:800 30px Newsreader,Georgia,serif;margin:6px 0 10px;color:#17181a}
+.dir-rule{border-top:3px double #17181a;margin-bottom:4px}
+.dir-loading{font:italic 14px Newsreader,serif;color:#8a8378;text-align:center;padding:30px 0}
+.dir-sec{font:800 13px Inter;letter-spacing:.14em;text-transform:uppercase;text-align:center;
+ margin:20px 0 10px;padding:5px 0;border-top:1px solid #17181a;border-bottom:1px solid #17181a;color:#17181a}
+.dir-ad{border:1.5px solid #17181a;border-radius:2px;padding:12px;margin-bottom:12px;background:#fffdf9;
+ box-shadow:3px 3px 0 rgba(23,20,17,.12)}
+.dir-adhead{display:flex;align-items:center;gap:10px}
+.dir-av{border-radius:50%;object-fit:cover;background:#f6f1ea;flex:none;display:inline-grid;place-items:center}
+.dir-avf{font:700 14px Newsreader,serif;color:#4c4742}
+.dir-name{font:800 15px Newsreader,Georgia,serif;color:#17181a}
+.dir-name.sm{font-size:13.5px}
+.dir-headline{font:italic 600 12.5px Newsreader,serif;color:#4c4742}
+.dir-rate{margin-left:auto;font:800 12px Inter;color:#a8323e;white-space:nowrap;align-self:flex-start;
+ border:1px solid #a8323e;border-radius:2px;padding:2px 6px}
+.dir-offers{font:600 12px Inter;color:#17181a;margin-top:8px;padding-top:7px;border-top:1px dotted rgba(23,20,17,.4)}
+.dir-bio{font:italic 500 13px Newsreader,serif;color:#6b645c;margin-top:5px;line-height:1.35}
+.dir-also{font:600 11px Inter;color:#177e6b;margin-top:6px}
+.dir-book{display:block;margin-top:9px;text-align:center;font:800 12.5px Inter;letter-spacing:.04em;
+ background:#17181a;color:#fffdf9;border-radius:2px;padding:9px 0;text-decoration:none}
+.dir-book.dir-ask{background:none;color:#8a8378;border:1px dashed rgba(23,20,17,.35);font-weight:600}
+.dir-faccol{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.dir-fac{display:flex;align-items:center;gap:8px;border:1px solid rgba(23,20,17,.5);border-radius:2px;
+ padding:9px;background:#fffdf9}
+.dir-facline{font:italic 11px Newsreader,serif;color:#6b645c}
+.dir-foot{font:italic 12px Newsreader,serif;color:#8a8378;text-align:center;margin-top:18px;
+ padding-top:10px;border-top:3px double #17181a}
+.mk-open{margin-left:8px}
+.mk-pitch{font:500 13.5px Inter;color:#4c4742;line-height:1.45;margin:2px 0 12px}
+.mk-l{display:block;font:700 11.5px Inter;letter-spacing:.05em;text-transform:uppercase;color:#8a8378;margin:10px 0 4px}
+.mk-l i{text-transform:none;font-weight:500}
+.mk-i{width:100%;border:1.5px solid rgba(23,20,17,.3);border-radius:10px;background:#fffdf9;
+ font:500 15px Inter;padding:10px 12px;box-sizing:border-box}
+.mk-row{display:flex;gap:10px}.mk-row>span{flex:1}
+.mk-tog{display:flex;align-items:center;gap:8px;font:600 13.5px Inter;color:#17181a;margin:14px 0}
+.mk-del{width:100%;border:none;background:none;font:600 13px Inter;color:#a8323e;padding:12px 0 2px;cursor:pointer}
