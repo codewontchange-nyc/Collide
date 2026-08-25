@@ -1053,3 +1053,12 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .ct-copy{font:italic 500 15.5px 'Cormorant Garamond',Georgia,serif;color:#5c534d;line-height:1.5;margin-bottom:18px}
 .ct-back{border:none;border-radius:999px;background:var(--ink);color:var(--paper);font:700 13.5px Inter;
  padding:11px 20px;cursor:pointer}
+
+/* ---------- p74: city switch banner ---------- */
+#ed-city-ban{position:absolute;left:14px;top:72px;z-index:29;max-width:250px;background:var(--paper);
+ border:1.5px solid var(--ink);border-radius:4px;padding:10px 12px;box-shadow:4px 4px 0 rgba(23,20,17,.25);
+ display:flex;flex-direction:column;gap:4px}
+#ed-city-ban b{font:800 13px Newsreader,Georgia,serif;color:var(--ink)}
+#ed-city-ban span{font:italic 500 12px 'Cormorant Garamond',Georgia,serif;color:#5c534d;line-height:1.4}
+#ed-city-ban button{align-self:flex-start;margin-top:4px;border:none;border-radius:999px;background:var(--ink);
+ color:var(--paper);font:700 11px Inter;padding:6px 12px;cursor:pointer}

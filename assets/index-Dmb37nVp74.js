@@ -881,6 +881,31 @@ async function edCities(){
  edCityList=r.data||[];return edCityList}
 function edCityClose(){var p=document.querySelector(".ed-city-panel");p&&p.remove();
  var t=document.querySelector(".ed-city-tease");t&&t.remove()}
+function edCityCur(){return localStorage.getItem("ed.city")||"nyc"}
+function edCityArt(p){try{return W.storage.from("map").getPublicUrl(p).data.publicUrl}catch(e){return null}}
+function edCityApply(c){
+ var img=document.querySelector(".map-bg"),cv=document.querySelector(".map-canvas");
+ var chip=document.getElementById("ed-city");if(!img||!cv)return;
+ var ban=document.getElementById("ed-city-ban");ban&&ban.remove();
+ if(!c||c.code==="nyc"){
+  localStorage.removeItem("ed.city");
+  img.__ednyc&&(img.src=img.__ednyc);
+  cv.classList.remove("ed-off-ev","ed-off-poi","ed-off-yap");
+  chip&&(chip.querySelector("b").textContent="NYC");
+  try{edLgApply()}catch(e){}
+  window.__edClTick&&window.__edClTick();return}
+ localStorage.setItem("ed.city",c.code);
+ img.__ednyc||(img.__ednyc=img.src);
+ var u=edCityArt(c.map_image_path);u&&(img.src=u);
+ cv.classList.add("ed-off-ev","ed-off-poi","ed-off-yap");
+ chip&&(chip.querySelector("b").textContent=c.short);
+ window.__edClTick&&window.__edClTick();
+ var b=document.createElement("div");b.id="ed-city-ban";
+ b.innerHTML='<b>'+c.name+' \u00b7 first press</b><span>The ink is fresh \u2014 pins land here at launch.</span>'
+  +'<button type="button">back to NYC</button>';
+ b.querySelector("button").addEventListener("click",function(){edCityApply(null)});
+ var logo=document.querySelector(".map-logo");
+ (logo?logo.parentElement:document.body).appendChild(b)}
 function edCityTease(c){
  edCityClose();
  var o=document.createElement("div");o.className="ed-city-tease";
@@ -906,7 +931,9 @@ async function edCityOpen(){
   var r=ev.target.closest(".ed-city-row");if(!r)return;
   var c=edCityList.find(function(x){return x.code===r.dataset.c});
   if(!c||c.status==="coming_soon")return;
-  if(c.status==="live"){edCityClose();return}
+  edCityClose();
+  if(c.status==="live"){edCityApply(null);return}
+  if(c.map_image_path){edCityApply(c);return}
   edCityTease(c)});
  host.parentElement.appendChild(p);
  requestAnimationFrame(function(){p.classList.add("in")});
@@ -919,7 +946,11 @@ function edCityMount(){
  b.setAttribute("aria-label","Choose your city");
  b.innerHTML='<b>NYC</b><i>\u25be</i>';
  b.addEventListener("click",function(ev){ev.stopPropagation();edCityOpen()});
- logo.parentElement.appendChild(b)}
+ logo.parentElement.appendChild(b);
+ var sav=edCityCur();
+ sav!=="nyc"&&edCities().then(function(cs){
+  var c=cs.find(function(x){return x.code===sav});
+  c&&c.map_image_path?setTimeout(function(){edCityApply(c)},120):localStorage.removeItem("ed.city")})}
 function edLgMount(){
  if(document.getElementById("ed-lg-btn"))return;
  var b=document.createElement("button");b.id="ed-lg-btn";
