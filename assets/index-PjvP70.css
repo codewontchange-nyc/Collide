@@ -961,3 +961,15 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .ed-profpage .prof-hero{margin-top:14px;margin-bottom:6px}
 .ed-profpage .bk-inline{margin-top:22px}
 .ed-profpage .prof-body>*:first-child{margin-top:14px}
+
+/* ---------- p70: live core — fresh edition toast + soft wake ---------- */
+#ed-fresh{position:fixed;left:50%;bottom:calc(var(--nav-h,60px) + var(--safe-bottom,0px) + 14px);
+ transform:translate(-50%,80px);z-index:80;border:1.5px solid #17181a;border-radius:999px;
+ background:#17181a;color:#f9f4ec;font:600 13.5px Inter;padding:11px 18px;cursor:pointer;
+ box-shadow:0 10px 28px rgba(18,14,12,.3);transition:transform .35s cubic-bezier(.2,.9,.3,1.2);
+ -webkit-tap-highlight-color:transparent;white-space:nowrap}
+#ed-fresh.in{transform:translate(-50%,0)}
+#ed-fresh b{font-weight:800}
+.ed-wake.ed-wake-soft{background:color-mix(in srgb, var(--paper,#fbf6f0) 82%, transparent);
+ -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:opacity .25s}
+.ed-wake.ed-wake-soft.out{opacity:0}
