@@ -949,3 +949,8 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
  left:50%;transform:translateX(-50%);width:100%}
 .ed-profpage .prof-cta{flex:2;box-shadow:none;padding:13px 0;font-size:14.5px}
 .ed-profpage .prof-cta.line{flex:1;background:none;border:1.5px solid #17181a;color:#17181a;font-weight:700}
+
+/* ---------- p69: unified scroll physics (paper depth) ---------- */
+.ed-sfx{will-change:transform,filter,opacity}
+.ed-dirpage .cad,.ed-dirpage .dir-fac{transition:none}
+.ed-profpage .prof-body>*,.ed-profpage .bk-inline{transition:none}
