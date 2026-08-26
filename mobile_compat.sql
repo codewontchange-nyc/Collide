@@ -786,3 +786,8 @@ using (bucket_id in ('avatars','map','event-media'));
 -- profile_id) = crew check-ins, RLS crew-only (rsvp or host), in supabase_realtime.
 alter table activities add column if not exists itin_kind text not null default 'list';
 -- + activities_itin_kind_ck check, itin_checkins table + itin_ck_sel/itin_ck_ins policies (see p87 apply)
+
+-- p88: evergreen adventures. Progress is per-user (client filters checkins to own
+-- uid); own-row delete policy for "start over":
+create policy itin_ck_del on itin_checkins for delete to authenticated using (profile_id=auth.uid());
+-- Adventure/hunt stops no longer carry times (editor hides the field; seed stripped).
