@@ -780,3 +780,9 @@ create policy ce_sel on client_errors for select to authenticated using (is_any_
 -- own-folder write hardening stays as-is.
 create policy storage_authed_read on storage.objects for select to authenticated
 using (bucket_id in ('avatars','map','event-media'));
+
+-- p87: Adventures. activities.itin_kind ('list'|'adventure'|'hunt'); itinerary jsonb
+-- stops may now carry x,y (map fractions) and clue. itin_checkins(activity_id,stop_idx,
+-- profile_id) = crew check-ins, RLS crew-only (rsvp or host), in supabase_realtime.
+alter table activities add column if not exists itin_kind text not null default 'list';
+-- + activities_itin_kind_ck check, itin_checkins table + itin_ck_sel/itin_ck_ins policies (see p87 apply)
