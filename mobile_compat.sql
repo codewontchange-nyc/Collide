@@ -733,3 +733,23 @@ create policy makers_city_r on makers as restrictive for select to authenticated
 -- one-live-per-facilitator trigger retired to allow stacking
 drop trigger if exists ann_one_live on announcements;
 drop function if exists ann_one_live() cascade;
+-- ============ p83: storage hardening for beta ============
+-- old avatars_all allowed ANY authenticated user to write/delete ANY object
+-- in avatars/map/feed-media (incl. other users' avatars and the map artwork).
+drop policy if exists avatars_all on storage.objects;
+-- avatars: public read stays (public_read policy); write/delete only within your own folder
+create policy avatars_own_write on storage.objects for insert to authenticated
+  with check (bucket_id='avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy avatars_own_update on storage.objects for update to authenticated
+  using (bucket_id='avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy avatars_own_delete on storage.objects for delete to authenticated
+  using (bucket_id='avatars' and (storage.foldername(name))[1] = auth.uid()::text);
+-- map artwork: staff only
+create policy map_staff_write on storage.objects for all to authenticated
+  using (bucket_id='map' and is_any_staff())
+  with check (bucket_id='map' and is_any_staff());
+-- feed-media: members can add (insert-only) and read; no overwrites/deletes
+create policy feed_media_ins on storage.objects for insert to authenticated
+  with check (bucket_id='feed-media');
+create policy feed_media_read on storage.objects for select to authenticated
+  using (bucket_id='feed-media');
