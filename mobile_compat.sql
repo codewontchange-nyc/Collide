@@ -753,3 +753,21 @@ create policy feed_media_ins on storage.objects for insert to authenticated
   with check (bucket_id='feed-media');
 create policy feed_media_read on storage.objects for select to authenticated
   using (bucket_id='feed-media');
+-- ============ p84: client error telemetry ============
+create table if not exists client_errors (
+  id uuid primary key default gen_random_uuid(),
+  created_at timestamptz not null default now(),
+  profile_id uuid,
+  city text,
+  url text,
+  message text,
+  stack text,
+  source text,
+  ua text,
+  ver text
+);
+alter table client_errors enable row level security;
+drop policy if exists ce_ins on client_errors;
+create policy ce_ins on client_errors for insert to authenticated with check (true);
+drop policy if exists ce_sel on client_errors;
+create policy ce_sel on client_errors for select to authenticated using (is_any_staff());

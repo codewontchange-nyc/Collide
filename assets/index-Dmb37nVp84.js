@@ -1128,6 +1128,24 @@ function edCitySwitch(code){
  try{edDirCache.t=0;edDirCache.d=null}catch(e){}
  try{edMeetC.t=0;edMeetC.p=null}catch(e){}
  window.__edEpoch?window.__edEpoch():location.reload()}
+(function(){
+ var seen={},sent=0;
+ function ver(){try{var s=document.querySelector('script[src*="assets/index-"]');return s?s.src.split("/").pop().slice(0,40):"?"}catch(e){return "?"}}
+ function uid(){try{return JSON.parse(localStorage.getItem("sb-pjxvvwcnjjizdtiutpxd-auth-token")||"{}").user.id||null}catch(e){return null}}
+ function rep(src2,msg,stack){
+  try{
+   if(!msg||sent>=10)return;
+   var k=String(msg).slice(0,80);if(seen[k])return;seen[k]=1;sent++;
+   if(typeof W==="undefined"||!W)return;
+   W.from("client_errors").insert({profile_id:uid(),city:localStorage.getItem("ed.city")||"nyc",
+    url:location.pathname+location.search,message:String(msg).slice(0,500),
+    stack:String(stack||"").slice(0,2000),source:src2,ua:navigator.userAgent.slice(0,200),ver:ver()})
+    .then(function(){},function(){})
+  }catch(e){}}
+ addEventListener("error",function(e){rep("error",e.message||(e.error&&e.error.message)||"script error",e.error&&e.error.stack)});
+ addEventListener("unhandledrejection",function(e){var r=e&&e.reason||{};rep("promise",r.message||String(r),r.stack)});
+ window.__edReport=function(m,extra){rep("manual",m,extra)};
+})();
 var edDirCache={t:0,d:null};
 async function edDirRefresh(){
  var r=await W.rpc("directory_listings");
