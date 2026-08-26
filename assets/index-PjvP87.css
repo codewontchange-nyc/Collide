@@ -1151,3 +1151,55 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 @keyframes ed-cascade{from{opacity:0;transform:translateY(11px) rotate(var(--rot,0deg))}
  to{opacity:1;transform:translateY(0) rotate(var(--rot,0deg))}}
 .ed-dirpage .cad{animation-duration:.5s}
+/* ==== adventures / itineraries (p87) ==== */
+.adv-kind{margin-bottom:14px;padding:10px 12px;border:1px solid #e7ded2;border-radius:12px;background:#faf6ef}
+.adv-kind-lab{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#9a8f7f;margin-bottom:7px}
+.adv-kind-row{display:flex;gap:6px;flex-wrap:wrap}
+.adv-chip{border:1px solid #d9cfc0;background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;color:#4a4238;cursor:pointer}
+.adv-chip.on{background:#1d1a16;color:#f7f2ea;border-color:#1d1a16}
+.adv-hint{font-size:12px;line-height:1.45;color:#8a7f6f;margin:8px 2px 0;font-style:italic}
+.itin-pin{border:1px solid #d9cfc0;background:#fff;border-radius:8px;width:34px;height:34px;font-size:15px;cursor:pointer;flex:none}
+.itin-pin.set{border-color:#18857a;background:#eaf6f4}
+.itin-clue{font-style:italic}
+.adv-mast{text-align:center;margin:2px 0 14px}
+.adv-kicker{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#9a8f7f}
+.adv-prog{font-family:'Cormorant Garamond',Georgia,serif;font-size:17px;font-style:italic;color:#4a4238;margin-top:4px}
+.adv-list{list-style:none;padding:0;margin:0}
+.adv-item{display:flex;gap:11px;align-items:flex-start;padding:11px 2px;border-bottom:1px dotted #e0d6c8}
+.adv-item:last-child{border-bottom:none}
+.adv-num{flex:none;width:26px;height:26px;border-radius:50%;border:1.5px solid #2b2722;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#2b2722;background:#fff;margin-top:2px}
+.adv-item.found .adv-num{background:#18857a;border-color:#18857a;color:#fff}
+.adv-item.locked{opacity:.5}
+.adv-item.locked .adv-num{border-style:dashed;font-size:11px}
+.adv-hush{font-style:italic;color:#9a8f7f}
+.adv-clue{font-family:'Cormorant Garamond',Georgia,serif;font-size:17.5px;font-style:italic;line-height:1.4;color:#2b2722}
+.adv-here{margin-top:8px}
+.adv-by{font-size:11.5px;color:#18857a;margin-top:5px;font-style:italic}
+.adv-done{text-align:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;font-style:italic;padding:14px 6px 4px;color:#2b2722}
+.adv-mapbtn{margin-top:14px}
+.adv-path{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+.adv-stop{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;border:2px solid #2b2722;background:#f7f2ea;box-shadow:0 2px 6px rgba(43,39,34,.35);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;padding:0}
+.adv-stop-n{font-size:13px;font-weight:800;color:#2b2722;line-height:1}
+.adv-stop.found{background:#18857a;border-color:#0f5f57}
+.adv-stop.found .adv-stop-n{color:#fff}
+.adv-banner{position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));z-index:60;background:#f7f2ea;border:1.5px solid #2b2722;border-radius:14px;box-shadow:0 8px 26px rgba(43,39,34,.28);padding:10px 12px;opacity:0;transform:translateY(10px);transition:opacity .28s ease,transform .28s ease}
+.adv-banner.in{opacity:1;transform:none}
+.adv-b-row{display:flex;align-items:center;gap:10px}
+.adv-b-txt{flex:1;min-width:0}
+.adv-b-kick{font-size:9.5px;letter-spacing:.15em;color:#9a8f7f}
+.adv-b-title{font-family:'Cormorant Garamond',Georgia,serif;font-size:18px;line-height:1.15;color:#1d1a16;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.adv-b-x{flex:none;border:none;background:none;font-size:15px;color:#6d6355;cursor:pointer;padding:6px}
+.adv-b-clue{display:flex;gap:9px;margin-top:9px;padding-top:9px;border-top:1px dotted #d9cfc0;align-items:flex-start}
+.adv-b-clue.done{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:16px;justify-content:center;color:#1d1a16}
+.adv-b-mag{flex:none;font-size:16px;margin-top:1px}
+.adv-b-body{flex:1;min-width:0}
+.adv-b-cluetxt{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:16.5px;line-height:1.35;color:#2b2722}
+.adv-b-found{margin-top:7px;border:1.5px solid #1d1a16;background:#1d1a16;color:#f7f2ea;border-radius:999px;padding:6px 14px;font-size:13px;cursor:pointer}
+.adv-b-found:disabled{opacity:.5}
+.adv-card{padding:4px 2px 8px}
+.adv-card-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;line-height:1.15;margin:6px 0 8px;color:#1d1a16}
+.adv-card-n{font-size:14px;line-height:1.5;color:#4a4238;margin:0 0 12px}
+.adv-pick{padding:4px 2px 8px}
+.adv-pick-map{position:relative;margin:10px 0 12px;border:1.5px solid #2b2722;border-radius:12px;overflow:hidden;background:#efe9df}
+.adv-pick-map img{display:block;width:100%;height:auto;user-select:none;-webkit-user-drag:none}
+.adv-pick-dot{position:absolute;width:22px;height:22px;border-radius:50%;border:2px solid #fff;background:#e85d75;box-shadow:0 2px 6px rgba(43,39,34,.4);transform:translate(-50%,-50%);pointer-events:none}
