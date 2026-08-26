@@ -728,3 +728,8 @@ grant execute on function directory_listings() to authenticated;
 drop policy if exists makers_city_r on makers;
 create policy makers_city_r on makers as restrictive for select to authenticated
   using (city = req_city() or profile_id = auth.uid());
+
+-- p82: announcements — globals live 7 days (client rule), community anns stack (last 5 shown);
+-- one-live-per-facilitator trigger retired to allow stacking
+drop trigger if exists ann_one_live on announcements;
+drop function if exists ann_one_live() cascade;
