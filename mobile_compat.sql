@@ -771,3 +771,5 @@ drop policy if exists ce_ins on client_errors;
 create policy ce_ins on client_errors for insert to authenticated with check (true);
 drop policy if exists ce_sel on client_errors;
 create policy ce_sel on client_errors for select to authenticated using (is_any_staff());
+
+-- p85: web push — push_subs + notify_push (secret redacted) + 4 triggers (booking new/confirmed, circle req, event invite); see session notes

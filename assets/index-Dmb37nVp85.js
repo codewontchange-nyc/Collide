@@ -1146,6 +1146,26 @@ function edCitySwitch(code){
  addEventListener("unhandledrejection",function(e){var r=e&&e.reason||{};rep("promise",r.message||String(r),r.stack)});
  window.__edReport=function(m,extra){rep("manual",m,extra)};
 })();
+var edVapid="BAjjhCpsd3DBnwZHAlRhwkT1AsuYIqP3jmuH9THZEbWMI-FYdW6u1oLYRd1MnB4Zn0QHjaLJoCKh7wufy8Z-U9Y";
+function edPushKey(s){var p="=".repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/")),a=new Uint8Array(b.length),i;for(i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a}
+async function edPushEnsure(){
+ try{
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)||Notification.permission!=="granted")return null;
+  var tok=null;try{tok=JSON.parse(localStorage.getItem("sb-pjxvvwcnjjizdtiutpxd-auth-token")||"{}").user.id}catch(e){}
+  if(!tok)return null;
+  var reg=await navigator.serviceWorker.ready;
+  var sub=await reg.pushManager.getSubscription();
+  sub||(sub=await reg.pushManager.subscribe({userVisibleOnly:!0,applicationServerKey:edPushKey(edVapid)}));
+  var j=sub.toJSON();
+  await W.from("push_subs").upsert({endpoint:sub.endpoint,profile_id:tok,p256dh:j.keys.p256dh,auth:j.keys.auth,ua:navigator.userAgent.slice(0,160)},{onConflict:"endpoint"});
+  return sub}catch(e){return null}}
+async function edPushEnable(){
+ if(!("Notification" in window))return "unsupported";
+ var p=await Notification.requestPermission();
+ if(p!=="granted")return p;
+ var s=await edPushEnsure();
+ return s?"granted":"error"}
+setTimeout(function(){edPushEnsure()},4000);
 var edDirCache={t:0,d:null};
 async function edDirRefresh(){
  var r=await W.rpc("directory_listings");
@@ -1612,10 +1632,24 @@ function EdProfilePage(){
     EdH("input",{className:"field",placeholder:p.label+" \u00b7 "+p.hint,value:soc[p.key]||"",
      inputMode:p.key==="website"?"url":"text",autoCapitalize:"none",
      onChange:function(ev){var v=ev.target.value;setSoc(function(s){var n=Object.assign({},s);n[p.key]=v;return n})}}))})),
+  EdH("div",{className:"prof-card"},
+   EdH("div",{className:"prof-k"},"Notifications"),
+   EdH(EdPushCard,{})),
   EdH("button",{className:"fe-save",disabled:busy||!nm.trim(),onClick:save},busy?"Saving\u2026":"Save profile"),
   EdH("div",{className:"prof-card ed-mkcard"},
    EdH("div",{className:"ed-mkmount",ref:function(el){el&&!el.__edmk&&(el.__edmk=1,edMakerEdInto(el,t.id))}},
     EdH("div",{className:"dir-loading"},"opening your listing\u2026"))))}
+function EdPushCard(){
+ var st=(0,_.useState)(typeof Notification!=="undefined"?Notification.permission:"unsupported"),perm=st[0],setPerm=st[1];
+ var s2=(0,_.useState)(!1),busy=s2[0],setBusy=s2[1];
+ if(perm==="unsupported")return EdH("div",{className:"ed-homenote"},"This browser doesn\u2019t support notifications.");
+ if(perm==="denied")return EdH("div",{className:"ed-homenote"},"Blocked in browser settings \u2014 allow notifications for Collide to get booking requests and circle news.");
+ if(perm==="granted")return EdH("div",{className:"ed-homenote"},"On \u2713 \u2014 booking requests, confirmations, circle requests and invites reach you here.");
+ return EdH("div",{},
+  EdH("div",{className:"ed-homenote",style:{marginTop:0,marginBottom:10}},"Booking requests, confirmations, circle requests and invites \u2014 even when the app is closed."),
+  EdH("button",{className:"fe-open",disabled:busy,onClick:async function(){
+   setBusy(!0);var r=await edPushEnable();setPerm(typeof Notification!=="undefined"?Notification.permission:"unsupported");setBusy(!1)}},
+   busy?"\u2026":"\ud83d\udd14 Turn on notifications"))}
 function EdMakerBtn(p){
  var st=(0,_.useState)(null),m=st[0],set=st[1];
  var s2=(0,_.useState)(0),pend=s2[0],setPend=s2[1];
