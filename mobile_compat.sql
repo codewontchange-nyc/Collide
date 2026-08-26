@@ -773,3 +773,10 @@ drop policy if exists ce_sel on client_errors;
 create policy ce_sel on client_errors for select to authenticated using (is_any_staff());
 
 -- p85: web push — push_subs + notify_push (secret redacted) + 4 triggers (booking new/confirmed, circle req, event invite); see session notes
+
+-- p86: restore authenticated READ on storage (avatars/map/event-media).
+-- p83 dropped the old catch-all policy; its SELECT half was what let the app's
+-- createSignedUrl avatar loads work for signed-in users. Read-only — the p83
+-- own-folder write hardening stays as-is.
+create policy storage_authed_read on storage.objects for select to authenticated
+using (bucket_id in ('avatars','map','event-media'));
