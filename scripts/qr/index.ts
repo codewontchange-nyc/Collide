@@ -2,7 +2,7 @@ import QRCode from "npm:qrcode@1.5.4";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-collide-city",
 };
 
 Deno.serve(async (req) => {
