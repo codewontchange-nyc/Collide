@@ -805,3 +805,8 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- window; ev_msg_not_closed RESTRICTIVE insert policy enforces at the API), then the
 -- room goes read-only and the event leaves "You're in" (client edEvClosed, +3d).
 -- pg_cron job purge-event-chats deletes event_messages 30 days after event expiry.
+
+-- p93: community join links. communities.join_code (unique, seeded); RPC
+-- community_landing(code) anon-callable (safe public fields + counts); RPC
+-- join_community(code, via) — via = a member's connect_code => instant 'member',
+-- otherwise 'pending'. Edge fn qr (npm:qrcode, JWT) renders share-link QR SVGs.
