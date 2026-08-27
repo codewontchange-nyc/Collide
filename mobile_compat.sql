@@ -796,3 +796,7 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- before date+1 23:59 UTC), act_pin_expiry + pin_min_expiry triggers keep
 -- map_events.expires_at >= their activity's. Date-less default lifetime 7d -> 30d
 -- (client ll()). Repaired dated rows; revived date-less events culled Aug 24+ (+30d).
+
+-- p90: date-less events stay hidden. Re-expired the five date-less events revived in
+-- p89; Anytime feed bucket now admits only itin_kind adventure/hunt; date-less default
+-- lifetime reverted to 7d. Dated-event integrity triggers from p89 remain.
