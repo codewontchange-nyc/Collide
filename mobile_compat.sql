@@ -791,3 +791,8 @@ alter table activities add column if not exists itin_kind text not null default 
 -- uid); own-row delete policy for "start over":
 create policy itin_ck_del on itin_checkins for delete to authenticated using (profile_id=auth.uid());
 -- Adventure/hunt stops no longer carry times (editor hides the field; seed stripped).
+
+-- p89: expiry integrity. act_min_expiry trigger (dated activities never expire
+-- before date+1 23:59 UTC), act_pin_expiry + pin_min_expiry triggers keep
+-- map_events.expires_at >= their activity's. Date-less default lifetime 7d -> 30d
+-- (client ll()). Repaired dated rows; revived date-less events culled Aug 24+ (+30d).
