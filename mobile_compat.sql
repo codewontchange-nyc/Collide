@@ -800,3 +800,8 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- p90: date-less events stay hidden. Re-expired the five date-less events revived in
 -- p89; Anytime feed bucket now admits only itin_kind adventure/hunt; date-less default
 -- lifetime reverted to 7d. Dated-event integrity triggers from p89 remain.
+
+-- p91: event-chat lifecycle. Room chat stays open 3 days past expires_at (debrief
+-- window; ev_msg_not_closed RESTRICTIVE insert policy enforces at the API), then the
+-- room goes read-only and the event leaves "You're in" (client edEvClosed, +3d).
+-- pg_cron job purge-event-chats deletes event_messages 30 days after event expiry.
