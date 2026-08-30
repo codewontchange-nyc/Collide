@@ -1304,7 +1304,6 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .tag-none{font-size:12px;margin:0 auto}
 .tag-in{text-align:center}
 .tag-sug{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:10px 0 14px;min-height:26px}
-}
 
 /* ==== q06: carousel full-bleed, maker profile gutters+brand, directory full-screen ==== */
 .ed-mkr-car{width:100vw;position:relative;left:50%;transform:translateX(-50%);
