@@ -1391,3 +1391,17 @@ html.ed-shrunk .prof-bar-n,html.ed-shrunk .room-title{font-size:18px}
 .sheet-head{touch-action:none}
 .yap-panel{will-change:transform}
 .sheet{will-change:transform}
+/* ==== q10: BACK STANDARD v2 (visible disc, real target) + full-width detail bars ==== */
+.room-back,.prof-back,.cdir-head .room-back{
+ border:1.5px solid rgba(23,20,17,.75)!important;background:var(--surface,#fffdf9)!important;
+ border-radius:50%!important;width:40px!important;height:40px!important;
+ min-width:40px!important;min-height:40px!important;
+ font:400 24px/1 Georgia,'Cormorant Garamond',serif!important;color:#17181a;
+ display:flex;align-items:center;justify-content:center;
+ padding:0 0 2px 0!important;margin:0 6px 0 0!important;flex:none;
+ box-shadow:1.5px 1.5px 0 rgba(23,20,17,.14)!important;cursor:pointer;
+ -webkit-tap-highlight-color:transparent}
+.ed-profpage .prof-bar,.ed-editpage .prof-bar{
+ max-width:none!important;margin:0!important;width:auto!important;
+ padding-left:max(var(--hdr-x),calc((100% - var(--col))/2 + var(--hdr-x)))!important;
+ padding-right:max(var(--hdr-x),calc((100% - var(--col))/2 + var(--hdr-x)))!important}
