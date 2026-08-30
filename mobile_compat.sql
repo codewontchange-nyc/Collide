@@ -810,3 +810,8 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- community_landing(code) anon-callable (safe public fields + counts); RPC
 -- join_community(code, via) — via = a member's connect_code => instant 'member',
 -- otherwise 'pending'. Edge fn qr (npm:qrcode, JWT) renders share-link QR SVGs.
+
+-- p99: map_config is per-city (id=1 nyc, id=2 atl — rows managed by console session).
+-- App now reads/writes map art by city (was hardcoded id=1). Profile city row split:
+-- "browsing" chips = ed.city (shared with map dropdown via edCitySwitch), explicit
+-- "make X home instead" writes profiles.home_city — never changed silently.
