@@ -833,3 +833,8 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- state was inherently city-scoped via the header RLS feed.
 drop index if exists yaps_one_per_day;
 create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_at at time zone 'utc'))::date));
+
+-- q14: community rooms. act_ins now lets any authenticated user host their own
+-- events (personal, or in communities where they hold status 'member'); ann_ins lets
+-- members post announcements in their communities (global announcements still staff).
+-- UI: member "Plan something here" + announce composer in community feed.
