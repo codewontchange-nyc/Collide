@@ -827,3 +827,9 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- /communities page: search + tag filters; "Find your tribe" banner after Community desk;
 -- landing breadcrumbs (back to search / up next); owner+staff tag editor (autocomplete
 -- against existing tags, create-new, 6 max).
+
+-- q12: yap once per CITY per day. yaps_one_per_day (author, utc-day) replaced by
+-- yaps_one_per_city_day (author, city, utc-day). Client per-city "already yapped"
+-- state was inherently city-scoped via the header RLS feed.
+drop index if exists yaps_one_per_day;
+create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_at at time zone 'utc'))::date));
