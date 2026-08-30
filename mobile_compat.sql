@@ -815,3 +815,9 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- App now reads/writes map art by city (was hardcoded id=1). Profile city row split:
 -- "browsing" chips = ed.city (shared with map dropdown via edCitySwitch), explicit
 -- "make X home instead" writes profiles.home_city — never changed silently.
+
+-- (console session, fix_city_stamp_trigger.sql in collide-admin): set_req_city()
+-- redefined — header present: header wins (app path unchanged, body can't spoof);
+-- headerless (console/SQL): explicit city survives, null -> 'nyc'. Earlier seeding
+-- worked around the old unconditional overwrite by setting the request.headers GUC;
+-- that path still behaves identically.
