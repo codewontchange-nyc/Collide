@@ -1259,3 +1259,14 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .ed-home-note,.ed-makehome{margin-top:8px}
 .me-email{margin:2px 0 6px}
 .me-socials{margin-top:8px}
+/* ==== yap spotlight placement (q03) ==== */
+.yap-spot{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0;transition:opacity .25s ease}
+.yap-spot.in{opacity:1}
+.yap-spot::before{content:"";position:absolute;inset:0;background:radial-gradient(circle 150px at 50% 44%,rgba(20,17,14,0) 0 92px,rgba(20,17,14,.52) 150px)}
+.yap-spot-ring{position:absolute;left:50%;top:44%;width:184px;height:184px;transform:translate(-50%,-50%);border:2.5px dashed #f7f2ea;border-radius:50%;box-shadow:0 0 24px rgba(247,242,234,.25) inset}
+.yap-spot-dot{position:absolute;left:50%;top:44%;width:11px;height:11px;transform:translate(-50%,-50%);background:#e85d75;border:2px solid #fff;border-radius:50%;box-shadow:0 1px 5px rgba(20,17,14,.4)}
+.yap-spot-bar{position:absolute;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom));pointer-events:auto;background:#f7f2ea;border:1.5px solid #2b2722;border-radius:14px;padding:10px 12px;text-align:center;box-shadow:0 8px 26px rgba(43,39,34,.28)}
+.yap-spot-hint{font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:15px;color:#2b2722;margin-bottom:8px}
+.yap-spot-btns{display:flex;gap:10px;align-items:center;justify-content:center}
+.yap-spot-go{flex:1;max-width:220px}
+.yap-spot-x{border:none;background:none;color:#6d6355;text-decoration:underline;font-size:13px;cursor:pointer}

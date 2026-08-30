@@ -223,7 +223,7 @@ var w=edSheet('<div class="yap-head"><b>Drop a yap 📢</b><span class="yap-exp"
 '<textarea class="yap-ta" maxlength="240" rows="3" placeholder="Short + loud. Where should your people pull up?"></textarea>'+
 '<div class="yap-exp-row"><span class="yap-exp-lab">expires in</span>'+
 '<button class="yap-chip-btn" data-h="4">4h</button><button class="yap-chip-btn on" data-h="8">8h</button><button class="yap-chip-btn" data-h="24">24h</button></div>'+
-'<button class="btn yap-go">Next: tap the map to place it</button>');
+'<button class="btn yap-go">Next: pick the spot on the map</button>');
 var hours=8;
 w.querySelectorAll(".yap-chip-btn").forEach(function(b){b.addEventListener("click",function(){
  w.querySelectorAll(".yap-chip-btn").forEach(function(x){x.classList.remove("on")});b.classList.add("on");hours=+b.dataset.h})});
@@ -232,6 +232,46 @@ w.querySelector(".yap-go").addEventListener("click",function(){
  if(!body){alert("Say something first 📢");return}
  edKillSheet();onPlace(body,hours)});
 }
+
+function EdYapPlaceFx(p){
+ (0,_.useEffect)(function(){
+  var ov=document.createElement("div");ov.className="yap-spot";
+  ov.innerHTML='<div class="yap-spot-ring"></div><div class="yap-spot-dot"></div>'
+   +'<div class="yap-spot-bar"><div class="yap-spot-hint">drag the city under the light — or tap the exact spot 📢</div>'
+   +'<div class="yap-spot-btns"><button class="btn yap-spot-go">📍 Yap here</button><button class="yap-spot-x">cancel</button></div></div>';
+  document.body.appendChild(ov);
+  requestAnimationFrame(function(){ov.classList.add("in")});
+  if(document.hidden)ov.classList.add("in");
+  var fin=false;
+  function frac(cx,cy){var cv=document.querySelector(".map-canvas");if(!cv)return null;
+   var r=cv.getBoundingClientRect();if(!r.width||!r.height)return null;
+   return {x:Math.min(1,Math.max(0,(cx-r.left)/r.width)),y:Math.min(1,Math.max(0,(cy-r.top)/r.height))}}
+  function place(pt){if(fin||!pt)return;fin=true;
+   W.from("yaps").insert({author_id:p.me.id,body:p.placing.body,x:pt.x,y:pt.y,
+    expires_at:new Date(Date.now()+p.placing.hours*36e5).toISOString()}).then(function(res){
+    if(res.error){alert(res.error.code==="23505"?"One yap a day — yours is already out there 📢":res.error.message)}
+    else{p.refresh()}
+    p.done()})}
+  ov.querySelector(".yap-spot-go").onclick=function(){
+   var c=ov.querySelector(".yap-spot-ring").getBoundingClientRect();
+   place(frac(c.left+c.width/2,c.top+c.height/2))};
+  ov.querySelector(".yap-spot-x").onclick=function(){p.done()};
+  var dn=null;
+  function pd(ev){if(ev.target.closest(".yap-spot-bar"))return;
+   if(!ev.target.closest(".map-viewport"))return;
+   dn={x:ev.clientX,y:ev.clientY,t:Date.now()}}
+  function pu(ev){if(!dn)return;var mv=Math.hypot(ev.clientX-dn.x,ev.clientY-dn.y),dt=Date.now()-dn.t;dn=null;
+   if(mv<8&&dt<600&&ev.target.closest(".map-viewport")&&!ev.target.closest(".yap-spot-bar")){
+    ev.stopPropagation();ev.preventDefault();place(frac(ev.clientX,ev.clientY))}}
+  function ck(ev){if(ev.target.closest(".map-viewport")&&!ev.target.closest(".yap-spot-bar")){ev.stopPropagation();ev.preventDefault()}}
+  document.addEventListener("pointerdown",pd,true);
+  document.addEventListener("pointerup",pu,true);
+  document.addEventListener("click",ck,true);
+  return function(){ov.remove();
+   document.removeEventListener("pointerdown",pd,true);
+   document.removeEventListener("pointerup",pu,true);
+   document.removeEventListener("click",ck,true)}},[]);
+ return null}
 function EdYaps(){
 var me=jc().user;
 var s1=(0,_.useState)([]),yaps=s1[0],setYaps=s1[1];
@@ -274,16 +314,7 @@ var kids=yaps.map(function(y){
    EdH("div",{},t),EdH("div",{className:"yap-count"},edLeft(y.expires_at)+" · "+((y.author&&y.author.display_name)||"")))}
  var cc="yap-c"+((y.id.charCodeAt(0)+y.id.charCodeAt(2)+y.id.charCodeAt(5))%5);return EdH("button",{className:"yap-icon "+cc+(edYapFresh===y.id?" yap-fresh":""),ref:function(t){t&&(t.__edYap=y)},key:y.id,style:st,title:(y.author&&y.author.display_name)||"yap",
   onClick:function(ev){ev.stopPropagation();edOpenYap(y,me,ev.currentTarget)}},"💬")});
-if(placing)kids.push(EdH("div",{className:"yap-place",key:"place",
- onPointerDown:function(ev){ev.stopPropagation();ev.preventDefault();
-  var r=ev.currentTarget.getBoundingClientRect();
-  var x=Math.min(1,Math.max(0,(ev.clientX-r.left)/r.width)),yy=Math.min(1,Math.max(0,(ev.clientY-r.top)/r.height));
-  var body=placing.body,hours=placing.hours;setPlacing(null);
-  W.from("yaps").insert({author_id:me.id,body:body,x:x,y:yy,
-   expires_at:new Date(Date.now()+hours*36e5).toISOString()}).then(function(res){
-   if(res.error)alert(res.error.code==="23505"?"One yap a day — yours is already out there 📢":res.error.message);
-   else{window.__edJustYapped=1;edYapRefresh&&edYapRefresh()}})}},
- EdH("div",{className:"yap-place-hint"},"tap the map to drop your yap 📢")));
+if(placing)kids.push(EdH(EdYapPlaceFx,{key:"place",me:me,placing:placing,done:function(){setPlacing(null)},refresh:function(){window.__edJustYapped=1;edYapRefresh&&edYapRefresh()}}));
 return EdH(G.Fragment,{},kids)}
 
 
