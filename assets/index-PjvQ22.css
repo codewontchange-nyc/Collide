@@ -1479,3 +1479,12 @@ html.ed-shrunk #ed-topbar{transform:none}
 .skel-line.w35{width:35%}.skel-line.w40{width:40%}.skel-line.w55{width:55%}.skel-line.w60{width:60%}.skel-line.w90{width:90%}
 @keyframes ed-shimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
 @media (prefers-reduced-motion:reduce){.skel-line{animation:none}}
+/* ==== q22: Me page cascades top-to-bottom like the rest ==== */
+.screen>.me-card{animation:ed-cascade .5s cubic-bezier(.22,1,.36,1) both;animation-delay:.03s}
+.screen>.me-card~*{animation:ed-cascade .5s cubic-bezier(.22,1,.36,1) both;animation-delay:.36s}
+.screen>.me-card~*:nth-child(3){animation-delay:.1s}
+.screen>.me-card~*:nth-child(4){animation-delay:.16s}
+.screen>.me-card~*:nth-child(5){animation-delay:.22s}
+.screen>.me-card~*:nth-child(6){animation-delay:.28s}
+.screen>.me-card~*:nth-child(7){animation-delay:.33s}
+@media (prefers-reduced-motion:reduce){.screen>.me-card,.screen>.me-card~*{animation:none}}
