@@ -1454,3 +1454,20 @@ html.ed-shrunk #ed-topbar{transform:none}
 #ed-topbar b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:17px;color:#17181a;line-height:1}
 #ed-topbar i{font:600 9.5px Inter;letter-spacing:.18em;text-transform:uppercase;color:#9a8f7f;font-style:normal}
 @media (prefers-reduced-motion:reduce){#ed-topbar{transition:none}}
+/* ==== q18: edit profile — nested sections, system frames, sticky save ==== */
+.ed-editpage{padding-bottom:118px;background:var(--paper,#f7f2ea);min-height:100dvh}
+.set-sec{border:var(--hairline);border-radius:var(--r-card);background:#fffdf9;box-shadow:var(--card-shadow);margin:12px 16px 0;overflow:hidden}
+.set-sec-h{display:flex;align-items:center;width:100%;background:none;border:none;padding:14px;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent}
+.set-sec-t{font-family:'Cormorant Garamond',Georgia,serif;font-size:19px;line-height:1.1;color:#17181a}
+.set-sec-m{font:600 9.5px Inter;letter-spacing:.12em;text-transform:uppercase;color:#9a8f7f;margin-left:auto;padding-left:10px;white-space:nowrap}
+.set-sec-c{color:#9a8f7f;font-size:18px;line-height:1;margin-left:8px;transform:rotate(90deg);transition:transform .18s ease}
+.set-sec.open .set-sec-c{transform:rotate(-90deg)}
+.set-sec-b{padding:12px 14px 16px;border-top:1px dotted #e0d6c8}
+.set-idrow{display:flex;align-items:flex-start;gap:14px}
+.set-idcol{flex:1;min-width:0;display:flex;flex-direction:column;gap:9px}
+.set-idcol .fe-open{margin:0;align-self:flex-start}
+.ed-editpage .prof-ctabar{position:fixed;left:0;right:0;bottom:0;z-index:35;
+ background:var(--paper,#f7f2ea);border-top:1.5px solid rgba(23,20,17,.55);
+ padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
+.ed-editpage .prof-cta{max-width:var(--col,560px);width:100%;border-radius:3px;background:#17181a;color:#f7f2ea;border:none;font:800 15px Inter;padding:14px 0;cursor:pointer}
+.ed-editpage .prof-cta:disabled{opacity:.45}

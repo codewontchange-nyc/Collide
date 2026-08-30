@@ -1656,13 +1656,21 @@ function EdCityRow(){
      onClick:function(){can&&c.code!==cur&&edCitySwitch(c.code==="nyc"?null:c.code)}},c.short)})),
   cur===home?EdH("div",{className:"ed-home-note"},"\ud83c\udfe0 this is your home city")
    :EdH("button",{className:"ed-makehome",disabled:hb,onClick:mkHome},"\ud83c\udfe0 home: "+home.toUpperCase()+" \u2014 make "+cur.toUpperCase()+" home instead"))}
+
+function EdSec(p){
+ return EdH("div",{className:"set-sec"+(p.open?" open":"")},
+  EdH("button",{className:"set-sec-h",type:"button","aria-expanded":p.open?"true":"false",onClick:p.onToggle},
+   EdH("span",{className:"set-sec-t"},p.title),
+   EdH("span",{className:"set-sec-m"},p.meta||""),
+   EdH("span",{className:"set-sec-c","aria-hidden":"true"},"\u203a")),
+  p.open?EdH("div",{className:"set-sec-b"},p.children):null)}
 function EdProfilePage(){
  var nav=ft(),cx=jc(),t=cx.user,e=cx.profile,rf=cx.refreshProfile;
  var s1=(0,_.useState)(""),nm=s1[0],setNm=s1[1];
  var s2=(0,_.useState)({}),soc=s2[0],setSoc=s2[1];
  var s3=(0,_.useState)("nyc"),home=s3[0],setHome=s3[1];
  var s4=(0,_.useState)(null),cs=s4[0],setCs=s4[1];
- var s5=(0,_.useState)(!1),busy=s5[0],setBusy=s5[1];
+ var s5=(0,_.useState)(!1),busy=s5[0],setBusy=s5[1];var s6=(0,_.useState)({id:!0}),op=s6[0],setOp=s6[1];function tg(k){setOp(function(o){var n=Object.assign({},o);n[k]=!n[k];return n})}
  (0,_.useEffect)(function(){
   e&&(setNm(e.display_name||""),setSoc(Object.assign({},e.socials||{})),setHome(e.home_city||"nyc"));
   var on=!0;edCities().then(function(r){on&&setCs(r)}).catch(function(){on&&setCs([])});
@@ -1681,34 +1689,33 @@ function EdProfilePage(){
   EdH("div",{className:"prof-bar"},
    EdH("button",{className:"prof-back","aria-label":"Back",onClick:function(){window.history.length>1?nav(-1):nav("/me")}},"\u2039"),
    EdH("span",{className:"prof-bar-n"},"Edit profile")),
-  EdH("div",{className:"prof-card ed-idcard"},
-   EdH("div",{className:"ed-idav"},EdH(Jc,{name:e&&e.display_name,path:e&&e.avatar_url,size:84})),
-   EdH("button",{className:"fe-open",onClick:function(){edOpenFaceEd(t.id,e&&e.avatar_parts)}},"\ud83d\udd8b Edit my face")),
-  EdH("div",{className:"prof-card"},
-   EdH("div",{className:"prof-k"},"Name"),
-   EdH("input",{className:"mk-i",value:nm,maxLength:40,placeholder:"Your name",
-    onChange:function(ev){setNm(ev.target.value)}})),
-  EdH("div",{className:"prof-card"},
-   EdH("div",{className:"prof-k"},"Home city"),
-   EdH("div",{className:"ed-cityrow",style:{marginTop:0,justifyContent:"flex-start"}},
-    (cs||[]).map(function(c){return EdH("button",{key:c.code,
-     className:"ed-citychip"+(home===c.code?" on":""),
-     onClick:function(){setHome(c.code)}},c.short)})),
-   EdH("div",{className:"ed-homenote"},"Where you live \u2014 your circle here is home base.")),
-  EdH("div",{className:"prof-card"},
-   EdH("div",{className:"prof-k"},"Social links"),
-   Au.map(function(p){return EdH("div",{className:"soc-field",key:p.key},
+  EdH(EdSec,{title:"Identity",meta:nm.trim()?"":"needs a name",open:!!op.id,onToggle:function(){tg("id")}},
+   EdH("div",{className:"set-idrow"},
+    EdH(Jc,{name:e&&e.display_name,path:e&&e.avatar_url,size:64}),
+    EdH("div",{className:"set-idcol"},
+     EdH("input",{className:"field",value:nm,maxLength:40,placeholder:"Your name",
+      onChange:function(ev){setNm(ev.target.value)}}),
+     EdH("button",{className:"fe-open",type:"button",onClick:function(){edOpenFaceEd(t.id,e&&e.avatar_parts)}},"\ud83d\udd8b Edit my face")))),
+  EdH(EdSec,{title:"Home city",meta:(home||"nyc").toUpperCase(),open:!!op.city,onToggle:function(){tg("city")}},
+   EdH("div",{},
+    EdH("div",{className:"ed-cityrow",style:{marginTop:0,justifyContent:"flex-start"}},
+     (cs||[]).map(function(c){return EdH("button",{key:c.code,
+      className:"ed-citychip"+(home===c.code?" on":""),
+      onClick:function(){setHome(c.code)}},c.short)})),
+    EdH("div",{className:"ed-homenote"},"Where you live \u2014 your circle here is home base."))),
+  EdH(EdSec,{title:"Social links",meta:(function(){var n=Au.filter(function(p){return (soc[p.key]||"").trim()}).length;return n?n+" linked":""})(),open:!!op.soc,onToggle:function(){tg("soc")}},
+   EdH("div",{},Au.map(function(p){return EdH("div",{className:"soc-field",key:p.key},
     EdH("span",{className:"soc-field-icon"},EdH(Fu,{platform:p.key})),
     EdH("input",{className:"field",placeholder:p.label+" \u00b7 "+p.hint,value:soc[p.key]||"",
      inputMode:p.key==="website"?"url":"text",autoCapitalize:"none",
-     onChange:function(ev){var v=ev.target.value;setSoc(function(s){var n=Object.assign({},s);n[p.key]=v;return n})}}))})),
-  EdH("div",{className:"prof-card"},
-   EdH("div",{className:"prof-k"},"Notifications"),
+     onChange:function(ev){var v=ev.target.value;setSoc(function(s){var n=Object.assign({},s);n[p.key]=v;return n})}}))}))),
+  EdH(EdSec,{title:"Notifications",meta:(typeof Notification!=="undefined"&&Notification.permission==="granted")?"on \u2713":"off",open:!!op.ntf,onToggle:function(){tg("ntf")}},
    EdH(EdPushCard,{})),
-  EdH("button",{className:"fe-save",disabled:busy||!nm.trim(),onClick:save},busy?"Saving\u2026":"Save profile"),
-  EdH("div",{className:"prof-card ed-mkcard"},
+  EdH(EdSec,{title:"Maker listing",meta:"services & booking",open:!!op.mk,onToggle:function(){tg("mk")}},
    EdH("div",{className:"ed-mkmount",ref:function(el){el&&!el.__edmk&&(el.__edmk=1,edMakerEdInto(el,t.id))}},
-    EdH("div",{className:"dir-loading"},"opening your listing\u2026"))))}
+    EdH("div",{className:"dir-loading"},"opening your listing\u2026"))),
+  EdH("div",{className:"prof-ctabar"},
+   EdH("button",{className:"prof-cta",disabled:busy||!nm.trim(),onClick:save},busy?"Saving\u2026":"Save profile")))}
 function EdPushCard(){
  var st=(0,_.useState)(typeof Notification!=="undefined"?Notification.permission:"unsupported"),perm=st[0],setPerm=st[1];
  var s2=(0,_.useState)(!1),busy=s2[0],setBusy=s2[1];
