@@ -955,20 +955,24 @@ async function edCityOpen(){
  if(document.querySelector(".ed-city-panel"))return edCityClose();
  var host=document.getElementById("ed-city");if(!host)return;
  var cs=await edCities();
+ var home="nyc";try{var eu=await W.auth.getUser();var euid=eu.data.user&&eu.data.user.id;
+  if(euid){var epr=await W.from("profiles").select("home_city").eq("id",euid).single();home=epr.data&&epr.data.home_city||"nyc"}}catch(e){}
+ var cur=edCityCur();
  var p=document.createElement("div");p.className="ed-city-panel";
  p.innerHTML=cs.map(function(c){
-  var st=c.status==="live"?'<i class="cs live">you\u2019re here \u2713</i>'
-   :c.status==="inked"?'<i class="cs inked">details soon</i>'
-   :c.status==="inking"?'<i class="cs ink">being inked</i>'
+  var on=c.code===cur;
+  var st=on?'<i class="cs here">\u2713 on this map</i>'
+   :c.status==="live"?'<i class="cs live">available</i>'
+   :(c.status==="inked"||c.status==="inking")?'<i class="cs ink">being inked</i>'
    :'<i class="cs soon">coming soon</i>';
-  return '<button type="button" class="ed-city-row '+c.status+'" data-c="'+c.code+'">'
-   +'<b>'+c.short+'</b><span>'+c.name+'</span>'+st+'</button>'}).join("");
+  return '<button type="button" class="ed-city-row '+c.status+(on?' on':'')+'" data-c="'+c.code+'">'
+   +'<b>'+c.short+'</b><span>'+c.name+(c.code===home?' <em class="cs-def">default</em>':'')+'</span>'+st+'</button>'}).join("");
  p.addEventListener("click",function(ev){
   var r=ev.target.closest(".ed-city-row");if(!r)return;
   var c=edCityList.find(function(x){return x.code===r.dataset.c});
   if(!c||c.status==="coming_soon")return;
   edCityClose();
-  if(c.status==="live"){edCitySwitch(null);return}
+  if(c.status==="live"){edCitySwitch(c.code==="nyc"?null:c.code);return}
   if(c.map_image_path){edCitySwitch(c.code);return}
   edCityTease(c)});
  host.parentElement.appendChild(p);
