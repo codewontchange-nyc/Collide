@@ -1352,9 +1352,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
  transition:padding .18s ease}
 .ed-profpage .prof-bar>*,.cdir-head>*{min-width:0}
 /* shrink state — same hysteresis engine, same result everywhere */
-html.ed-shrunk .room-head,html.ed-shrunk .ed-profpage .prof-bar,
-html.ed-shrunk .ed-editpage .prof-bar,html.ed-shrunk .cdir-head{
- padding-top:calc(env(safe-area-inset-top,0px) + 6px);padding-bottom:6px;min-height:44px}
+/* detail bars are layout-constant: no shrink (q11) — tall mastheads keep theirs */
 /* --- BACK STANDARD: plain ink chevron, 44px target, no pill --- */
 .room-back,.prof-back,.cdir-head .room-back{
  border:none!important;background:none!important;box-shadow:none!important;border-radius:0!important;
@@ -1364,7 +1362,7 @@ html.ed-shrunk .ed-editpage .prof-bar,html.ed-shrunk .cdir-head{
 /* --- TITLE STANDARD in detail headers --- */
 .prof-bar-n{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:20px;
  line-height:1.1;color:#17181a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html.ed-shrunk .prof-bar-n,html.ed-shrunk .room-title{font-size:18px}
+
 .room-title{transition:font-size .18s ease}
 /* --- MAKER PAGE: one card language, correct hero --- */
 .ed-profpage .prof-hero-av img.dir-av,.ed-profpage .prof-hero-av span.dir-av{

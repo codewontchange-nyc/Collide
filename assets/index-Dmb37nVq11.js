@@ -1147,7 +1147,7 @@ function edOpenFaceEd(uid,saved){
  document.addEventListener("pointerup",end,true);
  document.addEventListener("pointercancel",end,true);
 })();
-addEventListener("scroll",function(){var y=window.scrollY||0,el=document.documentElement;y>48?el.classList.add("ed-shrunk"):y<16&&el.classList.remove("ed-shrunk")},{passive:!0});
+addEventListener("scroll",function(){var y=window.scrollY||0,el=document.documentElement;var rg=(el.scrollHeight||0)-window.innerHeight;if(rg<150){el.classList.remove("ed-shrunk");return}y>80?el.classList.add("ed-shrunk"):y<20&&el.classList.remove("ed-shrunk")},{passive:!0});
 window.__edFreshEdition=function(){
  if(document.getElementById("ed-fresh"))return;
  var b=document.createElement("button");b.id="ed-fresh";b.type="button";
