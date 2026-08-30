@@ -1678,7 +1678,6 @@ function edIdleWarm(){
  var ric=window.requestIdleCallback||function(f){setTimeout(f,1800)};
  ric(function(){
   try{edDirLoad().catch(function(){})}catch(e){}
-  try{W.rpc("ed_comm_dir").then(function(r){r.data&&edSnapPut("dir2",r.data)}).catch?void 0:0}catch(e){}
   try{W.rpc("ed_comm_dir").then(function(r){r.data&&edSnapPut("dir2",r.data)},function(){})}catch(e){}})}
 function EdSec(p){
  return EdH("div",{className:"set-sec"+(p.open?" open":"")},
