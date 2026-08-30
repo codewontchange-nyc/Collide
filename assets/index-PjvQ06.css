@@ -1306,15 +1306,20 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .tag-none{font-size:12px;margin:0 auto}
 .tag-in{text-align:center}
 .tag-sug{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:10px 0 14px;min-height:26px}
-/* ==== classifieds mobile pass (q05, console handoff) ==== */
-@media (max-width:430px){
- .dir-cols{columns:1;column-gap:0}
- .cad{overflow:hidden;max-width:100%}
- .cad-big{font-size:19px;letter-spacing:0;transform:scaleY(1.08);overflow-wrap:anywhere}
- .cad-caps{font-size:13.5px;letter-spacing:.05em;overflow-wrap:anywhere}
- .cad-mid{letter-spacing:.02em;line-height:1.7;overflow-wrap:anywhere}
- .cad-band{letter-spacing:.06em;font-size:12px}
- .cad-also{letter-spacing:.02em}
- .dir-mast{padding-left:12px;padding-right:12px}
- .dir-headline{font-size:26px}
 }
+
+/* ==== q06: carousel full-bleed, maker profile gutters+brand, directory full-screen ==== */
+.ed-mkr-car{width:100vw;position:relative;left:50%;transform:translateX(-50%);
+ padding:8px max(18px,calc(50vw - 312px)) 14px;scroll-snap-type:x proximity;
+ scroll-padding-left:max(18px,calc(50vw - 312px))}
+.ed-mkr-car::-webkit-scrollbar{display:none}
+.ed-mkr-card{scroll-snap-align:start}
+.prof-body{padding-left:16px;padding-right:16px;max-width:560px;margin:0 auto;box-sizing:border-box}
+.prof-bar{padding-left:16px;padding-right:16px}
+.prof-card{border:1.5px solid rgba(23,20,17,.85);border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.14)}
+.prof-hero{border:1.5px solid #17181a;border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.16)}
+.prof-hero-av img,.prof-hero-av svg{width:110px;height:110px}
+.prof-name{font-size:24px}
+@media (max-width:480px){.prof-name{font-size:22px}.prof-hero-av{padding:18px 12px}}
+.cdir-row{gap:4px}
+.cdir{padding-bottom:24px}
