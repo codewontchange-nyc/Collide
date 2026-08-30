@@ -1316,8 +1316,10 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .ed-mkr-card{scroll-snap-align:start}
 .prof-body{padding-left:16px;padding-right:16px;max-width:560px;margin:0 auto;box-sizing:border-box}
 .prof-bar{padding-left:16px;padding-right:16px}
-.prof-card{border:1.5px solid rgba(23,20,17,.85);border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.14)}
-.prof-hero{border:1.5px solid #17181a;border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.16)}
+.ed-profpage .prof-card{border:1.5px solid rgba(23,20,17,.85);border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.14)}
+.ed-profpage .prof-hero{border:1.5px solid #17181a;border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.16)}
+.ed-profpage .prof-hero img{border-radius:0}
+.ed-profpage .prof-card.inv{border-color:#17181a}
 .prof-hero-av img,.prof-hero-av svg{width:110px;height:110px}
 .prof-name{font-size:24px}
 @media (max-width:480px){.prof-name{font-size:22px}.prof-hero-av{padding:18px 12px}}
