@@ -871,15 +871,15 @@ function EdMyYap(p){
  return EdH("div",{className:"card yap-mine"},
   active?EdH("div",{className:"ym-live"},
     EdH("div",{className:"ym-head"},
-     EdH("span",{className:"ym-t"},"\ud83d\udce3 Your yap is on the map"),
+     EdH("span",{className:"ym-t"},"Your yap is on the map"),
      EdH("span",{className:"ym-pill"},"fades in "+edMyYapFmt(exp-now))),
     EdH("p",{className:"ym-body"},"\u201c"+y.body+"\u201d"),
     EdH("div",{className:"ym-otw"},
      otw.length===0?EdH("span",{className:"ym-none"},"no one otw yet \u2014 the map is listening"):
       [EdH("span",{className:"ym-avs",key:"a"},otw.slice(0,5).map(function(o){return EdH("span",{className:"ym-av",key:o.profile_id},EdH(Jc,{name:o.profile&&o.profile.display_name,path:o.profile&&o.profile.avatar_url,size:26}))})),
-       EdH("span",{className:"ym-who",key:"w"},edMyYapNames(otw)+" "+(otw.length===1?"is":"are")+" otw \ud83c\udfc3")]))
-   :EdH("div",{className:"ym-head"},EdH("span",{className:"ym-t ym-faded"},"\ud83d\udce3 Your yap faded off the map")),
-  EdH("div",{className:"ym-next"},nf?"next yap unlocks in "+nf:"you can yap again \u2728"))}
+       EdH("span",{className:"ym-who",key:"w"},edMyYapNames(otw)+" "+(otw.length===1?"is":"are")+" on the way")]))
+   :EdH("div",{className:"ym-head"},EdH("span",{className:"ym-t ym-faded"},"Your yap faded off the map")),
+  EdH("div",{className:"ym-next"},nf?"next yap unlocks in "+nf:"you can yap again"))}
 var edLgFil=null;
 function edLgGet(){if(edLgFil)return edLgFil;
  try{edLgFil=JSON.parse(localStorage.getItem("ed.pinFilters")||"{}")}catch(e){edLgFil={}}

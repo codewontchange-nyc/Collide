@@ -1503,3 +1503,13 @@ html.ed-shrunk #ed-topbar{transform:none}
 .ed-lightbox img{max-width:min(92vw,560px);max-height:74vh;border:2.5px solid #f7f2ea;border-radius:6px;background:#fffdf9;box-shadow:0 18px 50px rgba(0,0,0,.45)}
 .ed-lightbox.face img{width:min(78vw,420px);height:min(78vw,420px);border-radius:50%;object-fit:cover}
 .ed-lb-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:#f7f2ea}
+/* ==== q24: my-yap card in black & white ==== */
+.yap-mine{border:1.5px solid rgba(23,20,17,.85);border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.14);background:#fffdf9}
+.yap-mine .ym-t{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:18px;color:#17181a;letter-spacing:0}
+.yap-mine .ym-t.ym-faded{color:#8a8378}
+.yap-mine .ym-pill{color:#f7f2ea;background:#17181a;border:1.5px solid #17181a;font-weight:700;letter-spacing:.04em}
+.yap-mine .ym-body{color:#17181a;font-style:italic}
+.yap-mine .ym-who{color:#17181a;font-weight:700;text-transform:uppercase;font-size:10.5px;letter-spacing:.1em}
+.yap-mine .ym-none{color:#8a8378}
+.yap-mine .ym-next{color:#5c554a;border-top:1px dotted #c9bda9;font-variant-caps:all-small-caps;letter-spacing:.06em;font-size:13px}
+.yap-mine .ym-av{border-color:#fffdf9;filter:grayscale(1)}
