@@ -838,3 +838,7 @@ create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_a
 -- events (personal, or in communities where they hold status 'member'); ann_ins lets
 -- members post announcements in their communities (global announcements still staff).
 -- UI: member "Plan something here" + announce composer in community feed.
+
+-- audit fix (2026-08-30): the ATL communities predated p93's join_code backfill window
+-- edge case — backfilled, and comm_joincode BEFORE INSERT trigger now auto-generates
+-- join_code for every future community from any surface.
