@@ -779,7 +779,7 @@
 .bk-addrow{border-top:1px dotted rgba(23,20,17,.25);padding-top:10px;margin-top:6px}
 
 /* ---------- p63: sticky classifieds mast + hinge-style profiles ---------- */
-.dir-mast{position:sticky;top:-1px;z-index:5;background:#f9f4ec;padding:10px 0 2px;margin:-18px 0 0}
+.dir-mast{position:static;z-index:5;background:#f9f4ec;padding:10px 0 2px;margin:-18px 0 0}
 .dir-back{position:absolute;left:0;top:12px;border:none;background:none;font:700 14px Inter;color:#17181a;cursor:pointer;padding:6px 8px 6px 0}
 .ed-prof{position:fixed;inset:0;z-index:75;background:#f9f4ec;display:flex;flex-direction:column}
 .prof-scroll{flex:1;overflow-y:auto;padding:0 16px 20px;-webkit-overflow-scrolling:touch}
@@ -881,24 +881,22 @@ button.navtab.ed-nav-cl{color:inherit;padding:0}
 .dir-kick{transition:opacity .15s}
 .ed-dir.dir-shrunk .dir-title{font-size:20px;margin:2px 0 6px}
 .ed-dir.dir-shrunk .dir-kick{display:none}
-.masthead{position:sticky;top:0;z-index:30;background:var(--paper);
- transition:padding .18s ease,margin .18s ease}
+.masthead{position:static}
 .mast-brand{transition:transform .18s ease;transform-origin:left center}
-html.ed-shrunk .masthead{padding-bottom:6px;margin-bottom:14px}
-html.ed-shrunk .mast-brand{transform:scale(.82)}
-.ed-mast{position:sticky;top:0;z-index:30;background:var(--paper);
- transition:padding .18s ease,margin .18s ease}
-.ed-mast .ed-date{transition:font-size .18s ease}
-.ed-mast .ed-kicker{transition:opacity .15s}
-html.ed-shrunk .ed-mast{padding:5px 0 9px;margin-bottom:12px}
-html.ed-shrunk .ed-mast .ed-date{font-size:21px}
-html.ed-shrunk .ed-mast .ed-kicker{display:none}
+
+
+.ed-mast{position:static}
+
+
+
+
+
 
 /* ---------- p67: classifieds & maker profiles as real pages ---------- */
-.ed-dirpage .dir-mast{position:sticky;top:0;z-index:30;background:var(--paper);
+.ed-dirpage .dir-mast{position:static;z-index:30;background:var(--paper);
  margin:0 0 4px;padding:10px 0 2px;text-align:center}
-html.ed-shrunk .ed-dirpage .dir-title{font-size:20px;margin:2px 0 6px}
-html.ed-shrunk .ed-dirpage .dir-kick{display:none}
+
+
 .ed-dirpage .dir-body{padding-bottom:8px}
 .ed-profpage{padding-bottom:16px}
 .ed-profpage .prof-bar{position:sticky;top:0;z-index:30;background:var(--paper);
@@ -1442,3 +1440,17 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 @media (prefers-reduced-motion:reduce){
  .room-msgs>*,.msg.pending,.room-composer.sent .composer-send,
  .room-composer.sent .composer-input,.room-composer.sent .composer-send::after{animation:none}}
+
+/* ==== q17: native header architecture ==== */
+/* Editorial mastheads live in the page flow and scroll away like a large title.
+   One fixed compact bar reveals via transform only — no layout property ever animates. */
+#ed-topbar{position:fixed;top:0;left:0;right:0;z-index:35;
+ display:flex;align-items:baseline;justify-content:center;gap:8px;
+ background:var(--paper,#f7f2ea);border-bottom:1.5px solid rgba(23,20,17,.85);
+ padding:calc(env(safe-area-inset-top,0px) + 9px) 16px 9px;
+ transform:translateY(-103%);transition:transform .26s cubic-bezier(.22,1,.36,1);
+ pointer-events:none;will-change:transform}
+html.ed-shrunk #ed-topbar{transform:none}
+#ed-topbar b{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:17px;color:#17181a;line-height:1}
+#ed-topbar i{font:600 9.5px Inter;letter-spacing:.18em;text-transform:uppercase;color:#9a8f7f;font-style:normal}
+@media (prefers-reduced-motion:reduce){#ed-topbar{transition:none}}
