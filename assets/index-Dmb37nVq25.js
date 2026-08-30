@@ -1340,20 +1340,15 @@ function edProfHtml(g){
  var m=g.maker,f0=g.fac&&g.fac[0],base=m||f0;
  var name=base.display_name,gal=(m&&m.gallery||[]).filter(Boolean);
  var h="";
- if(gal.length){
-  h+='<div class="prof-hero"><img src="'+edMkMedia(gal[0])+'" alt=""/>'
-   +'<div class="prof-hero-tx"><div class="prof-name">'+edDirEsc(name)+'</div>'
-   +(m&&m.headline?'<div class="prof-head">'+edDirEsc(m.headline)+'</div>':'')+'</div></div>'}
- else{
-  h+='<div class="prof-hero prof-hero-av">'+edDirAv(base.avatar_url,name,120)
-   +'<div class="prof-name dark">'+edDirEsc(name)+'</div>'
-   +(m&&m.headline?'<div class="prof-head dark">'+edDirEsc(m.headline)+'</div>'
-    :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')+'</div>'}
+ h+='<div class="prof-hero prof-hero-av">'+edDirAv(base.avatar_url,name,120)
+  +'<div class="prof-name dark">'+edDirEsc(name)+'</div>'
+  +(m&&m.headline?'<div class="prof-head dark">'+edDirEsc(m.headline)+'</div>'
+   :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')+'</div>';
  if(m&&m.offers&&m.offers.length)
   h+='<div class="prof-card inv"><div class="prof-k">On the menu</div><div class="prof-chips">'
    +m.offers.map(function(x){return '<span class="prof-chip">'+edDirEsc(x)+'</span>'}).join("")+'</div>'
    +(m.rate?'<div class="prof-rate">'+edDirEsc(m.rate)+'</div>':'')+'</div>';
- if(gal.length>1)h+='<div class="prof-carousel">'+gal.slice(1).map(function(gg){return '<img class="prof-car-img" src="'+edMkMedia(gg)+'" alt="" loading="lazy"/>'}).join("")+'</div>';
+ if(gal.length)h+='<div class="prof-carousel">'+gal.map(function(gg){return '<img class="prof-car-img" src="'+edMkMedia(gg)+'" alt="" loading="lazy"/>'}).join("")+'</div>';
  if(m&&m.bio)h+='<div class="prof-card"><div class="prof-k">Why book me</div><div class="prof-bio">“'+edDirEsc(m.bio)+'”</div></div>';
 
  if(g.fac&&g.fac.length)
