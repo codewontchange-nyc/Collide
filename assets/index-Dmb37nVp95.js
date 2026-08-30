@@ -944,6 +944,7 @@ function edCityApply(c){
  chip&&(chip.querySelector("b").textContent=c.short);
  window.__edClTick&&window.__edClTick();
  edCitySky(!0);
+ if(c.status==="live"){cv.classList.remove("ed-off-ev","ed-off-poi","ed-off-yap");try{edLgApply()}catch(e){}return}
  var b=document.createElement("div");b.id="ed-city-ban";
  b.innerHTML='<b>'+c.name+' \u00b7 '+(c.status==="inked"?"map inked":"first press")+'</b>'
   +'<span>'+(c.status==="inked"?"Launch details coming \u2014 pins land here on day one.":"The ink is fresh \u2014 pins land here at launch.")+'</span>'
@@ -996,7 +997,7 @@ function edCityMount(){
  var sav=edCityCur();
  sav!=="nyc"&&edCities().then(function(cs){
   var c=cs.find(function(x){return x.code===sav});
-  c&&c.map_image_path?setTimeout(function(){edCityApply(c)},120):localStorage.removeItem("ed.city")})}
+  c&&c.map_image_path?(function w(n){document.querySelector(".map-bg")?edCityApply(c):n<40&&setTimeout(function(){w(n+1)},150)})(0):localStorage.removeItem("ed.city")})}
 function edLgMount(){
  if(document.getElementById("ed-lg-btn"))return;
  var b=document.createElement("button");b.id="ed-lg-btn";
