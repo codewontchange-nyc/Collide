@@ -821,3 +821,9 @@ create policy itin_ck_del on itin_checkins for delete to authenticated using (pr
 -- headerless (console/SQL): explicit city survives, null -> 'nyc'. Earlier seeding
 -- worked around the old unconditional overwrite by setting the request.headers GUC;
 -- that path still behaves identically.
+
+-- q05: community directory. communities.tags text[] (seeded); ed_comm_dir() RPC
+-- (security definer, city-scoped via req_city) returns id/name/emoji/blurb/tags/members.
+-- /communities page: search + tag filters; "Find your tribe" banner after Community desk;
+-- landing breadcrumbs (back to search / up next); owner+staff tag editor (autocomplete
+-- against existing tags, create-new, 6 max).
