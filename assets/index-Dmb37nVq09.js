@@ -185,7 +185,7 @@ function edYapMarkRead(id){try{var r=edYapReads();r.includes(id)||r.push(id);loc
 var edYapRefresh=null,edYapHold=null,edYapFresh=null;
 function edKillSheet(){var e=document.getElementById("ed-sheet");e&&e.remove()}
 function edSheet(inner){edKillSheet();var w=document.createElement("div");w.id="ed-sheet";
-w.innerHTML='<div class="yap-back"></div><div class="yap-panel">'+inner+'</div>';
+w.innerHTML='<div class="yap-back"></div><div class="yap-panel"><div class="sheet-grab ed-grab"></div>'+inner+'</div>';
 w.querySelector(".yap-back").addEventListener("click",edKillSheet);document.body.appendChild(w);return w}
 async function edOpenYap(y,me,el,back){
 edYapMarkRead(y.id);
@@ -1118,6 +1118,35 @@ function edOpenFaceEd(uid,saved){
    t.textContent="That’s you ✓";setTimeout(function(){location.reload()},700)
   }catch(e){t.textContent="Couldn’t save — try again";setTimeout(function(){t.remove()},2200);busy=false}});
  renderCats();renderStrip();updPrev()}
+
+/* ==== q09: unified sheet gestures ==== */
+(function(){
+ var st=null;
+ function panelOf(t){
+  var p=t.closest(".sheet");
+  if(p)return{el:p,kill:function(){var b=p.parentElement;b&&b.classList.contains("sheet-backdrop")&&b.click()}};
+  p=t.closest("#ed-sheet")&&t.closest("#ed-sheet").querySelector(".yap-panel");
+  if(p)return{el:p,kill:function(){try{edKillSheet()}catch(e){}}};
+  return null}
+ document.addEventListener("pointerdown",function(ev){
+  var h=ev.target.closest(".sheet-grab,.sheet-head");if(!h)return;
+  if(ev.target.closest("button:not(.sheet-x)"))return;
+  var p=panelOf(h);if(!p)return;
+  st={p:p,y0:ev.clientY,dy:0,id:ev.pointerId};
+  p.el.style.transition="none"},true);
+ document.addEventListener("pointermove",function(ev){
+  if(!st||ev.pointerId!==st.id)return;
+  st.dy=Math.max(0,ev.clientY-st.y0);
+  st.p.el.style.transform="translateY("+st.dy+"px)";
+  st.dy>4&&ev.preventDefault()},{capture:true,passive:false});
+ function end(ev){if(!st||ev.pointerId!==st.id)return;var s=st;st=null;
+  s.p.el.style.transition="transform .22s ease";
+  if(s.dy>110){s.p.el.style.transform="translateY(110%)";
+   setTimeout(function(){s.p.kill();s.p.el.style.transform="";s.p.el.style.transition=""},190)}
+  else{s.p.el.style.transform="";setTimeout(function(){try{s.p.el.style.transition=""}catch(e){}},240)}}
+ document.addEventListener("pointerup",end,true);
+ document.addEventListener("pointercancel",end,true);
+})();
 addEventListener("scroll",function(){var y=window.scrollY||0,el=document.documentElement;y>48?el.classList.add("ed-shrunk"):y<16&&el.classList.remove("ed-shrunk")},{passive:!0});
 window.__edFreshEdition=function(){
  if(document.getElementById("ed-fresh"))return;
@@ -1417,7 +1446,7 @@ function EdMakerPage(){
  var m=g.maker,base=m||g.fac[0];
  var goBack=function(){window.history.length>1?nav(-1):nav("/classifieds")};
  if(!base)return EdH("div",{className:"app ed-profpage"},
-  EdH("div",{className:"prof-bar"},EdH("button",{className:"prof-back",onClick:goBack},"\u2039 back")),
+  EdH("div",{className:"prof-bar"},EdH("button",{className:"prof-back","aria-label":"Back",onClick:goBack},"\u2039")),
   EdH("div",{className:"bk-none",style:{padding:"30px 0",textAlign:"center"}},"Not in the paper anymore."));
  var scrollToBook=function(){
   if(!booking){setBooking(!0);return}
@@ -1431,7 +1460,7 @@ function EdMakerPage(){
  if(m&&m.contact)ctas.push(EdH("button",{className:"prof-cta line",key:"ct",onClick:scrollToContact},"\ud83d\udcee Contact"));
  return EdH("div",{className:"app ed-profpage"},
   EdH("div",{className:"prof-bar"},
-   EdH("button",{className:"prof-back",onClick:goBack},"\u2039 back"),
+   EdH("button",{className:"prof-back","aria-label":"Back",onClick:goBack},"\u2039"),
    EdH("span",{className:"prof-bar-n"},base.display_name)),
   EdH("div",{className:"prof-body",dangerouslySetInnerHTML:{__html:edProfHtml(g)}}),
   m&&m.has_windows&&booking?EdH("div",{className:"prof-card bk-inline",ref:function(el){el&&!el.__edbk&&(el.__edbk=1,edBookMount(el,m))}},
@@ -1650,7 +1679,7 @@ function EdProfilePage(){
   setBusy(!1)}
  return EdH("div",{className:"app ed-editpage"},
   EdH("div",{className:"prof-bar"},
-   EdH("button",{className:"prof-back",onClick:function(){window.history.length>1?nav(-1):nav("/me")}},"\u2039 back"),
+   EdH("button",{className:"prof-back","aria-label":"Back",onClick:function(){window.history.length>1?nav(-1):nav("/me")}},"\u2039"),
    EdH("span",{className:"prof-bar-n"},"Edit profile")),
   EdH("div",{className:"prof-card ed-idcard"},
    EdH("div",{className:"ed-idav"},EdH(Jc,{name:e&&e.display_name,path:e&&e.avatar_url,size:84})),
