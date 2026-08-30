@@ -1270,3 +1270,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 .yap-spot-btns{display:flex;gap:10px;align-items:center;justify-content:center}
 .yap-spot-go{flex:1;max-width:220px}
 .yap-spot-x{border:none;background:none;color:#6d6355;text-decoration:underline;font-size:13px;cursor:pointer}
+/* ==== yap anchor dots (q04) — mark the exact spot each yap lives at ==== */
+.yap-bubble::before{content:"";position:absolute;left:12%;top:112%;width:7px;height:7px;margin:-4px;background:#e85d75;border:1.5px solid #111;border-radius:50%;box-shadow:0 1px 3px rgba(20,17,14,.35)}
+.yap-bubble.yap-v1::before{left:88%}
+.yap-bubble.yap-v2::before{left:50%;top:116%}
