@@ -1471,3 +1471,12 @@ html.ed-shrunk #ed-topbar{transform:none}
  padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
 .ed-editpage .prof-cta{max-width:var(--col,560px);width:100%;border-radius:3px;background:#17181a;color:#f7f2ea;border:none;font:800 15px Inter;padding:14px 0;cursor:pointer}
 .ed-editpage .prof-cta:disabled{opacity:.45}
+/* ==== q19: editorial skeletons ==== */
+.skel-page{padding:24px 18px 96px;background:var(--paper,#f7f2ea);min-height:100dvh}
+.skel-mast{border-bottom:3px double #111;padding-bottom:14px;margin-bottom:20px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.skel-item{padding:14px 0;border-bottom:1px dotted #e0d6c8;display:flex;flex-direction:column;gap:8px}
+.skel-line{height:12px;border-radius:3px;background:linear-gradient(90deg,#ece5d8 25%,#f6f0e6 45%,#ece5d8 65%);background-size:220% 100%;animation:ed-shimmer 1.15s ease-in-out infinite}
+.skel-line.tall{height:22px}
+.skel-line.w35{width:35%}.skel-line.w40{width:40%}.skel-line.w55{width:55%}.skel-line.w60{width:60%}.skel-line.w90{width:90%}
+@keyframes ed-shimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
+@media (prefers-reduced-motion:reduce){.skel-line{animation:none}}
