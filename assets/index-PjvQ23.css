@@ -1488,3 +1488,18 @@ html.ed-shrunk #ed-topbar{transform:none}
 .screen>.me-card~*:nth-child(6){animation-delay:.28s}
 .screen>.me-card~*:nth-child(7){animation-delay:.33s}
 @media (prefers-reduced-motion:reduce){.screen>.me-card,.screen>.me-card~*{animation:none}}
+/* ==== q23: bigger faces + gallery carousel + lightbox ==== */
+.ed-profpage .prof-hero-av img.dir-av,.ed-profpage .prof-hero-av span.dir-av{width:160px!important;height:160px!important}
+.ed-profpage .prof-hero-av img.dir-av{cursor:zoom-in}
+.cn-ava{width:96px;height:96px;font-size:36px}
+.cn-ava-img{cursor:zoom-in}
+.cn-hero{align-items:center}
+.cn-name{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px}
+.prof-carousel{display:flex;gap:10px;overflow-x:auto;margin:14px -16px 0;padding:2px 16px 8px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.prof-carousel::-webkit-scrollbar{display:none}
+.prof-car-img{flex:none;width:78%;max-width:420px;aspect-ratio:4/3;object-fit:cover;border:1.5px solid #17181a;border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.14);scroll-snap-align:center;cursor:zoom-in;background:#efe9df}
+.ed-lightbox{position:fixed;inset:0;z-index:210;background:rgba(20,17,14,.84);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;transition:opacity .2s ease;cursor:zoom-out;padding:24px}
+.ed-lightbox.in{opacity:1}
+.ed-lightbox img{max-width:min(92vw,560px);max-height:74vh;border:2.5px solid #f7f2ea;border-radius:6px;background:#fffdf9;box-shadow:0 18px 50px rgba(0,0,0,.45)}
+.ed-lightbox.face img{width:min(78vw,420px);height:min(78vw,420px);border-radius:50%;object-fit:cover}
+.ed-lb-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:#f7f2ea}

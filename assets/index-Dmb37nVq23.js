@@ -1353,9 +1353,9 @@ function edProfHtml(g){
   h+='<div class="prof-card inv"><div class="prof-k">On the menu</div><div class="prof-chips">'
    +m.offers.map(function(x){return '<span class="prof-chip">'+edDirEsc(x)+'</span>'}).join("")+'</div>'
    +(m.rate?'<div class="prof-rate">'+edDirEsc(m.rate)+'</div>':'')+'</div>';
- if(gal[1])h+='<div class="prof-img"><img src="'+edMkMedia(gal[1])+'" alt=""/></div>';
+ if(gal.length>1)h+='<div class="prof-carousel">'+gal.slice(1).map(function(gg){return '<img class="prof-car-img" src="'+edMkMedia(gg)+'" alt="" loading="lazy"/>'}).join("")+'</div>';
  if(m&&m.bio)h+='<div class="prof-card"><div class="prof-k">Why book me</div><div class="prof-bio">“'+edDirEsc(m.bio)+'”</div></div>';
- if(gal[2])h+='<div class="prof-img"><img src="'+edMkMedia(gal[2])+'" alt=""/></div>';
+
  if(g.fac&&g.fac.length)
   h+='<div class="prof-card inv"><div class="prof-k">Around town</div><div class="prof-fac">🏘 Facilitates '
    +g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" & ")+'</div>'
@@ -1659,6 +1659,21 @@ function EdCityRow(){
 
 
 /* ==== q19: smart loading layer — snapshots, skeletons, idle warm ==== */
+
+/* ==== q23: big-face lightbox + gallery taps ==== */
+function edLightbox(src,label,face){
+ var o=document.createElement("div");o.className="ed-lightbox"+(face?" face":"");
+ o.innerHTML='<img src="'+edEsc(src)+'" alt=""/>'+(label?'<div class="ed-lb-n">'+edEsc(label)+'</div>':'');
+ o.addEventListener("click",function(){o.classList.remove("in");setTimeout(function(){o.remove()},200)});
+ document.body.appendChild(o);
+ requestAnimationFrame(function(){o.classList.add("in")});
+ if(document.hidden)o.classList.add("in")}
+document.addEventListener("click",function(ev){
+ var t=ev.target;if(!t||!t.classList)return;
+ if(t.classList.contains("prof-car-img"))return edLightbox(t.src,"");
+ if(t.classList.contains("cn-ava-img")){var n=(t.closest(".cn-hero")||{}).querySelector&&t.closest(".cn-hero").querySelector(".cn-name");return edLightbox(t.src,n?n.textContent:"",!0)}
+ if(t.tagName==="IMG"&&t.classList.contains("dir-av")&&t.closest(".prof-hero-av")){var nm=(document.querySelector(".prof-hero-av .prof-name")||{}).textContent;return edLightbox(t.src,nm||"",!0)}
+},false);
 function edSnapGet(k){try{
  var raw=localStorage.getItem("ed.pg."+k+"."+(localStorage.getItem("ed.city")||"nyc"));
  if(!raw)return null;var o=JSON.parse(raw);
