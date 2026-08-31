@@ -1545,3 +1545,5 @@ html.ed-shrunk #ed-topbar{transform:none}
 }
 /* ==== q29: add-to-calendar in event rooms ==== */
 .room-cal{display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px}
+/* ==== q30: add maker to circle ==== */
+.prof-circ{margin-top:12px;border:1.5px dashed rgba(23,20,17,.6);background:#fffdf9;border-radius:999px;padding:8px 16px;font:700 12.5px Inter;letter-spacing:.04em;color:#17181a;cursor:pointer;-webkit-tap-highlight-color:transparent}

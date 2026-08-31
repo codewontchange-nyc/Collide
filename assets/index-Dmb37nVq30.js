@@ -1343,7 +1343,9 @@ function edProfHtml(g){
  h+='<div class="prof-hero prof-hero-av">'+edDirAv(base.avatar_url,name,120)
   +'<div class="prof-name dark">'+edDirEsc(name)+'</div>'
   +(m&&m.headline?'<div class="prof-head dark">'+edDirEsc(m.headline)+'</div>'
-   :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')+'</div>';
+   :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')
+  +'<button class="prof-circ" data-uid="'+edDirEsc(base.profile_id)+'" data-name="'+edDirEsc(name)+'" data-av="'+edDirEsc(base.avatar_url||"")+'">\uff0b add to my circle</button>'
+  +'</div>';
  if(gal.length)h+='<div class="prof-carousel">'+gal.map(function(gg){return '<img class="prof-car-img" src="'+edMkMedia(gg)+'" alt="" loading="lazy"/>'}).join("")+'</div>';
  var story='';
  if(m){
@@ -1667,6 +1669,11 @@ function edLightbox(src,label,face){
  requestAnimationFrame(function(){o.classList.add("in")});
  if(document.hidden)o.classList.add("in")}
 document.addEventListener("click",function(ev){
+ var cb=ev.target.closest&&ev.target.closest(".prof-circ");
+ if(cb){(async function(){
+  try{var g=await W.auth.getUser();var me=g.data.user;
+   if(me&&me.id===cb.dataset.uid){edFeToast("That\u2019s you \ud83d\ude04");return}}catch(e){}
+  edOpenConnect({id:cb.dataset.uid,display_name:cb.dataset.name,avatar_url:cb.dataset.av||null})})();return}
  var t=ev.target;if(!t||!t.classList)return;
  if(t.classList.contains("prof-car-img"))return edLightbox(t.src,"");
  if(t.classList.contains("cn-ava-img")){var n=(t.closest(".cn-hero")||{}).querySelector&&t.closest(".cn-hero").querySelector(".cn-name");return edLightbox(t.src,n?n.textContent:"",!0)}
