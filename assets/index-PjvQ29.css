@@ -1543,3 +1543,5 @@ html.ed-shrunk #ed-topbar{transform:none}
  .bk-done{font-size:16.5px}
  .ed-profpage .bk-inline .fe-save,.bk-inline .btn{min-height:50px;font-size:15.5px}
 }
+/* ==== q29: add-to-calendar in event rooms ==== */
+.room-cal{display:flex;align-items:center;justify-content:center;text-decoration:none;font-size:17px}
