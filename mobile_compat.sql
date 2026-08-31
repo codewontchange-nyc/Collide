@@ -842,3 +842,7 @@ create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_a
 -- audit fix (2026-08-30): the ATL communities predated p93's join_code backfill window
 -- edge case — backfilled, and comm_joincode BEFORE INSERT trigger now auto-generates
 -- join_code for every future community from any surface.
+
+-- q31: community_messages.ref_id uuid; act_chatcard + ann_chatcard AFTER INSERT
+-- triggers (security definer) post standout 'event'/'ann' cards into community chat
+-- automatically from any surface. Chat renders them as centered system cards.
