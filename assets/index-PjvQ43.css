@@ -1594,3 +1594,12 @@ html.ed-shrunk #ed-topbar{transform:none}
 .pinlogin-div{display:flex;align-items:center;gap:10px;color:#8a8378;font-size:12px;margin-bottom:2px}
 .pinlogin-div::before,.pinlogin-div::after{content:"";flex:1;border-top:1px dotted #c9bda9}
 .pinlogin-div span{white-space:nowrap}
+/* ==== q43: the seldom hot air balloon ==== */
+.ed-balloon{position:absolute;left:0;pointer-events:none;z-index:3;
+ animation-name:ed-balloon-drift;animation-timing-function:linear;animation-fill-mode:both}
+.ed-balloon-bob{animation:ed-balloon-bob 6.5s ease-in-out infinite alternate;transform-origin:50% 20%}
+.ed-balloon-svg{width:100%;height:auto;display:block;filter:drop-shadow(1px 2px 0 rgba(23,20,17,.12))}
+@keyframes ed-balloon-drift{0%{transform:translateX(0);left:var(--bfrom)}
+ 100%{left:var(--bto)}}
+@keyframes ed-balloon-bob{0%{transform:translateY(0) rotate(-2deg)}100%{transform:translateY(-14px) rotate(2.4deg)}}
+@media (prefers-reduced-motion:reduce){.ed-balloon{display:none}}
