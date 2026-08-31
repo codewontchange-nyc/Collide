@@ -1568,3 +1568,23 @@ html.ed-shrunk #ed-topbar{transform:none}
 .yap-mine:has(.ym-live) .ym-none{color:#b7b0a8}
 .yap-mine:has(.ym-live) .ym-next{color:#b7b0a8;border-top-color:rgba(247,242,234,.35)}
 .yap-mine:has(.ym-live) .ym-av{border-color:#17181a;filter:none}
+/* ==== q39: editorial map entrance — paper reveal, pins drop top-to-bottom ==== */
+@keyframes ed-mapreveal{0%{opacity:0;filter:blur(7px) saturate(.7)}60%{opacity:1}100%{opacity:1;filter:blur(0) saturate(1)}}
+@keyframes ed-pindrop{0%{opacity:0;transform:translate(-50%,-50%) translateY(-14px) scale(.5)}
+ 60%{opacity:1;transform:translate(-50%,-50%) translateY(2px) scale(1.08)}
+ 100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes ed-bubdrop{0%{opacity:0;transform:translate(-12%,-124%) scale(calc(.7/var(--map-scale,1)))}
+ 60%{opacity:1}100%{opacity:1}}
+@keyframes ed-fadeup{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
+.ed-entr .map-bg{animation:ed-mapreveal .8s ease both}
+.ed-entr .map-clouds,.ed-entr .map-birds{animation:ed-fadeup 1s ease .5s both}
+.ed-entr .map-pin{animation:ed-pindrop .55s cubic-bezier(.34,1.56,.64,1) both}
+.ed-entr .map-venue{animation:ed-pindrop .55s cubic-bezier(.34,1.56,.64,1) both}
+.ed-entr .yap-bubble{animation:ed-msgpop .5s cubic-bezier(.34,1.56,.64,1) both}
+.map-logo{animation:ed-fadeup .5s ease .9s both}
+#ed-city{animation:ed-fadeup .5s ease 1s both}
+#yap-fab{animation:ed-fadeup .5s ease 1.15s both}
+#ed-lg{animation:ed-fadeup .5s ease 1.1s both}
+@media (prefers-reduced-motion:reduce){
+ .ed-entr .map-bg,.ed-entr .map-clouds,.ed-entr .map-birds,.ed-entr .map-pin,.ed-entr .map-venue,.ed-entr .yap-bubble,
+ .map-logo,#ed-city,#yap-fab,#ed-lg{animation:none}}
