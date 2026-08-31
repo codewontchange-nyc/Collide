@@ -1528,3 +1528,18 @@ html.ed-shrunk #ed-topbar{transform:none}
 /* ==== q27: header links behave — name always visible ==== */
 .ed-profpage .prof-bar .prof-bar-n{flex:1 1 auto;min-width:60px}
 .prof-bar-links{overflow:hidden}
+/* ==== q28: booking picker sized for thumbs ==== */
+@media (max-width:520px){
+ .bk-day{width:64px;padding:10px 0 9px;border-radius:12px;gap:2px}
+ .bk-day i{font-size:11px}
+ .bk-day b{font-size:20px}
+ .bk-day em{font-size:10.5px}
+ .bk-days{gap:9px;padding-bottom:12px}
+ .bk-slot{font-size:15.5px;padding:13px 19px;min-height:48px}
+ .bk-slots{gap:10px}
+ .bk-sum{font-size:18px}
+ .bk-pay{font-size:14.5px}
+ .bk-none{font-size:15px}
+ .bk-done{font-size:16.5px}
+ .ed-profpage .bk-inline .fe-save,.bk-inline .btn{min-height:50px;font-size:15.5px}
+}
