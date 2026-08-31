@@ -851,3 +851,7 @@ create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_a
 -- announcements.by_staff stamped by ann_stamp_staff trigger (is_any_staff() or
 -- community owner at insert); backfilled. Pl() Up-next path skips !by_staff rows;
 -- community feeds and chat cards still show every member announcement.
+
+-- q36: My Communities lists every membership across cities via ed_my_comms()
+-- (security definer, membership-gated) with city dividers, current city first;
+-- tapping a community in another city also switches the browsing city.
