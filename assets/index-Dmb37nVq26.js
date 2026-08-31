@@ -1344,26 +1344,24 @@ function edProfHtml(g){
   +'<div class="prof-name dark">'+edDirEsc(name)+'</div>'
   +(m&&m.headline?'<div class="prof-head dark">'+edDirEsc(m.headline)+'</div>'
    :f0?'<div class="prof-head dark">'+edDirEsc(f0.headline)+'</div>':'')+'</div>';
- if(m&&m.offers&&m.offers.length)
-  h+='<div class="prof-card inv"><div class="prof-k">On the menu</div><div class="prof-chips">'
-   +m.offers.map(function(x){return '<span class="prof-chip">'+edDirEsc(x)+'</span>'}).join("")+'</div>'
-   +(m.rate?'<div class="prof-rate">'+edDirEsc(m.rate)+'</div>':'')+'</div>';
  if(gal.length)h+='<div class="prof-carousel">'+gal.map(function(gg){return '<img class="prof-car-img" src="'+edMkMedia(gg)+'" alt="" loading="lazy"/>'}).join("")+'</div>';
- if(m&&m.bio)h+='<div class="prof-card"><div class="prof-k">Why book me</div><div class="prof-bio">“'+edDirEsc(m.bio)+'”</div></div>';
-
- if(g.fac&&g.fac.length)
-  h+='<div class="prof-card inv"><div class="prof-k">Around town</div><div class="prof-fac">🏘 Facilitates '
-   +g.fac.map(function(x){return edDirEsc(x.community_name)}).join(" & ")+'</div>'
-   +(f0&&f0.bio?'<div class="prof-bio sm">'+edDirEsc(f0.bio)+'</div>':'')+'</div>';
- var lk=(m&&m.links)||[];if(typeof lk==="string")try{lk=JSON.parse(lk)}catch(e){lk=[]}
- var soc=base.socials||{},socKeys=[];try{socKeys=Au.filter(function(p){return soc[p.key]})}catch(e){}
- if(lk.length||socKeys.length)
-  h+='<div class="prof-card"><div class="prof-k">Out in the world</div><div class="prof-links">'
-   +lk.map(function(l){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(l.url)+'">'+edDirEsc(l.label||"Link")+' ↗</a>'}).join("")
-   +socKeys.map(function(p){return '<a class="prof-link" target="_blank" rel="noopener noreferrer" href="'+edDirEsc(p.toUrl(soc[p.key]))+'">'+edDirEsc(p.key==="website"?"Website":"@"+String(soc[p.key]).replace(/^@+/,""))+' ↗</a>'}).join("")
-   +'</div></div>';
- if(m&&m.contact)
-  h+='<div class="prof-card inv" id="prof-contact"><div class="prof-k">Get in touch</div><div class="prof-contact">📮 '+edDirEsc(m.contact)+'</div></div>';
+ var story='';
+ if(m){
+  var offs=(m.offers||[]).filter(Boolean).map(edDirEsc);
+  var p1='';
+  if(offs.length===1)p1='Book them for <b>'+offs[0]+'</b>.';
+  else if(offs.length>1)p1='Book them for <b>'+offs.slice(0,-1).join('</b>, <b>')+'</b> \u2014 or <b>'+offs[offs.length-1]+'</b>.';
+  if(m.rate)p1+=(p1?' ':'')+'It usually runs <b>'+edDirEsc(m.rate)+'</b>.';
+  if(p1)story+='<p class="prof-line">'+p1+'</p>';
+  if(m.bio)story+='<p class="prof-quote">\u201c'+edDirEsc(m.bio)+'\u201d</p>';
+ }
+ if(g.fac&&g.fac.length){
+  story+='<p class="prof-line">Around town, they keep <b>'
+   +g.fac.map(function(x){return edDirEsc(x.community_name)}).join('</b> & <b>')+'</b> running.</p>';
+  if(!m&&f0&&f0.bio)story+='<p class="prof-quote">\u201c'+edDirEsc(f0.bio)+'\u201d</p>';
+ }
+ if(m&&m.contact)story+='<p class="prof-line" id="prof-contact">Rather just say hi? <b>'+edDirEsc(m.contact)+'</b></p>';
+ if(story)h+='<div class="prof-story">'+story+'</div>';
  return h}
 async function edBookMount(el,m){
  var me=(await W.auth.getUser()).data.user;if(!me||!document.body.contains(el))return;
@@ -1456,7 +1454,12 @@ function EdMakerPage(){
  return EdH("div",{className:"app ed-profpage"},
   EdH("div",{className:"prof-bar"},
    EdH("button",{className:"prof-back","aria-label":"Back",onClick:goBack},"\u2039"),
-   EdH("span",{className:"prof-bar-n"},base.display_name)),
+   EdH("span",{className:"prof-bar-n"},base.display_name),(function(){
+   var lk=(m&&m.links)||[];if(typeof lk==="string")try{lk=JSON.parse(lk)}catch(e){lk=[]}
+   lk=lk.filter(function(l){return l&&l.url});
+   try{var sc=base.socials||{};Au.forEach(function(p){if(sc[p.key]&&lk.length<3)lk.push({label:p.key==="website"?"Web":(p.label||p.key),url:p.toUrl(sc[p.key])})})}catch(e){}
+   lk=lk.slice(0,3);
+   return lk.length?EdH("span",{className:"prof-bar-links"},lk.map(function(l,i){return EdH("a",{key:i,className:"pbl",href:l.url,target:"_blank",rel:"noopener noreferrer"},String(l.label||"link")+" \u2197")})):null})()),
   EdH("div",{className:"prof-body",dangerouslySetInnerHTML:{__html:edProfHtml(g)}}),
   m&&m.has_windows&&booking?EdH("div",{className:"prof-card bk-inline",ref:function(el){el&&!el.__edbk&&(el.__edbk=1,edBookMount(el,m))}},
    EdH("div",{className:"dir-loading"},"opening the book\u2026")):null,

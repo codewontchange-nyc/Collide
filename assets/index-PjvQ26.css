@@ -1513,3 +1513,15 @@ html.ed-shrunk #ed-topbar{transform:none}
 .yap-mine .ym-none{color:#8a8378}
 .yap-mine .ym-next{color:#5c554a;border-top:1px dotted #c9bda9;font-variant-caps:all-small-caps;letter-spacing:.06em;font-size:13px}
 .yap-mine .ym-av{border-color:#fffdf9;filter:grayscale(1)}
+/* ==== q26: editorial maker profile — narrative, no section boxes, prominent carousel ==== */
+.ed-profpage .prof-hero,.ed-profpage .prof-hero-av{border:none!important;box-shadow:none!important;background:none!important}
+.prof-story{padding:6px 4px 10px}
+.prof-line{font-family:'Cormorant Garamond',Georgia,serif;font-size:21px;line-height:1.55;color:#17181a;margin:0 0 16px}
+.prof-line b{font-weight:700}
+.prof-line#prof-contact b{border-bottom:2px solid #17181a}
+.prof-quote{font-family:'Cormorant Garamond',Georgia,serif;font-size:25px;line-height:1.4;font-style:italic;color:#17181a;margin:22px 0;padding-left:14px;border-left:3px solid #17181a}
+.ed-profpage .prof-carousel{margin-top:18px;padding-bottom:10px}
+.ed-profpage .prof-car-img{width:86%;max-width:480px;aspect-ratio:3/2}
+.prof-bar-links{margin-left:auto;display:flex;gap:6px;flex:none}
+.ed-profpage .prof-bar .prof-bar-n{flex:0 1 auto;min-width:0}
+.pbl{font:700 10.5px Inter;letter-spacing:.05em;text-transform:uppercase;border:1px solid rgba(23,20,17,.6);border-radius:999px;padding:5px 9px;color:#17181a;text-decoration:none;background:#fffdf9;white-space:nowrap}
