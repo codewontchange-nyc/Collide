@@ -1722,7 +1722,7 @@ function EdPinLogin(p){
  var s=(0,_.useState)(""),pin=s[0],setP=s[1];
  var b=(0,_.useState)(!1),busy=b[0],setB=b[1];
  var er=(0,_.useState)(""),err=er[0],setE=er[1];
- async function go(ev){ev.preventDefault();
+ async function go(ev){ev&&ev.preventDefault&&ev.preventDefault();
   var em=(p.email||"").trim();
   if(!em){setE("Type your email above first");return}
   if(pin.length!==6)return;
@@ -1732,11 +1732,11 @@ function EdPinLogin(p){
    try{localStorage.setItem("collide.email",em);localStorage.setItem("collide.pinset","1")}catch(e){}}
   catch(e){setE("That email + PIN combo didn’t match.");setP("")}
   setB(!1)}
- return EdH("form",{className:"pinlogin",onSubmit:go},
+ return EdH("div",{className:"pinlogin"},
   EdH("div",{className:"pinlogin-div"},EdH("span",{},"or skip the email — enter with your PIN")),
   EdH("input",{className:"field pin-input",inputMode:"numeric",pattern:"[0-9]*",maxLength:6,placeholder:"••••••",value:pin,disabled:busy,"aria-label":"6-digit PIN",
-   onChange:function(ev){setP(ev.target.value.replace(/\D/g,"").slice(0,6))}}),
-  EdH("button",{className:"btn block",type:"submit",disabled:busy||pin.length!==6},busy?"Unlocking…":"Enter with email + PIN"),
+   onChange:function(ev){setP(ev.target.value.replace(/\D/g,"").slice(0,6))},onKeyDown:function(ev){ev.key==="Enter"&&(ev.preventDefault(),go())}}),
+  EdH("button",{className:"btn block",type:"button",onClick:go,disabled:busy||pin.length!==6},busy?"Unlocking…":"Enter with email + PIN"),
   err?EdH("p",{className:"err"},err):null)}
 function EdSec(p){
  return EdH("div",{className:"set-sec"+(p.open?" open":"")},
