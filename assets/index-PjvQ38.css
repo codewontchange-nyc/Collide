@@ -685,7 +685,7 @@
 .ed-mkr-car{display:flex;gap:10px;overflow-x:auto;padding:8px 0 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .ed-mkr-car::-webkit-scrollbar{display:none}
 .ed-mkr-card{flex:none;width:132px;background:var(--surface,#fffdf9);border:1.5px solid rgba(23,20,17,.85);
- border-radius:4px;padding:12px 10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;
+ border-radius:var(--r,16px);padding:12px 10px;text-align:center;cursor:pointer;display:flex;flex-direction:column;
  align-items:center;gap:6px;box-shadow:3px 3px 0 rgba(23,20,17,.16)}
 .ed-mkr-av .dir-av{border-radius:50%}
 .ed-mkr-n{font:700 13px Inter;color:#17181a}
@@ -1504,7 +1504,7 @@ html.ed-shrunk #ed-topbar{transform:none}
 .ed-lightbox.face img{width:min(78vw,420px);height:min(78vw,420px);border-radius:50%;object-fit:cover}
 .ed-lb-n{font-family:'Cormorant Garamond',Georgia,serif;font-size:24px;color:#f7f2ea}
 /* ==== q24: my-yap card in black & white ==== */
-.yap-mine{border:1.5px solid rgba(23,20,17,.85);border-radius:4px;box-shadow:3px 3px 0 rgba(23,20,17,.14);background:#fffdf9}
+.yap-mine{border:1.5px solid rgba(23,20,17,.85);border-radius:var(--r-lg,24px);box-shadow:3px 3px 0 rgba(23,20,17,.14);background:#fffdf9}
 .yap-mine .ym-t{font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:18px;color:#17181a;letter-spacing:0}
 .yap-mine .ym-t.ym-faded{color:#8a8378}
 .yap-mine .ym-pill{color:#f7f2ea;background:#17181a;border:1.5px solid #17181a;font-weight:700;letter-spacing:.04em}
