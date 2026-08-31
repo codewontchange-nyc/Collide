@@ -846,3 +846,8 @@ create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_a
 -- q31: community_messages.ref_id uuid; act_chatcard + ann_chatcard AFTER INSERT
 -- triggers (security definer) post standout 'event'/'ann' cards into community chat
 -- automatically from any surface. Chat renders them as centered system cards.
+
+-- q32: Up next shows only facilitator/admin/community-owner announcements.
+-- announcements.by_staff stamped by ann_stamp_staff trigger (is_any_staff() or
+-- community owner at insert); backfilled. Pl() Up-next path skips !by_staff rows;
+-- community feeds and chat cards still show every member announcement.
