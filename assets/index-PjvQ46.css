@@ -1570,9 +1570,9 @@ html.ed-shrunk #ed-topbar{transform:none}
 .yap-mine:has(.ym-live) .ym-av{border-color:#17181a;filter:none}
 /* ==== q39: editorial map entrance — paper reveal, pins drop top-to-bottom ==== */
 @keyframes ed-mapreveal{0%{opacity:0;filter:blur(7px) saturate(.7)}60%{opacity:1}100%{opacity:1;filter:blur(0) saturate(1)}}
-@keyframes ed-pindrop{0%{opacity:0;transform:translate(-50%,-50%) translateY(-14px) scale(.5)}
- 60%{opacity:1;transform:translate(-50%,-50%) translateY(2px) scale(1.08)}
- 100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes ed-pindrop{0%{opacity:0;transform:translate(-50%,-50%) translateY(-14px) scale(calc(.5/var(--map-scale,1)))}
+ 60%{opacity:1;transform:translate(-50%,-50%) translateY(2px) scale(calc(1.08/var(--map-scale,1)))}
+ 100%{opacity:1;transform:translate(-50%,-50%) scale(calc(1/var(--map-scale,1)))}}
 @keyframes ed-bubdrop{0%{opacity:0;transform:translate(-12%,-124%) scale(calc(.7/var(--map-scale,1)))}
  60%{opacity:1}100%{opacity:1}}
 @keyframes ed-fadeup{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
@@ -1614,3 +1614,6 @@ html.ed-shrunk #ed-topbar{transform:none}
  padding:0 34px;max-width:420px;animation:mc-fade 2.6s ease both}
 @keyframes mc-fade{0%{opacity:0;transform:translateY(9px)}15%,78%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
 @media (prefers-reduced-motion:reduce){.mc-word{animation:none}}
+
+/* q46: the entrance always completes — off-screen pins may not stay paused mid-drop */
+.ed-entr .map-pin,.ed-entr .map-venue,.ed-entr .yap-bubble{animation-play-state:running!important}
