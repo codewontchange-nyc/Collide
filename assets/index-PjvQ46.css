@@ -1617,3 +1617,12 @@ html.ed-shrunk #ed-topbar{transform:none}
 
 /* q46: the entrance always completes — off-screen pins may not stay paused mid-drop */
 .ed-entr .map-pin,.ed-entr .map-venue,.ed-entr .yap-bubble{animation-play-state:running!important}
+
+/* ==== q47: black map controls for legibility ==== */
+#ed-city{background:#17181a!important;color:#f7f2ea!important;border-color:#17181a!important}
+#ed-city b,#ed-city *{color:#f7f2ea!important}
+#ed-lg{background:#17181a!important;color:#f7f2ea!important;border-color:#17181a!important}
+#ed-lg svg,#ed-lg *{color:#f7f2ea!important;stroke:#f7f2ea}
+#yap-fab{background:#17181a!important;color:#f7f2ea!important;border-color:#17181a!important}
+#yap-fab .yap-txt{color:#f7f2ea}
+#yap-fab.yap-done{opacity:.85}
