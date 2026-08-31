@@ -1603,3 +1603,14 @@ html.ed-shrunk #ed-topbar{transform:none}
  100%{left:var(--bto)}}
 @keyframes ed-balloon-bob{0%{transform:translateY(0) rotate(-2deg)}100%{transform:translateY(-14px) rotate(2.4deg)}}
 @media (prefers-reduced-motion:reduce){.ed-balloon{display:none}}
+/* ==== q44: map loading curtain ==== */
+#ed-map-curtain{position:fixed;inset:0;z-index:52;background:var(--paper,#f7f2ea);
+ display:flex;align-items:center;justify-content:center;overflow:hidden;
+ opacity:1;transition:opacity .65s ease}
+#ed-map-curtain.out{opacity:0;pointer-events:none}
+#ed-map-curtain .map-clouds,#ed-map-curtain .map-birds{position:absolute;inset:0;pointer-events:none}
+.mc-word{position:relative;z-index:2;font-family:'Cormorant Garamond',Georgia,serif;
+ font-style:italic;font-size:25px;line-height:1.35;color:#17181a;text-align:center;
+ padding:0 34px;max-width:420px;animation:mc-fade 2.6s ease both}
+@keyframes mc-fade{0%{opacity:0;transform:translateY(9px)}15%,78%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-6px)}}
+@media (prefers-reduced-motion:reduce){.mc-word{animation:none}}
