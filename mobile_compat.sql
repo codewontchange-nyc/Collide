@@ -855,3 +855,38 @@ create unique index yaps_one_per_city_day on yaps (author_id, city, (((created_a
 -- q36: My Communities lists every membership across cities via ed_my_comms()
 -- (security definer, membership-gated) with city dividers, current city first;
 -- tapping a community in another city also switches the browsing city.
+
+-- q64 (2026-08-31): hunt reviews + finishers log
+create table if not exists hunt_reviews(
+ id uuid primary key default gen_random_uuid(),
+ activity_id uuid not null references activities(id) on delete cascade,
+ profile_id uuid not null references profiles(id) on delete cascade,
+ body text not null check(char_length(body) between 1 and 600),
+ created_at timestamptz not null default now(),
+ unique(activity_id,profile_id));
+alter table hunt_reviews enable row level security;
+create or replace function hunt_completed(aid uuid,uid uuid) returns boolean language sql security definer stable set search_path=public as $f$
+ select exists(select 1 from activities a where a.id=aid and a.itin_kind='hunt' and jsonb_array_length(coalesce(a.itinerary,'[]'::jsonb))>0
+  and (select count(distinct c.stop_idx) from itin_checkins c where c.activity_id=aid and c.profile_id=uid)>=jsonb_array_length(a.itinerary))
+$f$;
+drop policy if exists hr_sel on hunt_reviews;
+drop policy if exists hr_ins on hunt_reviews;
+drop policy if exists hr_upd on hunt_reviews;
+drop policy if exists hr_del on hunt_reviews;
+create policy hr_sel on hunt_reviews for select using (exists(select 1 from activities a where a.id=activity_id));
+create policy hr_ins on hunt_reviews for insert with check (profile_id=auth.uid() and hunt_completed(activity_id,auth.uid()));
+create policy hr_upd on hunt_reviews for update using (profile_id=auth.uid());
+create policy hr_del on hunt_reviews for delete using (profile_id=auth.uid());
+create or replace function ed_hunt_log(aid uuid) returns jsonb language sql security definer stable set search_path=public as $f$
+ select case when ed_act_city(aid) is null then null else jsonb_build_object(
+  'done',coalesce((select jsonb_agg(jsonb_build_object('id',p.id,'name',p.display_name,'av',p.avatar_url,'at',x.done_at,'review',hr.body) order by x.done_at desc)
+    from (select c.profile_id,max(c.created_at) done_at,count(distinct c.stop_idx) n from itin_checkins c where c.activity_id=aid group by c.profile_id) x
+    join profiles p on p.id=x.profile_id
+    left join hunt_reviews hr on hr.activity_id=aid and hr.profile_id=x.profile_id
+    where x.n>=(select jsonb_array_length(coalesce(itinerary,'[]'::jsonb)) from activities where id=aid)),'[]'::jsonb),
+  'me_done',hunt_completed(aid,auth.uid()),
+  'me_rev',exists(select 1 from hunt_reviews where activity_id=aid and profile_id=auth.uid())) end
+$f$;
+grant execute on function hunt_completed(uuid,uuid) to authenticated;
+grant execute on function ed_hunt_log(uuid) to authenticated;
+select 'migrated';
