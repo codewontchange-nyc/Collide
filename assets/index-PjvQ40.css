@@ -1588,3 +1588,9 @@ html.ed-shrunk #ed-topbar{transform:none}
 @media (prefers-reduced-motion:reduce){
  .ed-entr .map-bg,.ed-entr .map-clouds,.ed-entr .map-birds,.ed-entr .map-pin,.ed-entr .map-venue,.ed-entr .yap-bubble,
  .map-logo,#ed-city,#yap-fab,#ed-lg{animation:none}}
+/* ==== q40: welcome-back + pin login ==== */
+.wb-av{width:92px;height:92px;border-radius:50%;object-fit:cover;border:2.5px solid #17181a;background:#fffdf9;box-shadow:3px 3px 0 rgba(23,20,17,.16)}
+.pinlogin{margin-top:18px;display:flex;flex-direction:column;gap:10px}
+.pinlogin-div{display:flex;align-items:center;gap:10px;color:#8a8378;font-size:12px;margin-bottom:2px}
+.pinlogin-div::before,.pinlogin-div::after{content:"";flex:1;border-top:1px dotted #c9bda9}
+.pinlogin-div span{white-space:nowrap}
