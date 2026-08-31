@@ -1457,8 +1457,8 @@ function EdMakerPage(){
    EdH("span",{className:"prof-bar-n"},base.display_name),(function(){
    var lk=(m&&m.links)||[];if(typeof lk==="string")try{lk=JSON.parse(lk)}catch(e){lk=[]}
    lk=lk.filter(function(l){return l&&l.url});
-   try{var sc=base.socials||{};Au.forEach(function(p){if(sc[p.key]&&lk.length<3)lk.push({label:p.key==="website"?"Web":(p.label||p.key),url:p.toUrl(sc[p.key])})})}catch(e){}
-   lk=lk.slice(0,3);
+   try{var sc=base.socials||{};Au.forEach(function(p){if(sc[p.key])lk.push({label:p.key==="website"?"Web":(p.label||p.key),url:p.toUrl(sc[p.key])})})}catch(e){}
+   var seen={};lk=lk.filter(function(l){try{var k=String(l.url).replace(/^https?:\/\//,"").replace(/\/+$/,"").toLowerCase();if(seen[k])return!1;seen[k]=1;return!0}catch(e){return!1}}).slice(0,2);
    return lk.length?EdH("span",{className:"prof-bar-links"},lk.map(function(l,i){return EdH("a",{key:i,className:"pbl",href:l.url,target:"_blank",rel:"noopener noreferrer"},String(l.label||"link")+" \u2197")})):null})()),
   EdH("div",{className:"prof-body",dangerouslySetInnerHTML:{__html:edProfHtml(g)}}),
   m&&m.has_windows&&booking?EdH("div",{className:"prof-card bk-inline",ref:function(el){el&&!el.__edbk&&(el.__edbk=1,edBookMount(el,m))}},

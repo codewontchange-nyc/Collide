@@ -1525,3 +1525,6 @@ html.ed-shrunk #ed-topbar{transform:none}
 .prof-bar-links{margin-left:auto;display:flex;gap:6px;flex:none}
 .ed-profpage .prof-bar .prof-bar-n{flex:0 1 auto;min-width:0}
 .pbl{font:700 10.5px Inter;letter-spacing:.05em;text-transform:uppercase;border:1px solid rgba(23,20,17,.6);border-radius:999px;padding:5px 9px;color:#17181a;text-decoration:none;background:#fffdf9;white-space:nowrap}
+/* ==== q27: header links behave — name always visible ==== */
+.ed-profpage .prof-bar .prof-bar-n{flex:1 1 auto;min-width:60px}
+.prof-bar-links{overflow:hidden}
