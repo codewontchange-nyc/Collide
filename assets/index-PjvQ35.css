@@ -1559,3 +1559,12 @@ html.ed-shrunk #ed-topbar{transform:none}
 .chat-ann .cs-k{color:#b7b0a8}
 .chat-ann .cs-t{color:#f7f2ea;font-style:italic}
 .chat-ann .cs-by{font:600 11px Inter;color:#b7b0a8;margin-top:2px}
+/* ==== q35: ACTIVE yap = solid ink card, white text ==== */
+.yap-mine:has(.ym-live){background:#17181a;border-color:#17181a;box-shadow:3px 3px 0 rgba(23,20,17,.3)}
+.yap-mine:has(.ym-live) .ym-t{color:#f7f2ea}
+.yap-mine:has(.ym-live) .ym-pill{background:#f7f2ea;color:#17181a;border-color:#f7f2ea}
+.yap-mine:has(.ym-live) .ym-body{color:#f7f2ea}
+.yap-mine:has(.ym-live) .ym-who{color:#f7f2ea}
+.yap-mine:has(.ym-live) .ym-none{color:#b7b0a8}
+.yap-mine:has(.ym-live) .ym-next{color:#b7b0a8;border-top-color:rgba(247,242,234,.35)}
+.yap-mine:has(.ym-live) .ym-av{border-color:#17181a;filter:none}
