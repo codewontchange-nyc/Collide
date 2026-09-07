@@ -890,3 +890,69 @@ $f$;
 grant execute on function hunt_completed(uuid,uuid) to authenticated;
 grant execute on function ed_hunt_log(uuid) to authenticated;
 select 'migrated';
+
+-- q65 (2026-09-07): classifieds categories - facilitators table, poi profile fields, directory_listings v2
+create table if not exists facilitators(
+ profile_id uuid primary key references profiles(id) on delete cascade,
+ community_id uuid not null references communities(id) on delete cascade,
+ headline text, offers text[] default '{}', bio text, contact text,
+ links jsonb default '[]'::jsonb, gallery text[] default '{}',
+ active boolean not null default true,
+ created_at timestamptz not null default now(),
+ updated_at timestamptz not null default now());
+alter table facilitators enable row level security;
+create or replace function ed_can_facilitate(cid uuid) returns boolean language sql security definer stable set search_path=public as $f$
+ select exists(select 1 from communities c where c.id=cid and c.owner_id=auth.uid())
+     or exists(select 1 from staff s where s.profile_id=auth.uid() and s.role in ('owner','facilitator') and (s.community_id is null or s.community_id=cid))
+$f$;
+grant execute on function ed_can_facilitate(uuid) to authenticated;
+drop policy if exists fac_sel on facilitators;
+drop policy if exists fac_ins on facilitators;
+drop policy if exists fac_upd on facilitators;
+drop policy if exists fac_del on facilitators;
+create policy fac_sel on facilitators for select to authenticated using (true);
+create policy fac_ins on facilitators for insert with check (profile_id=auth.uid() and ed_can_facilitate(community_id));
+create policy fac_upd on facilitators for update using (profile_id=auth.uid()) with check (profile_id=auth.uid() and ed_can_facilitate(community_id));
+create policy fac_del on facilitators for delete using (profile_id=auth.uid());
+alter table pois
+ add column if not exists blurb text,
+ add column if not exists story text,
+ add column if not exists tier text default 'standard',
+ add column if not exists sponsored boolean not null default false;
+do $d$ begin
+ alter table pois add constraint pois_tier_ck check (tier in ('standard','feature','spotlight'));
+exception when duplicate_object then null; end $d$;
+drop function if exists public.directory_listings();
+create function public.directory_listings()
+ returns table(profile_id uuid, display_name text, avatar_url text, kind text, headline text, offers text[], bio text, rate text, booking_url text, community_name text, booking_mode text, price_cents integer, deposit_cents integer, payment_handle text, has_windows boolean, contact text, links jsonb, gallery text[], socials jsonb, community_id uuid)
+ language sql security definer set search_path=public as $f$
+  select p.id, p.display_name, p.avatar_url, 'maker'::text,
+         m.headline, m.offers, m.bio, m.rate, m.booking_url, null::text,
+         m.booking_mode, m.price_cents, m.deposit_cents, m.payment_handle,
+         exists (select 1 from maker_windows w where w.maker_id = m.profile_id),
+         m.contact, m.links, m.gallery, p.socials, null::uuid
+    from makers m join profiles p on p.id = m.profile_id
+   where m.active and (m.trial_ends_at is null or m.trial_ends_at > now())
+     and m.city = req_city()
+  union all
+  select * from (
+    select distinct on (p.id)
+         p.id, p.display_name, p.avatar_url, 'facilitator'::text,
+         coalesce(f.headline,'Facilitator of '||c.name), f.offers, coalesce(f.bio,c.blurb), null::text, null::text, c.name,
+         null::text, null::integer, null::integer, null::text, false,
+         f.contact, coalesce(f.links,'[]'::jsonb), coalesce(f.gallery,'{}'::text[]), p.socials, c.id
+    from (
+      select s.profile_id pid, s.community_id cid from staff s where s.role='facilitator' and s.community_id is not null
+      union
+      select f2.profile_id, f2.community_id from facilitators f2 where f2.active
+    ) src
+    join profiles p on p.id=src.pid
+    join communities c on c.id=src.cid
+    left join facilitators f on f.profile_id=p.id and f.community_id=c.id and f.active
+    where c.city=req_city() and c.archived_at is null
+      and not exists(select 1 from facilitators fx where fx.profile_id=p.id and fx.community_id=c.id and not fx.active)
+    order by p.id, (f.profile_id is null)
+  ) fac
+$f$;
+grant execute on function public.directory_listings() to authenticated;
+select 'q65 migrated';
