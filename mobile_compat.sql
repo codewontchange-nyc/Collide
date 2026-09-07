@@ -956,3 +956,7 @@ create function public.directory_listings()
 $f$;
 grant execute on function public.directory_listings() to authenticated;
 select 'q65 migrated';
+
+-- q65 addendum (2026-09-07): all POIs are public feed content now (Cam: Local Business feed shows every POI)
+drop policy if exists pois_sel on pois;
+create policy pois_sel on pois for select to authenticated using (true);
