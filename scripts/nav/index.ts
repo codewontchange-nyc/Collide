@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
 const KEY = Deno.env.get("GOOGLE_MAPS_KEY") ?? "";
+const GEO_KEY = Deno.env.get("GOOGLE_MAPS_KEY_GEO") || KEY;
 const CORS: Record<string, string> = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -24,7 +25,7 @@ Deno.serve(async (req) => {
       const addr = String(b.address || "").slice(0, 200);
       if (!addr) return json({ error: "address" }, 400);
       const r = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${KEY}`,
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${GEO_KEY}`,
       ).then((x) => x.json());
       const g = r.results?.[0];
       if (!g) return json({ error: "not_found", status: r.status });
