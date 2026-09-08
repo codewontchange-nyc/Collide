@@ -979,3 +979,82 @@ create or replace function ed_event_recap(aid uuid) returns jsonb language sql s
 $f$;
 grant execute on function ed_event_recap(uuid) to authenticated;
 select 'q69 rpc ok';
+
+-- q72 (2026-09-08): global communities (city='global'), Homeplate seed
+-- (also: cities_status_check widened with 'hidden'; cities row global/Everywhere/hidden)
+-- global communities: city='global' is visible from every city
+drop policy if exists communities_city_r on communities;
+create policy communities_city_r on communities as restrictive for select
+ using (city = req_city() or city = 'global' or (req_city_raw() is null and is_any_staff()));
+drop policy if exists announcements_city_r on announcements;
+create policy announcements_city_r on announcements as restrictive for select
+ using (city = req_city() or city = 'global' or (req_city_raw() is null and is_any_staff()));
+drop policy if exists activities_city_r on activities;
+create policy activities_city_r on activities as restrictive for select
+ using (city = req_city() or city = 'global' or (req_city_raw() is null and is_any_staff()));
+create or replace function set_req_city() returns trigger language plpgsql as $f$
+begin
+  if tg_table_name in ('announcements','activities') then
+    begin
+      if new.community_id is not null and exists(select 1 from communities c where c.id=new.community_id and c.city='global') then
+        new.city := 'global'; return new;
+      end if;
+    exception when undefined_column then null; end;
+  end if;
+  if req_city_raw() is not null then
+    new.city := req_city();
+  elsif new.city is null then
+    new.city := 'nyc';
+  end if;
+  return new;
+end $f$;
+create or replace function ed_comm_dir() returns json language sql stable security definer as $f$
+ select coalesce(json_agg(row order by (row->>'city')='global' desc, row->>'name'),'[]'::json) from (
+  select json_build_object('id',c.id,'name',c.name,'emoji',c.emoji,
+   'blurb',coalesce(c.blurb,c.description),'tags',coalesce(c.tags,'{}'),'city',c.city,
+   'members',(select count(*) from community_members m where m.community_id=c.id and m.status='member')) as row
+  from communities c where c.archived_at is null and (c.city=req_city() or c.city='global')) t
+$f$;
+create or replace function ed_join_global(cid uuid) returns json language plpgsql security definer as $f$
+declare uid uuid:=auth.uid(); st text;
+begin
+ if uid is null then return json_build_object('error','auth'); end if;
+ if not exists(select 1 from communities c where c.id=cid and c.city='global' and c.archived_at is null) then
+  return json_build_object('error','not_global'); end if;
+ select status into st from community_members where community_id=cid and profile_id=uid;
+ if st is not null then return json_build_object('status',st,'already',true); end if;
+ insert into community_members(community_id,profile_id,status) values(cid,uid,'member') on conflict do nothing;
+ return json_build_object('status','member');
+end $f$;
+grant execute on function ed_join_global(uuid) to authenticated;
+create or replace function join_community(code text, via text default null) returns json language plpgsql security definer as $f$
+declare c record; uid uuid:=auth.uid(); st text; inv uuid;
+begin
+  if uid is null then return json_build_object('error','auth'); end if;
+  select id,name,emoji,city into c from communities where join_code=code and archived_at is null;
+  if c.id is null then return json_build_object('error','not_found'); end if;
+  select status into st from community_members where community_id=c.id and profile_id=uid;
+  if st is not null then
+    return json_build_object('community_id',c.id,'status',st,'name',c.name,'emoji',c.emoji,'already',true);
+  end if;
+  if via is not null and length(via)>0 then
+    select p.id into inv from profiles p
+      join community_members m on m.profile_id=p.id and m.community_id=c.id and m.status='member'
+     where p.connect_code=via limit 1;
+  end if;
+  st := case when c.city='global' or inv is not null then 'member' else 'pending' end;
+  insert into community_members(community_id,profile_id,status) values (c.id,uid,st)
+    on conflict do nothing;
+  return json_build_object('community_id',c.id,'status',st,'name',c.name,'emoji',c.emoji);
+end $f$;
+alter table communities add column if not exists feature text;
+insert into communities(name,owner_id,city,feature,blurb,description,tags)
+select 'Homeplate','308abd7b-e52e-4945-8c1f-e0c86e221e6a','global','meals',
+ 'The city feeds itself. Post a plate or claim one — everyday people cooking for each other.',
+ 'Homeplate is Collide''s first everywhere-community: a standing table for the whole app. Cook when you can, eat when you need, pay each other directly.',
+ '{food}'
+where not exists(select 1 from communities where name='Homeplate' and city='global');
+insert into community_members(community_id,profile_id,status)
+select id,'308abd7b-e52e-4945-8c1f-e0c86e221e6a','member' from communities where name='Homeplate' and city='global'
+on conflict do nothing;
+select id, join_code from communities where name='Homeplate';
