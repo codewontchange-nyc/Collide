@@ -1058,3 +1058,79 @@ insert into community_members(community_id,profile_id,status)
 select id,'308abd7b-e52e-4945-8c1f-e0c86e221e6a','member' from communities where name='Homeplate' and city='global'
 on conflict do nothing;
 select id, join_code from communities where name='Homeplate';
+
+-- q73 (2026-09-08): Homeplate meals - schema, RPCs, claims, allergies
+create table if not exists meals(
+ id uuid primary key default gen_random_uuid(),
+ community_id uuid not null references communities(id) on delete cascade,
+ cook_id uuid not null references profiles(id) on delete cascade,
+ title text not null check(char_length(title) between 1 and 80),
+ photos text[] not null check(coalesce(array_length(photos,1),0)>=1),
+ ingredients text[] not null check(coalesce(array_length(ingredients,1),0)>=1),
+ allergens text[] not null default '{}',
+ cuisines text[] not null default '{}',
+ price_cents int not null default 0 check(price_cents>=0),
+ portions int not null default 4 check(portions between 1 and 50),
+ pay_method text check(pay_method in ('venmo','cashapp','zelle','paypal','other')),
+ pay_handle text not null,
+ pickup_address text not null,
+ pickup_lat double precision, pickup_lng double precision, pickup_area text,
+ pickup_start timestamptz not null, pickup_end timestamptz not null,
+ status text not null default 'open' check(status in ('open','sold_out','closed')),
+ city text, created_at timestamptz not null default now());
+create table if not exists meal_claims(
+ meal_id uuid not null references meals(id) on delete cascade,
+ profile_id uuid not null references profiles(id) on delete cascade,
+ qty int not null default 1 check(qty between 1 and 4),
+ created_at timestamptz not null default now(),
+ primary key(meal_id,profile_id));
+alter table profiles add column if not exists allergies text[] not null default '{}';
+alter table meals enable row level security;
+alter table meal_claims enable row level security;
+create or replace function meal_seats_left(mid uuid) returns int language sql security definer stable set search_path=public as $f$
+ select greatest(m.portions - coalesce((select sum(c.qty) from meal_claims c where c.meal_id=m.id),0),0)::int
+ from meals m where m.id=mid
+$f$;
+grant execute on function meal_seats_left(uuid) to authenticated;
+drop policy if exists meals_sel on meals;
+drop policy if exists meals_ins on meals;
+drop policy if exists meals_upd on meals;
+drop policy if exists meals_del on meals;
+create policy meals_sel on meals for select using (is_community_member(community_id));
+create policy meals_ins on meals for insert with check (cook_id=auth.uid() and is_community_member(community_id));
+create policy meals_upd on meals for update using (cook_id=auth.uid() or community_owner(community_id)=auth.uid() or is_staff(community_id));
+create policy meals_del on meals for delete using (cook_id=auth.uid() or community_owner(community_id)=auth.uid() or is_staff(community_id));
+drop policy if exists mclaims_sel on meal_claims;
+drop policy if exists mclaims_ins on meal_claims;
+drop policy if exists mclaims_del on meal_claims;
+create policy mclaims_sel on meal_claims for select using (exists(select 1 from meals m where m.id=meal_id and is_community_member(m.community_id)));
+create policy mclaims_ins on meal_claims for insert with check (profile_id=auth.uid()
+ and exists(select 1 from meals m where m.id=meal_id and m.status='open' and now()<m.pickup_end and is_community_member(m.community_id))
+ and meal_seats_left(meal_id)>=qty);
+create policy mclaims_del on meal_claims for delete using (profile_id=auth.uid() or exists(select 1 from meals m where m.id=meal_id and m.cook_id=auth.uid()));
+revoke select on meals from authenticated, anon;
+grant select(id,community_id,cook_id,title,photos,ingredients,allergens,cuisines,price_cents,portions,pay_method,pay_handle,pickup_area,pickup_start,pickup_end,status,city,created_at) on meals to authenticated;
+create or replace function ed_meals(cid uuid) returns jsonb language sql stable security definer set search_path=public as $f$
+ select case when not is_community_member(cid) then null else coalesce((select jsonb_agg(jsonb_build_object(
+  'id',m.id,'title',m.title,'photos',m.photos,'ingredients',m.ingredients,'allergens',m.allergens,
+  'cuisines',m.cuisines,'price_cents',m.price_cents,'portions',m.portions,
+  'pay_method',m.pay_method,'pay_handle',m.pay_handle,
+  'area',m.pickup_area,'lat',round(m.pickup_lat::numeric,3),'lng',round(m.pickup_lng::numeric,3),
+  'start',m.pickup_start,'end',m.pickup_end,'status',m.status,'created_at',m.created_at,
+  'cook',jsonb_build_object('id',p.id,'name',p.display_name,'av',p.avatar_url),
+  'left',greatest(m.portions-coalesce((select sum(c2.qty) from meal_claims c2 where c2.meal_id=m.id),0),0),
+  'mine',m.cook_id=auth.uid(),
+  'my_claim',coalesce((select c3.qty from meal_claims c3 where c3.meal_id=m.id and c3.profile_id=auth.uid()),0),
+  'claims',case when m.cook_id=auth.uid() then (select coalesce(jsonb_agg(jsonb_build_object('id',pp.id,'name',pp.display_name,'av',pp.avatar_url,'qty',cc.qty)),'[]'::jsonb) from meal_claims cc join profiles pp on pp.id=cc.profile_id where cc.meal_id=m.id) else null end
+  ) order by (m.status='open' and now()<m.pickup_end) desc, m.pickup_end asc)
+  from meals m join profiles p on p.id=m.cook_id where m.community_id=cid),'[]'::jsonb) end
+$f$;
+grant execute on function ed_meals(uuid) to authenticated;
+create or replace function ed_meal_addr(mid uuid) returns jsonb language sql stable security definer set search_path=public as $f$
+ select case when exists(select 1 from meals m where m.id=mid and (m.cook_id=auth.uid()
+   or exists(select 1 from meal_claims c where c.meal_id=mid and c.profile_id=auth.uid())))
+ then (select jsonb_build_object('address',m.pickup_address,'lat',m.pickup_lat,'lng',m.pickup_lng) from meals m where m.id=mid) end
+$f$;
+grant execute on function ed_meal_addr(uuid) to authenticated;
+alter publication supabase_realtime add table meal_claims;
+select 'q73 schema ok';
