@@ -1161,3 +1161,44 @@ insert into meal_cooks(community_id,profile_id,pay_method,pay_handle)
 select m.community_id,m.cook_id,m.pay_method,m.pay_handle from meals m
 on conflict do nothing;
 select count(*) cooks from meal_cooks;
+
+-- q84 (2026-09-08): claim approval flow + fed counter
+alter table meal_claims add column if not exists status text not null default 'pending' check(status in ('pending','approved','declined'));
+alter table meal_claims add column if not exists decided_at timestamptz;
+update meal_claims set status='approved', decided_at=now() where status='pending';
+create or replace function meal_seats_left(mid uuid) returns int language sql security definer stable set search_path=public as $f$
+ select greatest(m.portions - coalesce((select sum(c.qty) from meal_claims c where c.meal_id=m.id and c.status<>'declined'),0),0)::int
+ from meals m where m.id=mid
+$f$;
+drop policy if exists mclaims_ins on meal_claims;
+create policy mclaims_ins on meal_claims for insert with check (profile_id=auth.uid() and status='pending'
+ and exists(select 1 from meals m where m.id=meal_id and m.status='open' and now()<m.pickup_end and is_community_member(m.community_id))
+ and meal_seats_left(meal_id)>=qty);
+drop policy if exists mclaims_upd on meal_claims;
+create policy mclaims_upd on meal_claims for update
+ using (exists(select 1 from meals m where m.id=meal_id and m.cook_id=auth.uid()))
+ with check (status in ('approved','declined') and exists(select 1 from meals m where m.id=meal_id and m.cook_id=auth.uid()));
+create or replace function ed_meal_addr(mid uuid) returns jsonb language sql stable security definer set search_path=public as $f$
+ select case when exists(select 1 from meals m where m.id=mid and (m.cook_id=auth.uid()
+   or exists(select 1 from meal_claims c where c.meal_id=mid and c.profile_id=auth.uid() and c.status='approved')))
+ then (select jsonb_build_object('address',m.pickup_address,'lat',m.pickup_lat,'lng',m.pickup_lng) from meals m where m.id=mid) end
+$f$;
+create or replace function ed_meals(cid uuid) returns jsonb language sql stable security definer set search_path=public as $f$
+ select case when not is_community_member(cid) then null else coalesce((select jsonb_agg(jsonb_build_object(
+  'id',m.id,'title',m.title,'photos',m.photos,'ingredients',m.ingredients,'allergens',m.allergens,
+  'cuisines',m.cuisines,'price_cents',m.price_cents,'portions',m.portions,
+  'pay_method',m.pay_method,'pay_handle',m.pay_handle,'city',m.city,
+  'area',m.pickup_area,'lat',round(m.pickup_lat::numeric,3),'lng',round(m.pickup_lng::numeric,3),
+  'start',m.pickup_start,'end',m.pickup_end,'status',m.status,'created_at',m.created_at,
+  'cook',jsonb_build_object('id',p.id,'name',p.display_name,'av',p.avatar_url,
+   'fed',coalesce((select sum(c4.qty) from meal_claims c4 join meals m4 on m4.id=c4.meal_id
+     where m4.cook_id=m.cook_id and c4.status='approved' and (m4.status='closed' or m4.pickup_end<now())),0)),
+  'left',greatest(m.portions-coalesce((select sum(c2.qty) from meal_claims c2 where c2.meal_id=m.id and c2.status<>'declined'),0),0),
+  'mine',m.cook_id=auth.uid(),
+  'my_claim',coalesce((select c3.qty from meal_claims c3 where c3.meal_id=m.id and c3.profile_id=auth.uid()),0),
+  'my_status',(select c5.status from meal_claims c5 where c5.meal_id=m.id and c5.profile_id=auth.uid()),
+  'claims',case when m.cook_id=auth.uid() then (select coalesce(jsonb_agg(jsonb_build_object('id',pp.id,'name',pp.display_name,'av',pp.avatar_url,'qty',cc.qty,'status',cc.status) order by cc.created_at),'[]'::jsonb) from meal_claims cc join profiles pp on pp.id=cc.profile_id where cc.meal_id=m.id) else null end
+  ) order by (m.status='open' and now()<m.pickup_end) desc, m.pickup_end asc)
+  from meals m join profiles p on p.id=m.cook_id where m.community_id=cid),'[]'::jsonb) end
+$f$;
+select 'q83 schema ok';

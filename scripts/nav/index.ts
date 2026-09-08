@@ -62,6 +62,7 @@ Deno.serve(async (req) => {
             .select("meal_id")
             .eq("meal_id", b.mid)
             .eq("profile_id", user.id)
+            .eq("status", "approved")
             .maybeSingle()
         ).data;
       if (!claimed) return json({ error: "not_claimed" }, 403);
