@@ -1134,3 +1134,30 @@ $f$;
 grant execute on function ed_meal_addr(uuid) to authenticated;
 alter publication supabase_realtime add table meal_claims;
 select 'q73 schema ok';
+
+-- q81 (2026-09-08): meal_cooks registry; posting gated on apron
+create table if not exists meal_cooks(
+ community_id uuid not null references communities(id) on delete cascade,
+ profile_id uuid not null references profiles(id) on delete cascade,
+ pay_method text check(pay_method in ('venmo','cashapp','zelle','paypal','other')),
+ pay_handle text,
+ pickup_address text,
+ active boolean not null default true,
+ created_at timestamptz not null default now(),
+ primary key(community_id,profile_id));
+alter table meal_cooks enable row level security;
+drop policy if exists mcook_sel on meal_cooks;
+drop policy if exists mcook_ins on meal_cooks;
+drop policy if exists mcook_upd on meal_cooks;
+drop policy if exists mcook_del on meal_cooks;
+create policy mcook_sel on meal_cooks for select using (profile_id=auth.uid() or is_community_member(community_id));
+create policy mcook_ins on meal_cooks for insert with check (profile_id=auth.uid() and is_community_member(community_id));
+create policy mcook_upd on meal_cooks for update using (profile_id=auth.uid()) with check (profile_id=auth.uid());
+create policy mcook_del on meal_cooks for delete using (profile_id=auth.uid());
+drop policy if exists meals_ins on meals;
+create policy meals_ins on meals for insert with check (cook_id=auth.uid() and is_community_member(community_id)
+ and exists(select 1 from meal_cooks k where k.community_id=meals.community_id and k.profile_id=auth.uid() and k.active));
+insert into meal_cooks(community_id,profile_id,pay_method,pay_handle)
+select m.community_id,m.cook_id,m.pay_method,m.pay_handle from meals m
+on conflict do nothing;
+select count(*) cooks from meal_cooks;
