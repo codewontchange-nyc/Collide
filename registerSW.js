@@ -1,6 +1,7 @@
 if('serviceWorker' in navigator){window.addEventListener('load',function(){
  navigator.serviceWorker.register('/Collide/sw.js',{scope:'/Collide/'}).then(function(r){
   setInterval(function(){try{r.update()}catch(e){}},15*60*1000);
+  document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible"){try{r.update()}catch(e){}}});
  });
  var had=!!navigator.serviceWorker.controller;
  navigator.serviceWorker.addEventListener('controllerchange',function(){
