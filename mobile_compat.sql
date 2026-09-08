@@ -960,3 +960,22 @@ select 'q65 migrated';
 -- q65 addendum (2026-09-07): all POIs are public feed content now (Cam: Local Business feed shows every POI)
 drop policy if exists pois_sel on pois;
 create policy pois_sel on pois for select to authenticated using (true);
+
+-- q71 (2026-09-08): event recap cards RPC
+create or replace function ed_event_recap(aid uuid) returns jsonb language sql security definer stable set search_path=public as $f$
+ select case when not exists(select 1 from activities a where a.id=aid and (a.host_id=auth.uid() or has_rsvp(a.id,auth.uid()))) then null else
+ (select jsonb_build_object(
+  'msgs',(select count(*) from event_messages m where m.activity_id=aid and coalesce(m.kind,'text')<>'poll'),
+  'votes',(select count(*) from poll_votes v join event_messages m on m.id=v.message_id where m.activity_id=aid),
+  'inn',(select count(*) from rsvps r where r.activity_id=aid),
+  'faces',coalesce((select jsonb_agg(jsonb_build_object('id',p.id,'name',p.display_name,'av',p.avatar_url))
+    from connections c
+    join activities a on a.id=aid
+    join profiles p on p.id=(case when c.a=auth.uid() then c.b else c.a end)
+    where c.status='accepted' and auth.uid() in (c.a,c.b)
+      and exists(select 1 from rsvps r2 where r2.activity_id=aid and r2.profile_id=(case when c.a=auth.uid() then c.b else c.a end))
+      and c.created_at >= coalesce((a.date::timestamp at time zone 'America/New_York'), a.expires_at) - interval '2 days'
+   ),'[]'::jsonb))) end
+$f$;
+grant execute on function ed_event_recap(uuid) to authenticated;
+select 'q69 rpc ok';
