@@ -17,6 +17,17 @@ function json(o: unknown, s = 200) {
 
 const TRAVEL = ["walking", "transit", "driving", "bicycling"];
 
+// Every mode hits paid Google APIs (and some write to the DB with the service
+// role), so require a valid end-user before doing any work.
+async function requireUser(req: Request) {
+  const url = Deno.env.get("SUPABASE_URL")!;
+  const auth = req.headers.get("authorization") ?? "";
+  const { data } = await createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, {
+    global: { headers: { Authorization: auth } },
+  }).auth.getUser();
+  return data.user;
+}
+
 async function directions(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
@@ -47,13 +58,14 @@ Deno.serve(async (req) => {
     const b = await req.json();
 
     if (b.mode === "geocode") {
+      if (!(await requireUser(req))) return json({ error: "auth" }, 401);
       const addr = String(b.address || "").slice(0, 200);
       if (!addr) return json({ error: "address" }, 400);
       const r = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addr)}&key=${GEO_KEY}`,
       ).then((x) => x.json());
       const g = r.results?.[0];
-      if (!g) return json({ error: "not_found", status: r.status });
+      if (!g) return json({ error: "not_found", status: r.status }, 404);
       const comp = (t: string) =>
         g.address_components?.find((c: { types: string[] }) => c.types.includes(t))?.long_name;
       return json({
@@ -222,6 +234,7 @@ Deno.serve(async (req) => {
 
     // ---- POI modes: place scrape, mini map, directions ----
     if (b.mode === "poi" || b.mode === "poimap" || b.mode === "poiroute") {
+      if (!(await requireUser(req))) return json({ error: "auth" }, 401);
       const url = Deno.env.get("SUPABASE_URL")!;
       const sb = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const { data: poi } = await sb
@@ -333,6 +346,7 @@ Deno.serve(async (req) => {
 
     return json({ error: "mode" }, 400);
   } catch (e) {
-    return json({ error: String(e) }, 500);
+    console.error("nav error:", e);
+    return json({ error: "internal" }, 500);
   }
 });

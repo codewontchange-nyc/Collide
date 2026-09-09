@@ -141,9 +141,13 @@ Deno.serve(async (req) => {
     let body: { photo_path?: string; dry_run?: boolean; redo?: boolean; alt?: number } = {};
     try { body = await req.json(); } catch { /* empty body is fine */ }
 
-    // source photo: caller's current avatar upload (or explicit path for tests)
+    // source photo: caller's current avatar upload. An explicit photo_path is
+    // only honored when it lives in the caller's own folder — never trust it to
+    // point the service-role download at another user's object.
     const { data: prof } = await svc.from("profiles").select("avatar_url").eq("id", user.id).single();
-    let photoPath = body.photo_path ?? prof?.avatar_url;
+    let photoPath = (body.photo_path && body.photo_path.startsWith(`${user.id}/`))
+      ? body.photo_path
+      : prof?.avatar_url;
     if (!photoPath || body.redo || photoPath.endsWith(".svg")) {
       // avatar_url points at an inked SVG after the first run — the original
       // photo is still in the user's folder; newest non-generated file wins.
@@ -156,7 +160,11 @@ Deno.serve(async (req) => {
     }
     const { data: photo, error: dlErr } = await svc.storage.from("avatars").download(photoPath);
     if (dlErr || !photo) return json({ error: "photo not readable" }, 400);
-    const mime = photoPath.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg";
+    if (photo.size > 8 * 1024 * 1024) return json({ error: "photo too large (max 8MB)" }, 413);
+    const ctype = (photo.type || "").toLowerCase();
+    const isPng = ctype ? ctype.includes("png") : photoPath.toLowerCase().endsWith(".png");
+    if (ctype && !ctype.startsWith("image/")) return json({ error: "not an image" }, 400);
+    const mime = isPng ? "image/png" : "image/jpeg";
     const photoB64 = b64(await photo.arrayBuffer());
 
     // ---- Claude reads the photo, fills the trait sheet ----
@@ -287,6 +295,7 @@ Deno.serve(async (req) => {
     await svc.from("profiles").update({ avatar_url: path, avatar_parts: parts }).eq("id", user.id);
     return json({ ok: true, traits, hair_used: hairLabel, alt_index: altIndex, alt_count: candidates.length, avatar_url: path });
   } catch (e) {
-    return json({ error: String(e) }, 500);
+    console.error("inkify error:", e);
+    return json({ error: "internal" }, 500);
   }
 });
