@@ -233,6 +233,34 @@ Deno.serve(async (req) => {
     }
 
     // ---- POI modes: place scrape, mini map, directions ----
+    // ---- visitmap: one static map with a pin per visited place ----
+    if (b.mode === "visitmap") {
+      if (!(await requireUser(req))) return json({ error: "auth" }, 401);
+      const pids = Array.isArray(b.pids) ? b.pids.filter((x: unknown) => typeof x === "string").slice(0, 40) : [];
+      if (!pids.length) return json({ error: "pids" }, 400);
+      const url = Deno.env.get("SUPABASE_URL")!;
+      const sb = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: pins } = await sb.from("pois").select("id,lat,lng").in("id", pids).not("lat", "is", null);
+      if (!pins?.length) return json({ error: "no_pins" }, 404);
+      const marks = pins.map((p: { lat: number; lng: number }) => `${p.lat},${p.lng}`).join("%7C");
+      const base =
+        `https://maps.googleapis.com/maps/api/staticmap?size=600x300&scale=2&maptype=roadmap` +
+        `&markers=size:mid%7Ccolor:0x111111%7C${marks}` + (pins.length === 1 ? "&zoom=14" : "");
+      const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "";
+      let resp = MAP_ID ? await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`) : new Response(null, { status: 599 });
+      if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) {
+        const m = `${base}&style=saturation:-100&style=feature:poi.business%7Cvisibility:off&key=`;
+        resp = await fetch(m + KEY);
+        if (!resp.ok && GEO_KEY !== KEY) resp = await fetch(m + GEO_KEY);
+      }
+      if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image"))
+        return json({ error: "map_unavailable", status: resp.status }, 502);
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+      return json({ img: "data:image/png;base64," + btoa(bin), pins });
+    }
+
     if (b.mode === "poi" || b.mode === "poimap" || b.mode === "poiroute") {
       if (!(await requireUser(req))) return json({ error: "auth" }, 401);
       const url = Deno.env.get("SUPABASE_URL")!;
