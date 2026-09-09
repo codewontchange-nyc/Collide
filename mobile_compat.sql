@@ -1202,3 +1202,79 @@ create or replace function ed_meals(cid uuid) returns jsonb language sql stable 
   from meals m join profiles p on p.id=m.cook_id where m.community_id=cid),'[]'::jsonb) end
 $f$;
 select 'q83 schema ok';
+
+-- q92 (2026-09-09): announcement-reply DMs (threads, inbox, end-thread)
+create table if not exists dm_threads(
+ id uuid primary key default gen_random_uuid(),
+ announcement_id uuid not null references announcements(id) on delete cascade,
+ starter_id uuid not null references profiles(id) on delete cascade,
+ owner_id uuid not null references profiles(id) on delete cascade,
+ status text not null default 'open' check(status in ('open','closed')),
+ closed_by uuid references profiles(id),
+ starter_seen timestamptz not null default now(),
+ owner_seen timestamptz not null default now(),
+ created_at timestamptz not null default now(),
+ unique(announcement_id,starter_id));
+create table if not exists dm_messages(
+ id uuid primary key default gen_random_uuid(),
+ thread_id uuid not null references dm_threads(id) on delete cascade,
+ author_id uuid not null references profiles(id) on delete cascade,
+ kind text not null default 'text' check(kind in ('text','event')),
+ body text not null check(char_length(body) between 1 and 2000),
+ ref_id uuid,
+ created_at timestamptz not null default now());
+alter table dm_threads enable row level security;
+alter table dm_messages enable row level security;
+drop policy if exists dmt_sel on dm_threads;
+drop policy if exists dmt_upd on dm_threads;
+create policy dmt_sel on dm_threads for select using (auth.uid() in (starter_id,owner_id));
+create policy dmt_upd on dm_threads for update using (auth.uid() in (starter_id,owner_id)) with check (auth.uid() in (starter_id,owner_id));
+drop policy if exists dmm_sel on dm_messages;
+drop policy if exists dmm_ins on dm_messages;
+create policy dmm_sel on dm_messages for select using (exists(select 1 from dm_threads t where t.id=thread_id and auth.uid() in (t.starter_id,t.owner_id)));
+create policy dmm_ins on dm_messages for insert with check (author_id=auth.uid()
+ and exists(select 1 from dm_threads t where t.id=thread_id and t.status='open' and auth.uid() in (t.starter_id,t.owner_id)));
+alter publication supabase_realtime add table dm_messages;
+alter publication supabase_realtime add table dm_threads;
+create or replace function ed_dm_start(aid uuid, body text) returns jsonb language plpgsql security definer as $f$
+declare uid uuid:=auth.uid(); own uuid; tid uuid; st text;
+begin
+ if uid is null then return jsonb_build_object('error','auth'); end if;
+ select author_id into own from announcements where id=aid;
+ if own is null then return jsonb_build_object('error','gone'); end if;
+ if own=uid then return jsonb_build_object('error','own'); end if;
+ if body is null or char_length(trim(body))=0 then return jsonb_build_object('error','empty'); end if;
+ select id,status into tid,st from dm_threads where announcement_id=aid and starter_id=uid;
+ if tid is null then
+  insert into dm_threads(announcement_id,starter_id,owner_id) values(aid,uid,own) returning id into tid;
+ elsif st='closed' then
+  update dm_threads set status='open',closed_by=null where id=tid;
+ end if;
+ insert into dm_messages(thread_id,author_id,body) values(tid,uid,left(trim(body),2000));
+ return jsonb_build_object('id',tid);
+end $f$;
+grant execute on function ed_dm_start(uuid,text) to authenticated;
+create or replace function ed_inbox() returns jsonb language sql stable security definer set search_path=public as $f$
+ select coalesce(jsonb_agg(row order by coalesce(row->>'at','') desc),'[]'::jsonb) from (
+  select jsonb_build_object(
+   'id',t.id,'status',t.status,
+   'ann',left(a.body,90),'aid',a.id,
+   'mine_owner',t.owner_id=auth.uid(),
+   'other',jsonb_build_object('id',p.id,'name',p.display_name,'av',p.avatar_url),
+   'last',(select jsonb_build_object('body',m.body,'kind',m.kind,'author',m.author_id,'at',m.created_at) from dm_messages m where m.thread_id=t.id order by m.created_at desc limit 1),
+   'at',(select max(m.created_at)::text from dm_messages m where m.thread_id=t.id),
+   'unread', exists(select 1 from dm_messages m where m.thread_id=t.id and m.author_id<>auth.uid()
+      and m.created_at > case when t.owner_id=auth.uid() then t.owner_seen else t.starter_seen end)
+  ) as row
+  from dm_threads t join announcements a on a.id=t.announcement_id
+  join profiles p on p.id=case when t.owner_id=auth.uid() then t.starter_id else t.owner_id end
+  where auth.uid() in (t.starter_id,t.owner_id)) z
+$f$;
+grant execute on function ed_inbox() to authenticated;
+create or replace function ed_dm_seen(tid uuid) returns void language sql security definer set search_path=public as $f$
+ update dm_threads set owner_seen=case when owner_id=auth.uid() then now() else owner_seen end,
+  starter_seen=case when starter_id=auth.uid() then now() else starter_seen end
+ where id=tid and auth.uid() in (starter_id,owner_id)
+$f$;
+grant execute on function ed_dm_seen(uuid) to authenticated;
+select 'q92 dm schema ok';
