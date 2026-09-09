@@ -54,48 +54,42 @@ const HAIR_STYLES: Record<string, string> = {
   "headscarf": "variant63",
 };
 const GLASSES: Record<string, string> = {
-  "clear-rectangular": "variant03",
-  "clear-round": "variant11",
-  "sunglasses": "variant09",
+  "clear-rectangular": "variant03", "clear-round": "variant11", "clear-thin-metal": "variant01",
+  "bold-black-frame": "variant05", "half-rim": "variant07", "sunglasses": "variant09",
 };
 const LIPS: Record<string, string> = {
-  "big-open-smile": "variant30",
-  "soft-closed-smile": "variant05",
-  "neutral": "variant02",
+  "big-open-smile": "variant30", "wide-grin": "variant28", "soft-closed-smile": "variant05",
+  "slight-smile": "variant10", "neutral": "variant02", "pursed": "variant14",
+  "smirk": "variant07", "open-talking": "variant25", "small-frown": "variant22", "relaxed-parted": "variant18",
 };
 const BODIES: Record<string, string> = {
-  "tank-or-sleeveless": "variant10",
-  "tshirt-or-crew": "variant02",
-  "open-jacket-or-hoodie": "variant09",
-  "collared-shirt-or-blazer": "variant06",
-  "other": "variant08",
+  "tank-or-sleeveless": "variant10", "tshirt-or-crew": "variant02", "v-neck": "variant04",
+  "sweater-or-knit": "variant13", "hoodie": "variant09", "open-jacket": "variant17",
+  "collared-shirt": "variant06", "blazer-or-suit": "variant21", "dress-or-blouse": "variant23", "other": "variant08",
 };
 const BEARDS: Record<string, string> = {
-  "full-beard": "variant02",
-  "medium-beard": "variant01",
-  "stubble": "variant06",
-  "goatee": "variant08",
-  "goatee-with-mustache": "variant11",
-  "mustache": "variant10",
-  "thin-mustache": "variant04",
-  "soul-patch": "variant12",
+  "full-beard": "variant02", "full-long-beard": "variant03", "medium-beard": "variant01",
+  "short-boxed": "variant05", "stubble": "variant06", "heavy-stubble": "variant07",
+  "goatee": "variant08", "circle-beard": "variant09", "goatee-with-mustache": "variant11",
+  "mustache": "variant10", "thin-mustache": "variant04", "soul-patch": "variant12",
 };
 const NOSES: Record<string, string> = {
-  "small-button": "variant09",
-  "straight-average": "variant03",
-  "long-pointed": "variant06",
-  "broad-rounded": "variant19",
+  "small-button": "variant09", "straight-average": "variant03", "narrow-straight": "variant01",
+  "long-pointed": "variant06", "hooked-or-aquiline": "variant08", "upturned": "variant12",
+  "wide-flat": "variant15", "broad-rounded": "variant19",
 };
 const BROWS: Record<string, string> = {
-  "thick-bold": "variant03",
-  "thin-arched": "variant05",
-  "thin-straight": "variant04",
+  "thick-bold": "variant03", "thick-straight": "variant01", "thin-arched": "variant05",
+  "thin-straight": "variant04", "rounded": "variant07", "angled-sharp": "variant09", "bushy": "variant11",
 };
 const EYES: Record<string, string> = {
-  "open-direct": "variant05",
-  "bright-wide": "variant04",
-  "soft-closed-lashes": "variant01",
-  "side-glance": "variant03",
+  "open-direct": "variant05", "bright-wide": "variant04", "soft-closed-lashes": "variant01",
+  "side-glance": "variant03", "relaxed-narrow": "variant02",
+};
+
+const SKIN_DOTS: string[] = ["", "<defs><clipPath id=\"edskinclip\"><path transform=\"translate(531 487)\" d=\"M554 727.7c-99.2 297-363.8 388.6-503.7 19.8-19.3-50.7 31-69.5 66.2-91.9 24.1-15.3 36.8-28.5 35.3-42.2-7-64.4-36.9-243.8-36.9-243.8l-3-5.8s.7-1.6-2.2 1.2c-3 3-9.9 34.2-37 34.2-24.5 0-49.2-10.9-61-86.3C7.2 285.6 9.6 214 40 201c12.5-5.3 24-7.2 35.2-.8 11.3 6.4-13-22 112-126C268.4 6.4 396.7-3.5 448.5 8 500.3 19.5 552 44.8 574.9 98.5c27.8 65-25.9 114.3-14 262.5-2.2 53.6.8 171.2-146.6 210.6-28 7.5-19.3 48.4 22.7 58.4 67 21 117 72.3 117 97.9\"/></clipPath><pattern id=\"edskinpat\" width=\"27\" height=\"27\" patternUnits=\"userSpaceOnUse\"><circle cx=\"13.5\" cy=\"13.5\" r=\"2.1\" fill=\"#241d1a\"/></pattern></defs><rect x=\"500\" y=\"600\" width=\"640\" height=\"900\" fill=\"url(#edskinpat)\" clip-path=\"url(#edskinclip)\" opacity=\"0.5\"/>", "<defs><clipPath id=\"edskinclip\"><path transform=\"translate(531 487)\" d=\"M554 727.7c-99.2 297-363.8 388.6-503.7 19.8-19.3-50.7 31-69.5 66.2-91.9 24.1-15.3 36.8-28.5 35.3-42.2-7-64.4-36.9-243.8-36.9-243.8l-3-5.8s.7-1.6-2.2 1.2c-3 3-9.9 34.2-37 34.2-24.5 0-49.2-10.9-61-86.3C7.2 285.6 9.6 214 40 201c12.5-5.3 24-7.2 35.2-.8 11.3 6.4-13-22 112-126C268.4 6.4 396.7-3.5 448.5 8 500.3 19.5 552 44.8 574.9 98.5c27.8 65-25.9 114.3-14 262.5-2.2 53.6.8 171.2-146.6 210.6-28 7.5-19.3 48.4 22.7 58.4 67 21 117 72.3 117 97.9\"/></clipPath><pattern id=\"edskinpat\" width=\"22\" height=\"22\" patternUnits=\"userSpaceOnUse\"><circle cx=\"11.0\" cy=\"11.0\" r=\"2.2\" fill=\"#241d1a\"/></pattern></defs><rect x=\"500\" y=\"600\" width=\"640\" height=\"900\" fill=\"url(#edskinpat)\" clip-path=\"url(#edskinclip)\" opacity=\"0.5\"/>", "<defs><clipPath id=\"edskinclip\"><path transform=\"translate(531 487)\" d=\"M554 727.7c-99.2 297-363.8 388.6-503.7 19.8-19.3-50.7 31-69.5 66.2-91.9 24.1-15.3 36.8-28.5 35.3-42.2-7-64.4-36.9-243.8-36.9-243.8l-3-5.8s.7-1.6-2.2 1.2c-3 3-9.9 34.2-37 34.2-24.5 0-49.2-10.9-61-86.3C7.2 285.6 9.6 214 40 201c12.5-5.3 24-7.2 35.2-.8 11.3 6.4-13-22 112-126C268.4 6.4 396.7-3.5 448.5 8 500.3 19.5 552 44.8 574.9 98.5c27.8 65-25.9 114.3-14 262.5-2.2 53.6.8 171.2-146.6 210.6-28 7.5-19.3 48.4 22.7 58.4 67 21 117 72.3 117 97.9\"/></clipPath><pattern id=\"edskinpat\" width=\"18\" height=\"18\" patternUnits=\"userSpaceOnUse\"><circle cx=\"9.0\" cy=\"9.0\" r=\"2.3\" fill=\"#241d1a\"/></pattern></defs><rect x=\"500\" y=\"600\" width=\"640\" height=\"900\" fill=\"url(#edskinpat)\" clip-path=\"url(#edskinclip)\" opacity=\"0.5\"/>", "<defs><clipPath id=\"edskinclip\"><path transform=\"translate(531 487)\" d=\"M554 727.7c-99.2 297-363.8 388.6-503.7 19.8-19.3-50.7 31-69.5 66.2-91.9 24.1-15.3 36.8-28.5 35.3-42.2-7-64.4-36.9-243.8-36.9-243.8l-3-5.8s.7-1.6-2.2 1.2c-3 3-9.9 34.2-37 34.2-24.5 0-49.2-10.9-61-86.3C7.2 285.6 9.6 214 40 201c12.5-5.3 24-7.2 35.2-.8 11.3 6.4-13-22 112-126C268.4 6.4 396.7-3.5 448.5 8 500.3 19.5 552 44.8 574.9 98.5c27.8 65-25.9 114.3-14 262.5-2.2 53.6.8 171.2-146.6 210.6-28 7.5-19.3 48.4 22.7 58.4 67 21 117 72.3 117 97.9\"/></clipPath><pattern id=\"edskinpat\" width=\"15\" height=\"15\" patternUnits=\"userSpaceOnUse\"><circle cx=\"7.5\" cy=\"7.5\" r=\"2.4\" fill=\"#241d1a\"/></pattern></defs><rect x=\"500\" y=\"600\" width=\"640\" height=\"900\" fill=\"url(#edskinpat)\" clip-path=\"url(#edskinclip)\" opacity=\"0.5\"/>", "<defs><clipPath id=\"edskinclip\"><path transform=\"translate(531 487)\" d=\"M554 727.7c-99.2 297-363.8 388.6-503.7 19.8-19.3-50.7 31-69.5 66.2-91.9 24.1-15.3 36.8-28.5 35.3-42.2-7-64.4-36.9-243.8-36.9-243.8l-3-5.8s.7-1.6-2.2 1.2c-3 3-9.9 34.2-37 34.2-24.5 0-49.2-10.9-61-86.3C7.2 285.6 9.6 214 40 201c12.5-5.3 24-7.2 35.2-.8 11.3 6.4-13-22 112-126C268.4 6.4 396.7-3.5 448.5 8 500.3 19.5 552 44.8 574.9 98.5c27.8 65-25.9 114.3-14 262.5-2.2 53.6.8 171.2-146.6 210.6-28 7.5-19.3 48.4 22.7 58.4 67 21 117 72.3 117 97.9\"/></clipPath><pattern id=\"edskinpat\" width=\"13\" height=\"13\" patternUnits=\"userSpaceOnUse\"><circle cx=\"6.5\" cy=\"6.5\" r=\"2.5\" fill=\"#241d1a\"/></pattern></defs><rect x=\"500\" y=\"600\" width=\"640\" height=\"900\" fill=\"url(#edskinpat)\" clip-path=\"url(#edskinclip)\" opacity=\"0.5\"/>", "<defs><clipPath id=\"edskinclip\"><path transform=\"translate(531 487)\" d=\"M554 727.7c-99.2 297-363.8 388.6-503.7 19.8-19.3-50.7 31-69.5 66.2-91.9 24.1-15.3 36.8-28.5 35.3-42.2-7-64.4-36.9-243.8-36.9-243.8l-3-5.8s.7-1.6-2.2 1.2c-3 3-9.9 34.2-37 34.2-24.5 0-49.2-10.9-61-86.3C7.2 285.6 9.6 214 40 201c12.5-5.3 24-7.2 35.2-.8 11.3 6.4-13-22 112-126C268.4 6.4 396.7-3.5 448.5 8 500.3 19.5 552 44.8 574.9 98.5c27.8 65-25.9 114.3-14 262.5-2.2 53.6.8 171.2-146.6 210.6-28 7.5-19.3 48.4 22.7 58.4 67 21 117 72.3 117 97.9\"/></clipPath><pattern id=\"edskinpat\" width=\"11\" height=\"11\" patternUnits=\"userSpaceOnUse\"><circle cx=\"5.5\" cy=\"5.5\" r=\"2.6\" fill=\"#241d1a\"/></pattern></defs><rect x=\"500\" y=\"600\" width=\"640\" height=\"900\" fill=\"url(#edskinpat)\" clip-path=\"url(#edskinclip)\" opacity=\"0.5\"/>"];
+const SKIN_LEVEL: Record<string, number> = {
+  "very-fair": 0, "fair": 1, "light": 2, "medium": 3, "tan": 4, "brown": 5, "deep": 6,
 };
 
 // ---- trait sheet Claude must fill (the whole "model contract") ----
@@ -113,11 +107,12 @@ const TRAIT_TOOL = {
       nose: { type: "string", enum: Object.keys(NOSES) },
       brows: { type: "string", enum: Object.keys(BROWS) },
       eyes: { type: "string", enum: Object.keys(EYES) },
+      skin_tone: { type: "string", enum: Object.keys(SKIN_LEVEL), description: "Overall complexion, mapped to an ink stipple density (very-fair = none, deep = densest). Judge the visible skin, neutral lighting." },
       hair_alternates: { type: "array", items: { type: "string", enum: Object.keys(HAIR_STYLES) }, maxItems: 2,
         description: "Second and third closest hair silhouettes, best first. Used for redraws and tie-breaking." },
       clothing: { type: "string", enum: Object.keys(BODIES), description: "What the visible top half is wearing (rendered in the app's ink black)." },
     },
-    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing", "nose", "brows", "eyes", "hair_alternates"],
+    required: ["headwear", "hair_style", "beard", "glasses", "expression", "clothing", "nose", "brows", "eyes", "skin_tone", "hair_alternates"],
   },
 } as const;
 
@@ -262,6 +257,11 @@ Deno.serve(async (req) => {
       // swap the cap asset for our beanie part (cap group holds only paths)
       svg = svg.replace(/<g transform="translate\(266 207\)">[\s\S]*?<\/g>/, BEANIE_GROUP);
     }
+    const skinLvl = SKIN_LEVEL[traits.skin_tone] ?? 0;
+    if (skinLvl > 0) {
+      const fi = svg.indexOf("</g>", svg.indexOf('<g transform="translate(531 487)">')) + 4;
+      svg = svg.slice(0, fi) + SKIN_DOTS[skinLvl] + svg.slice(fi);
+    }
 
     if (body.dry_run) return json({ ok: true, traits, hair_used: hairLabel, alt_index: altIndex, alt_count: candidates.length, svg_bytes: svg.length, applied: false });
 
@@ -281,6 +281,7 @@ Deno.serve(async (req) => {
       brows: BROWS[traits.brows] ?? "variant04",
       eyes: EYES[traits.eyes] ?? "variant05",
       body: BODIES[traits.clothing] ?? "variant08",
+      skin: SKIN_LEVEL[traits.skin_tone] ?? 0,
     };
     await svc.from("profiles").update({ avatar_url: path, avatar_parts: parts }).eq("id", user.id);
     return json({ ok: true, traits, hair_used: hairLabel, alt_index: altIndex, alt_count: candidates.length, avatar_url: path });
