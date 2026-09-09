@@ -323,9 +323,11 @@ Deno.serve(async (req) => {
           `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}` +
           `&zoom=${Number(b.zoom) || 16}&size=600x300&scale=2&maptype=roadmap` +
           `&markers=color:0x111111%7C${lat},${lng}`;
-        // Collide's cloud map style first; inline desaturation as fallback.
-        const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "5ae98f9830e03186";
-        let resp = await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`);
+        // Collide's cloud map style (set GMAPS_MAP_ID); inline desaturation until then.
+        const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "";
+        let resp = MAP_ID
+          ? await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`)
+          : new Response(null, { status: 599 });
         if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) {
           const m = `${base}&style=saturation:-100&style=feature:poi.business%7Cvisibility:off&key=`;
           resp = await fetch(m + KEY);
