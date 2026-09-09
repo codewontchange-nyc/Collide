@@ -319,13 +319,18 @@ Deno.serve(async (req) => {
       if (lat == null || lng == null) return json({ error: "no_loc" }, 404);
 
       if (b.mode === "poimap") {
-        const m =
+        const base =
           `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}` +
           `&zoom=${Number(b.zoom) || 16}&size=600x300&scale=2&maptype=roadmap` +
-          `&markers=color:0x111111%7C${lat},${lng}` +
-          `&style=saturation:-100&style=feature:poi.business%7Cvisibility:off&key=`;
-        let resp = await fetch(m + KEY);
-        if (!resp.ok && GEO_KEY !== KEY) resp = await fetch(m + GEO_KEY);
+          `&markers=color:0x111111%7C${lat},${lng}`;
+        // Collide's cloud map style first; inline desaturation as fallback.
+        const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "5ae98f9830e03186";
+        let resp = await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`);
+        if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) {
+          const m = `${base}&style=saturation:-100&style=feature:poi.business%7Cvisibility:off&key=`;
+          resp = await fetch(m + KEY);
+          if (!resp.ok && GEO_KEY !== KEY) resp = await fetch(m + GEO_KEY);
+        }
         if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image"))
           return json({ error: "map_unavailable", status: resp.status }, 502);
         const buf = new Uint8Array(await resp.arrayBuffer());
