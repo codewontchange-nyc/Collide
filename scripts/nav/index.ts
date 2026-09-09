@@ -126,7 +126,12 @@ Deno.serve(async (req) => {
             `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(q)}&key=${key}`,
           ).then((x) => x.json());
         }
-        const top = r.results?.[0];
+        const top = (r.results || []).find(
+          (t: { types?: string[]; user_ratings_total?: number }) =>
+            (Array.isArray(t.types) &&
+              (t.types.includes("establishment") || t.types.includes("point_of_interest"))) ||
+            (t.user_ratings_total ?? 0) > 0,
+        );
         if (!top) return scraped;
         const det = await fetch(
           `https://maps.googleapis.com/maps/api/place/details/json?place_id=${top.place_id}&fields=rating,user_ratings_total,price_level,opening_hours,formatted_phone_number,website,url,formatted_address,geometry,business_status&key=${key}`,
