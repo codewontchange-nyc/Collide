@@ -239,7 +239,7 @@ Deno.serve(async (req) => {
       const sb = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
       const { data: poi } = await sb
         .from("pois")
-        .select("id,name,city,address,hours,link,lat,lng")
+        .select("id,name,city,address,hours,link,lat,lng,images")
         .eq("id", b.pid)
         .single();
       if (!poi) return json({ error: "not_found" }, 404);
@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
         );
         if (!top) return scraped;
         const det = await fetch(
-          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${top.place_id}&fields=rating,user_ratings_total,price_level,opening_hours,formatted_phone_number,website,url,formatted_address,geometry,business_status&key=${key}`,
+          `https://maps.googleapis.com/maps/api/place/details/json?place_id=${top.place_id}&fields=rating,user_ratings_total,price_level,opening_hours,formatted_phone_number,website,url,formatted_address,geometry,business_status,photos&key=${key}`,
         ).then((x) => x.json());
         scraped = det.result ?? top;
         return scraped;
@@ -298,6 +298,53 @@ Deno.serve(async (req) => {
           if (!poi.address && g.formatted_address) upd.address = g.formatted_address;
           if (!poi.link && g.website) upd.link = g.website;
           if (Object.keys(upd).length) await sb.from("pois").update(upd).eq("id", poi.id);
+        }
+        // Photo backfill: POIs with no images (or only demo placeholders) get real
+        // ones — Google Place photos first, the venue site's og:image as last resort.
+        const curImgs: string[] = Array.isArray(poi.images) ? poi.images : [];
+        const needPhotos =
+          curImgs.length === 0 || curImgs.every((x) => typeof x === "string" && x.startsWith("poi/demo-"));
+        if (needPhotos) {
+          const stored: string[] = [];
+          const put = async (bytes: ArrayBuffer, ct: string, i: number) => {
+            const path = `poi/g/${poi.id}-${i}${ct.includes("png") ? ".png" : ct.includes("webp") ? ".webp" : ".jpg"}`;
+            const up = await sb.storage.from("event-media").upload(path, new Uint8Array(bytes), {
+              contentType: ct,
+              upsert: true,
+            });
+            if (!up.error) stored.push(path);
+          };
+          for (const [i, ph] of ((g?.photos ?? []) as { photo_reference: string }[]).slice(0, 3).entries()) {
+            try {
+              const resp = await fetch(
+                `https://maps.googleapis.com/maps/api/place/photo?maxwidth=1200&photo_reference=${ph.photo_reference}&key=${KEY}`,
+              );
+              const ct = resp.headers.get("content-type") || "";
+              if (resp.ok && ct.startsWith("image")) await put(await resp.arrayBuffer(), ct, i);
+            } catch (_e) { /* photo optional */ }
+          }
+          if (!stored.length && (poi.link || g?.website)) {
+            try {
+              const site = String(poi.link || g.website);
+              const html = await fetch(site, {
+                headers: { "User-Agent": "Mozilla/5.0 (compatible; CollideBot/1.0)" },
+                signal: AbortSignal.timeout(8000),
+              }).then((x) => x.text());
+              const m =
+                html.match(/property=["']og:image(?::secure_url)?["'][^>]*content=["']([^"']+)["']/i) ||
+                html.match(/content=["']([^"']+)["'][^>]*property=["']og:image/i) ||
+                html.match(/name=["']twitter:image["'][^>]*content=["']([^"']+)["']/i);
+              if (m?.[1]) {
+                const u = new URL(m[1].replace(/&amp;/g, "&"), site).toString();
+                const resp = await fetch(u, { signal: AbortSignal.timeout(8000) });
+                const ct = resp.headers.get("content-type") || "";
+                const len = Number(resp.headers.get("content-length") || 0);
+                if (resp.ok && ct.startsWith("image") && len < 5e6) await put(await resp.arrayBuffer(), ct, 0);
+              }
+            } catch (_e) { /* last resort only */ }
+          }
+          if (stored.length)
+            await sb.from("pois").update({ images: stored, image_path: stored[0] }).eq("id", poi.id);
         }
         return json({
           lat, lng,
