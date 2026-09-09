@@ -1317,3 +1317,42 @@ create or replace function ed_inbox() returns jsonb language sql stable security
     and (t.status='open' or coalesce(t.closed_at,now()) > now()-interval '2 hours')) z
 $f$;
 select 'q93 dm ok';
+
+-- q95 (2026-09-09): manual clear replaces 2h expiry
+alter table dm_threads add column if not exists starter_cleared boolean not null default false;
+alter table dm_threads add column if not exists owner_cleared boolean not null default false;
+create or replace function ed_dm_start(aid uuid, body text) returns jsonb language plpgsql security definer as $f$
+declare uid uuid:=auth.uid(); own uuid; tid uuid; st text;
+begin
+ if uid is null then return jsonb_build_object('error','auth'); end if;
+ select author_id into own from announcements where id=aid;
+ if own is null then return jsonb_build_object('error','gone'); end if;
+ if own=uid then return jsonb_build_object('error','own'); end if;
+ if body is null or char_length(trim(body))=0 then return jsonb_build_object('error','empty'); end if;
+ select id,status into tid,st from dm_threads where announcement_id=aid and starter_id=uid;
+ if tid is null then
+  insert into dm_threads(announcement_id,starter_id,owner_id) values(aid,uid,own) returning id into tid;
+ elsif st='closed' then
+  update dm_threads set status='open',closed_by=null,closed_at=null,starter_cleared=false,owner_cleared=false where id=tid;
+ end if;
+ insert into dm_messages(thread_id,author_id,body) values(tid,uid,left(trim(body),2000));
+ return jsonb_build_object('id',tid);
+end $f$;
+create or replace function ed_inbox() returns jsonb language sql stable security definer set search_path=public as $f$
+ select coalesce(jsonb_agg(row order by coalesce(row->>'at','') desc),'[]'::jsonb) from (
+  select jsonb_build_object(
+   'id',t.id,'status',t.status,
+   'ann',left(a.body,90),'aid',a.id,
+   'mine_owner',t.owner_id=auth.uid(),
+   'other',jsonb_build_object('id',p.id,'name',p.display_name,'av',p.avatar_url),
+   'last',(select jsonb_build_object('body',m.body,'kind',m.kind,'author',m.author_id,'at',m.created_at) from dm_messages m where m.thread_id=t.id order by m.created_at desc limit 1),
+   'at',(select max(m.created_at)::text from dm_messages m where m.thread_id=t.id),
+   'unread', exists(select 1 from dm_messages m where m.thread_id=t.id and m.author_id<>auth.uid()
+      and m.created_at > case when t.owner_id=auth.uid() then t.owner_seen else t.starter_seen end)
+  ) as row
+  from dm_threads t join announcements a on a.id=t.announcement_id
+  join profiles p on p.id=case when t.owner_id=auth.uid() then t.starter_id else t.owner_id end
+  where auth.uid() in (t.starter_id,t.owner_id)
+    and not (case when t.owner_id=auth.uid() then t.owner_cleared else t.starter_cleared end)) z
+$f$;
+select 'q94 ok';
