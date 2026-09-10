@@ -101,10 +101,45 @@ Deno.serve(async (req) => {
     const b = await req.json().catch(() => ({}));
     const user = await requireUser(req);
     if (!user) return json({ error: "auth" }, 401);
+    const me = mine(req);
+
+    // wave: a push to someone in your circle who's tapped in nearby (1 per pair per hour)
+    if (b.mode === "wave") {
+      const to = String(b.to ?? "");
+      if (!/^[0-9a-f-]{36}$/i.test(to) || to === user.id) return json({ error: "to" }, 400);
+      const [{ data: conn }, { data: comm }] = await Promise.all([me.rpc("are_connected", { u1: user.id, u2: to }), me.rpc("shares_community", { u1: user.id, u2: to })]);
+      if (!conn && !comm) return json({ error: "not_circle" }, 403);
+      const sb = svc();
+      const wk = `w:${user.id}:${to}:${new Date().toISOString().slice(0, 13)}`;
+      const { data: prev } = await sb.from("tapin_cache").select("key").eq("key", wk).maybeSingle();
+      if (prev) return json({ ok: true, already: true });
+      await sb.from("tapin_cache").upsert({ key: wk, payload: {}, at: new Date().toISOString() });
+      const { data: meP } = await sb.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
+      const { data: pres } = await sb.from("tapin_presence").select("area").eq("profile_id", user.id).maybeSingle();
+      const first = (meP?.display_name ?? "Someone").split(" ")[0];
+      const pr = await fetch(`${URL_()}/functions/v1/push-send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-push-secret": Deno.env.get("PUSH_SECRET") ?? "" },
+        body: JSON.stringify({ title: `${first} waved 👋`, body: `${first} is tapped in near you${pres?.area ? ` in ${pres.area}` : ""}. Tap in to find each other.`, url: "https://codewontchange-nyc.github.io/Collide/plans", profile_ids: [to] }),
+      }).catch(() => null);
+      return json({ ok: true, pushed: !!(pr && pr.ok) });
+    }
+
     const lat = Number(b.lat), lng = Number(b.lng);
     if (!isFinite(lat) || !isFinite(lng)) return json({ error: "where" }, 400);
 
     if (b.mode === "where") return json(await whereAmI(lat, lng));
+
+    // seen: flip presence on/off without rebuilding a bundle
+    if (b.mode === "seen") {
+      if (b.visible) {
+        const w = await whereAmI(lat, lng);
+        const picks = Array.isArray(b.picks) ? b.picks.filter((x: unknown) => typeof x === "string").slice(0, 4) : [];
+        const { error } = await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${b.city === "atl" ? "atl" : "nyc"}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: w.area, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks, at: new Date().toISOString() });
+        if (error) return json({ error: error.message }, 400);
+      } else await me.from("tapin_presence").delete().eq("profile_id", user.id);
+      return json({ ok: true });
+    }
 
     if (b.mode !== "bundle") return json({ error: "mode" }, 400);
     const city = b.city === "atl" ? "atl" : "nyc";
@@ -145,7 +180,6 @@ Deno.serve(async (req) => {
     }
 
     // Collide POIs and today's plans, as the caller sees them
-    const me = mine(req);
     const maxKm = wide ? 2 : 1;
     const { data: pois } = await me.from("pois").select("id,name,category,address,lat,lng,images,tier,sponsored,story").not("lat", "is", null);
     const nearPois = (pois ?? [])
@@ -192,6 +226,21 @@ Deno.serve(async (req) => {
       })),
     ];
 
+    // presence: say "I'm here" (coarsely) if they chose to be seen, then look for their people nearby
+    const areaLbl = area || (city === "atl" ? "Atlanta" : "New York");
+    if (b.visible === true) {
+      await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${city}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: areaLbl, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks: picks.filter((p) => p.kind !== "plan").slice(0, 4).map((p) => p.name), at: new Date().toISOString() });
+    } else if (b.visible === false) await me.from("tapin_presence").delete().eq("profile_id", user.id);
+    const since = new Date(Date.now() - 45 * 6e4).toISOString();
+    const { data: pres } = await me.from("tapin_presence").select("profile_id,area,lat,lng,picks,at,prof:profiles(id,display_name,avatar_url)").gt("at", since).neq("profile_id", user.id).limit(40);
+    const people = (pres ?? [])
+      .map((r) => ({ r, d: km({ lat, lng }, { lat: r.lat, lng: r.lng }) }))
+      .filter((x) => x.d <= 1.6).sort((a, b) => a.d - b.d).slice(0, 8)
+      .map(({ r, d }) => ({
+        id: r.profile_id, name: (r.prof as { display_name?: string } | null)?.display_name ?? "Someone", avatar: (r.prof as { avatar_url?: string } | null)?.avatar_url ?? null,
+        area: r.area, dist_m: Math.round(d * 1000), ago_min: Math.max(0, Math.round((Date.now() - new Date(r.at).getTime()) / 6e4)), picks: Array.isArray(r.picks) ? r.picks.slice(0, 4) : [],
+      }));
+
     // editorial
     const now = new Date(Date.now() - 4 * 36e5);
     const hour = now.getUTCHours();
@@ -207,6 +256,7 @@ Deno.serve(async (req) => {
 Where: ${areaName}, ${city === "atl" ? "Atlanta" : "New York City"}. When: ${weekday} ${daypart}.
 Picks on the list: ${named || "(none)"}.
 ${todays.length ? `Also happening today in the city: ${todays.map((a) => a.title).join("; ")}.` : ""}
+${people.length ? `People the reader knows are tapped in a few blocks away right now: ${people.map((p) => p.name.split(" ")[0]).join(", ")}. Mention this once, warmly, by first name — it's the best part.` : ""}
 
 Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentences, 45-70 words, naming two or three of the picks and the neighborhood"}`;
         const cr = await fetch("https://api.anthropic.com/v1/messages", {
@@ -226,7 +276,7 @@ Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentence
       body = first ? `A ${daypart} in ${areaName} with ${first.name} a ${(first as { walk_min: number }).walk_min}-minute walk away, and ${Math.max(0, picks.length - 1)} more worth the detour below.` : `A quiet ${daypart} in ${areaName}. Wander a block and try again.`;
     }
 
-    return json({ area: areaName, wide, throttled, headline, body, seed, picks, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
+    return json({ area: areaName, wide, throttled, headline, body, seed, picks, people, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
   } catch (e) {
     console.error("tapin error:", e);
     return json({ error: "internal" }, 500);

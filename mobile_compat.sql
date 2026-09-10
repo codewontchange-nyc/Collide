@@ -1515,3 +1515,23 @@ create table if not exists tapin_cache (
 );
 alter table tapin_cache enable row level security;
 select 'q162 tapin cache migrated';
+
+
+-- q163 (2026-09-10): tapin presence. Applied live 2026-09-10 via Management API.
+create table if not exists tapin_presence (
+  profile_id uuid primary key references profiles(id) on delete cascade,
+  cell  text not null,
+  area  text,
+  lat   double precision not null,
+  lng   double precision not null,
+  picks jsonb not null default '[]'::jsonb,
+  at    timestamptz not null default now()
+);
+alter table tapin_presence enable row level security;
+drop policy if exists tp_sel on tapin_presence;
+create policy tp_sel on tapin_presence for select to authenticated
+  using (profile_id = auth.uid() or are_connected(profile_id, auth.uid()) or shares_community(profile_id, auth.uid()));
+drop policy if exists tp_own on tapin_presence;
+create policy tp_own on tapin_presence for all to authenticated
+  using (profile_id = auth.uid()) with check (profile_id = auth.uid());
+select 'q163 tapin presence migrated';
