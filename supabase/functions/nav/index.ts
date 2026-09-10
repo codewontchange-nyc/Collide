@@ -307,6 +307,7 @@ Deno.serve(async (req) => {
       if (!located.length) return json({ error: "no_loc" }, 404);
       let base = `https://maps.googleapis.com/maps/api/staticmap?size=600x340&scale=2&maptype=roadmap`;
       const badges: string[] = [];   // later markers paint on top, so lower numbers go last (the next stop wins)
+      const placed: { lat: number; lng: number }[] = [];
       for (const { s, i } of located) {
         const r = RAD[s.radius] ?? 300;
         if (reveal(i)) {
@@ -315,7 +316,18 @@ Deno.serve(async (req) => {
           const c = nudge(i, s.lat, s.lng, r);
           base += `&path=fillcolor:0x18857a33%7Ccolor:0x18857aff%7Cweight:2%7Cenc:${encodeURIComponent(encPoly(circle(c, r)))}`;
           // order badge (numbered disc, no pin tip) on the circle's top edge — it tags the area, it is not the spot
-          if (i < 20) badges.unshift(`&markers=anchor:center%7Cicon:${encodeURIComponent(`https://codewontchange-nyc.github.io/Collide/assets/hunt-n2/${i + 1}.png`)}%7C${(c.lat + r / 111320).toFixed(6)},${c.lng.toFixed(6)}`);
+          if (i < 20) {
+            // walk the rim (north first) until the badge sits clear of the ones already placed
+            const k = 111320 * Math.cos(c.lat * Math.PI / 180);
+            let pt = { lat: c.lat + r / 111320, lng: c.lng };
+            for (const deg of [0, 50, -50, 100, -100, 150, -150, 180]) {
+              const a = deg * Math.PI / 180;
+              pt = { lat: c.lat + r * Math.cos(a) / 111320, lng: c.lng + r * Math.sin(a) / k };
+              if (!placed.some((p) => Math.hypot((p.lat - pt.lat) * 111320, (p.lng - pt.lng) * k) < 90)) break;
+            }
+            placed.push(pt);
+            badges.unshift(`&markers=anchor:center%7Cicon:${encodeURIComponent(`https://codewontchange-nyc.github.io/Collide/assets/hunt-n2/${i + 1}.png`)}%7C${pt.lat.toFixed(6)},${pt.lng.toFixed(6)}`);
+          }
         }
       }
       base += badges.join("");
