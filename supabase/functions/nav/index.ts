@@ -313,6 +313,8 @@ Deno.serve(async (req) => {
         } else {
           const c = nudge(i, s.lat, s.lng, r);
           base += `&path=fillcolor:0x18857a33%7Ccolor:0x18857aff%7Cweight:2%7Cenc:${encodeURIComponent(encPoly(circle(c, r)))}`;
+          // order badge (numbered disc, no pin tip) on the circle's top edge — it tags the area, it is not the spot
+          if (i < 20) base += `&markers=anchor:center%7Cicon:${encodeURIComponent(`https://codewontchange-nyc.github.io/Collide/assets/hunt-n/${i + 1}.png`)}%7C${(c.lat + r / 111320).toFixed(6)},${c.lng.toFixed(6)}`;
         }
       }
       if (located.length === 1) base += "&zoom=14";
