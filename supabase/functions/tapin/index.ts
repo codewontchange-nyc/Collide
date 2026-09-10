@@ -218,7 +218,7 @@ Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentence
         const txt = String(cj?.content?.find((c: { type: string }) => c.type === "text")?.text ?? "");
         const m = txt.match(/\{[\s\S]*\}/);
         if (cr.ok && m) { const o = JSON.parse(m[0]); if (o.headline) headline = String(o.headline).slice(0, 80); if (o.body) body = String(o.body).slice(0, 600); }
-        else { console.error("editorial", cr.status, cj?.error?.message); if (b.debug) (b as { _err?: string })._err = `${cr.status} ${cj?.error?.message ?? ("raw:" + JSON.stringify(cj).slice(0, 400))}`; }
+        else { console.error("editorial", cr.status, cj?.error?.message); if (b.debug) (b as { _err?: string })._err = `${cr.status} stop=${cj?.stop_reason} types=${(cj?.content ?? []).map((c: { type: string }) => c.type).join(",")} text=${txt.slice(0, 300)} err=${cj?.error?.message ?? ""}`; }
       } catch (e) { console.error("editorial", e); if (b.debug) (b as { _err?: string })._err = String(e); }
     }
     if (!body) {
