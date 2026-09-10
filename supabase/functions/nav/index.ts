@@ -306,6 +306,7 @@ Deno.serve(async (req) => {
       const located = stops.map((s, i) => ({ s, i })).filter((o) => hasLoc(o.s));
       if (!located.length) return json({ error: "no_loc" }, 404);
       let base = `https://maps.googleapis.com/maps/api/staticmap?size=600x340&scale=2&maptype=roadmap`;
+      const badges: string[] = [];   // later markers paint on top, so lower numbers go last (the next stop wins)
       for (const { s, i } of located) {
         const r = RAD[s.radius] ?? 300;
         if (reveal(i)) {
@@ -314,9 +315,10 @@ Deno.serve(async (req) => {
           const c = nudge(i, s.lat, s.lng, r);
           base += `&path=fillcolor:0x18857a33%7Ccolor:0x18857aff%7Cweight:2%7Cenc:${encodeURIComponent(encPoly(circle(c, r)))}`;
           // order badge (numbered disc, no pin tip) on the circle's top edge — it tags the area, it is not the spot
-          if (i < 20) base += `&markers=anchor:center%7Cicon:${encodeURIComponent(`https://codewontchange-nyc.github.io/Collide/assets/hunt-n2/${i + 1}.png`)}%7C${(c.lat + r / 111320).toFixed(6)},${c.lng.toFixed(6)}`;
+          if (i < 20) badges.unshift(`&markers=anchor:center%7Cicon:${encodeURIComponent(`https://codewontchange-nyc.github.io/Collide/assets/hunt-n2/${i + 1}.png`)}%7C${(c.lat + r / 111320).toFixed(6)},${c.lng.toFixed(6)}`);
         }
       }
+      base += badges.join("");
       if (located.length === 1) base += "&zoom=14";
       const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "";
       let resp = MAP_ID ? await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`) : new Response(null, { status: 599 });
