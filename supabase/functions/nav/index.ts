@@ -158,12 +158,13 @@ Deno.serve(async (req) => {
         if (!pid) return json({ error: "place_id" }, 400);
         const det = (
           await fetch(
-            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(pid)}&fields=name,formatted_address,geometry,opening_hours,website,formatted_phone_number,rating,user_ratings_total,price_level,photos,types,url&key=${KEY}`,
+            `https://maps.googleapis.com/maps/api/place/details/json?place_id=${encodeURIComponent(pid)}&fields=name,formatted_address,address_components,geometry,opening_hours,website,formatted_phone_number,rating,user_ratings_total,price_level,photos,types,url&key=${KEY}`,
           ).then((x) => x.json())
         ).result;
         if (!det) return json({ error: "not_found" }, 404);
         const photos: string[] = [];
-        if (isStaff) {
+        const comp = (t: string) => det.address_components?.find((c: { types: string[] }) => c.types.includes(t))?.long_name;
+        if (isStaff && !b.nophotos) {
           const list = (det.photos || []).slice(0, 3);
           const safe = pid.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40) || "p";
           for (let i = 0; i < list.length; i++) {
@@ -197,6 +198,7 @@ Deno.serve(async (req) => {
           n: det.user_ratings_total ?? null,
           hours_today: today || null,
           hours_week: wt,
+          area: comp("neighborhood") ?? comp("sublocality") ?? comp("locality") ?? null,
           type: (det.types || []).find((x: string) => !["establishment", "point_of_interest", "food"].includes(x)) ?? null,
           photos,
         });
@@ -234,6 +236,98 @@ Deno.serve(async (req) => {
 
     // ---- POI modes: place scrape, mini map, directions ----
     // ---- visitmap: one static map with a pin per visited place ----
+    // ---- hunts & adventures: area-circle mini map, and directions to a found stop ----
+    if (b.mode === "huntmap" || b.mode === "stoproute") {
+      const user = await requireUser(req);
+      if (!user) return json({ error: "auth" }, 401);
+      const url = Deno.env.get("SUPABASE_URL")!;
+      const me = createClient(url, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: req.headers.get("authorization") ?? "" } },
+      });
+      const aid = String(b.aid ?? "");
+      if (!/^[0-9a-f-]{36}$/i.test(aid)) return json({ error: "bad_request" }, 400);
+      const { data: act } = await me.from("activities").select("id,host_id,city,itin_kind,itinerary").eq("id", aid).maybeSingle();
+      if (!act) return json({ error: "not_found" }, 404);
+      const sb = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+      const { data: cks } = await sb.from("itin_checkins").select("stop_idx").eq("activity_id", aid).eq("profile_id", user.id);
+      const found = new Set((cks ?? []).map((c: { stop_idx: number }) => c.stop_idx));
+      const isHost = act.host_id === user.id;
+      // deno-lint-ignore no-explicit-any
+      const stops: any[] = Array.isArray(act.itinerary) ? act.itinerary : [];
+      // deno-lint-ignore no-explicit-any
+      const hasLoc = (s: any) => typeof s?.lat === "number" && typeof s?.lng === "number";
+      const reveal = (i: number) => isHost || found.has(i);
+      const RAD: Record<string, number> = { sm: 200, md: 300, lg: 500 };
+
+      if (b.mode === "stoproute") {
+        const i = Number(b.i);
+        const s = stops[i];
+        if (!s) return json({ error: "not_found" }, 404);
+        if (!reveal(i)) return json({ error: "not_found_yet" }, 403);
+        if (!hasLoc(s)) return json({ error: "no_loc" }, 404);
+        const f = b.from ?? {};
+        if (typeof f.lat !== "number" || typeof f.lng !== "number") return json({ error: "from" }, 400);
+        return json(await directions(f, { lat: s.lat, lng: s.lng }, b.travel));
+      }
+
+      // Circles are nudged off the true point by a hash of activity+stop (never the caller),
+      // so the stop sits inside its circle but never at the center, and users can't triangulate.
+      const h32 = (str: string) => { let h = 2166136261; for (const ch of str) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; };
+      const nudge = (i: number, lat: number, lng: number, r: number) => {
+        const h = h32(`${aid}:${i}`);
+        const ang = (h % 3600) / 3600 * 2 * Math.PI;
+        const d = r * (0.15 + ((h >>> 12) % 1000) / 1000 * 0.25);
+        return { lat: lat + d * Math.cos(ang) / 111320, lng: lng + d * Math.sin(ang) / (111320 * Math.cos(lat * Math.PI / 180)) };
+      };
+      const circle = (c: { lat: number; lng: number }, r: number, n = 24) => {
+        const k = 111320 * Math.cos(c.lat * Math.PI / 180); const out: [number, number][] = [];
+        for (let j = 0; j <= n; j++) { const a = 2 * Math.PI * j / n; out.push([c.lat + r * Math.cos(a) / 111320, c.lng + r * Math.sin(a) / k]); }
+        return out;
+      };
+      const encPoly = (pts: [number, number][]) => {
+        let out = "", pla = 0, pln = 0;
+        for (const [la, ln] of pts) {
+          const a = Math.round(la * 1e5), bb = Math.round(ln * 1e5);
+          for (let v of [a - pla, bb - pln]) { v = v < 0 ? ~(v << 1) : v << 1; while (v >= 0x20) { out += String.fromCharCode((0x20 | (v & 0x1f)) + 63); v >>= 5; } out += String.fromCharCode(v + 63); }
+          pla = a; pln = bb;
+        }
+        return out;
+      };
+      const located = stops.map((s, i) => ({ s, i })).filter((o) => hasLoc(o.s));
+      if (!located.length) return json({ error: "no_loc" }, 404);
+      let base = `https://maps.googleapis.com/maps/api/staticmap?size=600x340&scale=2&maptype=roadmap`;
+      for (const { s, i } of located) {
+        const r = RAD[s.radius] ?? 300;
+        if (reveal(i)) {
+          base += `&markers=size:mid%7Ccolor:0x18857a` + (i < 9 ? `%7Clabel:${i + 1}` : "") + `%7C${s.lat},${s.lng}`;
+        } else {
+          const c = nudge(i, s.lat, s.lng, r);
+          base += `&path=fillcolor:0x18857a33%7Ccolor:0x18857aff%7Cweight:2%7Cenc:${encodeURIComponent(encPoly(circle(c, r)))}`;
+        }
+      }
+      if (located.length === 1) base += "&zoom=14";
+      const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "";
+      let resp = MAP_ID ? await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`) : new Response(null, { status: 599 });
+      if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) {
+        const m = `${base}&style=saturation:-100&style=feature:poi.business%7Cvisibility:off&key=`;
+        resp = await fetch(m + KEY);
+        if (!resp.ok && GEO_KEY !== KEY) resp = await fetch(m + GEO_KEY);
+      }
+      if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image"))
+        return json({ error: "map_unavailable", status: resp.status }, 502);
+      const buf = new Uint8Array(await resp.arrayBuffer());
+      let bin = "";
+      for (let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+      return json({
+        img: "data:image/png;base64," + btoa(bin),
+        kind: act.itin_kind,
+        stops: stops.map((s, i) => ({
+          i, found: found.has(i), located: hasLoc(s), area: s.area ?? null, radius: s.radius ?? "md",
+          ...(reveal(i) && hasLoc(s) ? { lat: s.lat, lng: s.lng, address: s.address ?? null, place: s.place ?? null } : {}),
+        })),
+      });
+    }
+
     if (b.mode === "visitmap") {
       if (!(await requireUser(req))) return json({ error: "auth" }, 401);
       const pids = Array.isArray(b.pids) ? b.pids.filter((x: unknown) => typeof x === "string").slice(0, 40) : [];
