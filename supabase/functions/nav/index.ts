@@ -28,6 +28,16 @@ async function requireUser(req: Request) {
   return data.user;
 }
 
+// Place Details rarely carries a neighborhood component; reverse geocoding does.
+async function hood(loc?: { lat: number; lng: number }): Promise<string | null> {
+  if (!loc) return null;
+  try {
+    const r = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${loc.lat},${loc.lng}&result_type=neighborhood&key=${GEO_KEY}`).then((x) => x.json());
+    const c = r.results?.[0]?.address_components?.find((c: { types: string[] }) => c.types.includes("neighborhood"));
+    return c?.long_name ?? null;
+  } catch { return null; }
+}
+
 async function directions(
   from: { lat: number; lng: number },
   to: { lat: number; lng: number },
@@ -198,7 +208,7 @@ Deno.serve(async (req) => {
           n: det.user_ratings_total ?? null,
           hours_today: today || null,
           hours_week: wt,
-          area: comp("neighborhood") ?? comp("sublocality") ?? comp("locality") ?? null,
+          area: comp("neighborhood") ?? await hood(det.geometry?.location) ?? comp("sublocality") ?? comp("locality") ?? null,
           type: (det.types || []).find((x: string) => !["establishment", "point_of_interest", "food"].includes(x)) ?? null,
           photos,
         });
