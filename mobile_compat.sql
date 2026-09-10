@@ -1505,3 +1505,13 @@ drop policy if exists rsvp_ins on rsvps;
 create policy rsvp_ins on rsvps for insert to authenticated
   with check (profile_id = auth.uid() and can_see_activity(activity_id));
 select 'q160 invite visibility migrated';
+
+
+-- q162 (2026-09-10): tapin cache. Applied live 2026-09-10 via Management API.
+create table if not exists tapin_cache (
+  key     text primary key,
+  payload jsonb not null default '{}'::jsonb,
+  at      timestamptz not null default now()
+);
+alter table tapin_cache enable row level security;
+select 'q162 tapin cache migrated';
