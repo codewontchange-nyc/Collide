@@ -18,3 +18,7 @@ drop policy if exists tp_own on tapin_presence;
 create policy tp_own on tapin_presence for all to authenticated
   using (profile_id = auth.uid()) with check (profile_id = auth.uid());
 select 'q163 tapin presence migrated';
+
+-- q163 addendum (applied live 2026-09-10): presence streams over realtime
+alter publication supabase_realtime add table tapin_presence;
+alter table tapin_presence replica identity full;
