@@ -117,6 +117,7 @@ Deno.serve(async (req) => {
       const { data: meP } = await sb.from("profiles").select("display_name").eq("id", user.id).maybeSingle();
       const { data: pres } = await sb.from("tapin_presence").select("area").eq("profile_id", user.id).maybeSingle();
       const first = (meP?.display_name ?? "Someone").split(" ")[0];
+      await sb.from("waves").insert({ from_id: user.id, to_id: to, from_name: meP?.display_name ?? null, area: pres?.area ?? null });
       const pr = await fetch(`${URL_()}/functions/v1/push-send`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-push-secret": Deno.env.get("PUSH_SECRET") ?? "" },
