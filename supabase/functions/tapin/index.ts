@@ -93,6 +93,37 @@ const km = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
   const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLo / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 };
+async function peopleMap(lat: number, lng: number, people: { lat: number; lng: number; name: string }[]): Promise<string | null> {
+  if (!people.length) return null;
+  let base = `https://maps.googleapis.com/maps/api/staticmap?size=600x300&scale=2&maptype=roadmap&markers=size:mid%7Ccolor:0x18857a%7C${lat.toFixed(4)},${lng.toFixed(4)}`;
+  for (const p of people.slice(0, 12)) {
+    const ini = (p.name || "?").trim().charAt(0).toUpperCase().replace(/[^A-Z0-9]/, "");
+    base += `&markers=size:mid%7Ccolor:0x17181a${ini ? `%7Clabel:${ini}` : ""}%7C${p.lat.toFixed(4)},${p.lng.toFixed(4)}`;
+  }
+  const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "";
+  let resp = MAP_ID ? await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`) : new Response(null, { status: 599 });
+  if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) {
+    const m = `${base}&style=saturation:-100&style=feature:poi.business%7Cvisibility:off&key=`;
+    resp = await fetch(m + KEY);
+    if (!resp.ok && GEO_KEY !== KEY) resp = await fetch(m + GEO_KEY);
+  }
+  if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) return null;
+  const buf = new Uint8Array(await resp.arrayBuffer());
+  let bin = "";
+  for (let i = 0; i < buf.length; i += 8192) bin += String.fromCharCode(...buf.subarray(i, i + 8192));
+  return "data:image/png;base64," + btoa(bin);
+}
+async function nearbyPeople(me: ReturnType<typeof mine>, uid: string, lat: number, lng: number) {
+  const since = new Date(Date.now() - 45 * 6e4).toISOString();
+  const { data: pres } = await me.from("tapin_presence").select("profile_id,area,lat,lng,picks,at,prof:profiles(id,display_name,avatar_url)").gt("at", since).neq("profile_id", uid).limit(40);
+  return (pres ?? [])
+    .map((r) => ({ r, d: km({ lat, lng }, { lat: r.lat, lng: r.lng }) }))
+    .filter((x) => x.d <= 1.6).sort((a, b) => a.d - b.d).slice(0, 8)
+    .map(({ r, d }) => ({
+      id: r.profile_id, name: (r.prof as { display_name?: string } | null)?.display_name ?? "Someone", avatar: (r.prof as { avatar_url?: string } | null)?.avatar_url ?? null,
+      area: r.area, lat: r.lat, lng: r.lng, dist_m: Math.round(d * 1000), ago_min: Math.max(0, Math.round((Date.now() - new Date(r.at).getTime()) / 6e4)), picks: Array.isArray(r.picks) ? r.picks.slice(0, 4) : [],
+    }));
+}
 function rng(seed: number) { let t = (seed >>> 0) || 1; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
 
 Deno.serve(async (req) => {
@@ -130,6 +161,11 @@ Deno.serve(async (req) => {
     if (!isFinite(lat) || !isFinite(lng)) return json({ error: "where" }, 400);
 
     if (b.mode === "where") return json(await whereAmI(lat, lng));
+
+    if (b.mode === "peoplemap") {
+      const people = await nearbyPeople(me, user.id, lat, lng);
+      return json({ people, img: await peopleMap(lat, lng, people) });
+    }
 
     // seen: flip presence on/off without rebuilding a bundle
     if (b.mode === "seen") {
@@ -237,15 +273,8 @@ Deno.serve(async (req) => {
     if (b.visible === true) {
       await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${city}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: areaLbl, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks: picks.filter((p) => p.kind !== "plan").slice(0, 4).map((p) => p.name), at: new Date().toISOString() });
     } else if (b.visible === false) await me.from("tapin_presence").delete().eq("profile_id", user.id);
-    const since = new Date(Date.now() - 45 * 6e4).toISOString();
-    const { data: pres } = await me.from("tapin_presence").select("profile_id,area,lat,lng,picks,at,prof:profiles(id,display_name,avatar_url)").gt("at", since).neq("profile_id", user.id).limit(40);
-    const people = (pres ?? [])
-      .map((r) => ({ r, d: km({ lat, lng }, { lat: r.lat, lng: r.lng }) }))
-      .filter((x) => x.d <= 1.6).sort((a, b) => a.d - b.d).slice(0, 8)
-      .map(({ r, d }) => ({
-        id: r.profile_id, name: (r.prof as { display_name?: string } | null)?.display_name ?? "Someone", avatar: (r.prof as { avatar_url?: string } | null)?.avatar_url ?? null,
-        area: r.area, dist_m: Math.round(d * 1000), ago_min: Math.max(0, Math.round((Date.now() - new Date(r.at).getTime()) / 6e4)), picks: Array.isArray(r.picks) ? r.picks.slice(0, 4) : [],
-      }));
+    const people = await nearbyPeople(me, user.id, lat, lng);
+    const peopleMapP = peopleMap(lat, lng, people);
 
     // editorial
     const now = new Date(Date.now() - 4 * 36e5);
@@ -289,7 +318,7 @@ Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentence
     }
 
     const withNote = <T extends { id: string }>(p: T) => (notes[p.id] ? { ...p, note: notes[p.id] } : p);
-    return json({ area: areaName, wide, throttled, headline, body, seed, picks: picks.map(withNote), spares: { eat: spares.eat, sip: spares.sip, do: spares.do.map(withNote) }, people, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
+    return json({ area: areaName, wide, throttled, headline, body, seed, picks: picks.map(withNote), spares: { eat: spares.eat, sip: spares.sip, do: spares.do.map(withNote) }, people, peopleMap: await peopleMapP, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
   } catch (e) {
     console.error("tapin error:", e);
     return json({ error: "internal" }, 500);
