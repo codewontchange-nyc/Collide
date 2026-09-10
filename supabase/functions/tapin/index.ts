@@ -202,6 +202,9 @@ Deno.serve(async (req) => {
     const sip = [...by("coffee").slice(0, 1), ...by("drink").slice(0, 1)];
     if (sip.length < 2) sip.push(...by(sip.some((p) => catOf(p.types) === "coffee") ? "drink" : "coffee").slice(1, 2));
     const doo = by("do").slice(0, 3);
+    const taken = new Set([...eat, ...sip, ...doo].map((p) => p.id));
+    const nxt = (c: Cat, n: number) => by(c).filter((p) => !taken.has(p.id)).slice(0, n);
+    const eatS = nxt("eat", 3), dooS = nxt("do", 3), sipS = [...nxt("coffee", 2), ...nxt("drink", 2)].slice(0, 3);
     const mkPlace = (p: Place, group: string) => {
       const cat = catOf(p.types) as Cat; const d = km({ lat, lng }, p) * 1000;
       return {
@@ -227,6 +230,8 @@ Deno.serve(async (req) => {
       })),
     ];
 
+    const spares = { eat: eatS.map((p) => mkPlace(p, "eat")), sip: sipS.map((p) => mkPlace(p, "sip")), do: dooS.map((p) => mkPlace(p, "do")) };
+
     // presence: say "I'm here" (coarsely) if they chose to be seen, then look for their people nearby
     const areaLbl = area || (city === "atl" ? "Atlanta" : "New York");
     if (b.visible === true) {
@@ -250,6 +255,8 @@ Deno.serve(async (req) => {
     const areaName = area || (city === "atl" ? "Atlanta" : "New York");
     let headline = `Your hour in ${areaName}`, body = "";
     const named = picks.filter((p) => p.kind !== "plan").slice(0, 8).map((p) => `${p.name} (${p.kind === "poi" ? "a Collide spot" : (p as { cat: string }).cat}${(p as { walk_min?: number }).walk_min ? `, ${(p as { walk_min: number }).walk_min} min walk` : ""})`).join("; ");
+    const noteTargets = [...picks.filter((p) => p.group === "do"), ...spares.do, ...picks.filter((p) => p.kind === "poi" && !(p as { blurb?: string | null }).blurb)].slice(0, 9);
+    const notes: Record<string, string> = {};
     if (!throttled && picks.length) {
       try {
         const prompt = `You write the front-page blurb for "Tap in", a feature in a small social app that hands someone a short walking list of good things near them right now. Voice: a warm, specific neighborhood newspaper — concrete, a little wry, never salesy. No emoji, no exclamation marks, no lists, no second-guessing the reader. Do not invent facts about the places beyond their names and categories.
@@ -259,16 +266,20 @@ Picks on the list: ${named || "(none)"}.
 ${todays.length ? `Also happening today in the city: ${todays.map((a) => a.title).join("; ")}.` : ""}
 ${people.length ? `People the reader knows are tapped in a few blocks away right now: ${people.map((p) => p.name.split(" ")[0]).join(", ")}. Mention this once, warmly, by first name — it's the best part.` : ""}
 
-Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentences, 45-70 words, naming two or three of the picks and the neighborhood"}`;
+Walking notes: for each item below, write 1-2 sentences (20-40 words) a friend would say while walking there — what it is, why it's worth it right now. Stick to what its name, category and neighborhood make clear plus well-known facts about famous places; if unsure, keep it to mood and timing rather than specifics.
+${noteTargets.map((p) => `- id=${p.id} | ${p.name} | ${p.kind === "poi" ? "Collide spot" : (p as { cat: string }).cat} | ${(p as { walk_min?: number }).walk_min ?? "?"} min walk`).join("\n")}
+
+Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentences, 45-70 words, naming two or three of the picks and the neighborhood", "notes": {"<id>": "the walking note", ...}}`;
         const cr = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
           headers: { "x-api-key": Deno.env.get("ANTHROPIC_API_KEY")!, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: 900, messages: [{ role: "user", content: prompt }] }),
+          body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: 1800, thinking: { type: "disabled" }, messages: [{ role: "user", content: prompt }] }),
         });
         const cj = await cr.json();
         const txt = String(cj?.content?.find((c: { type: string }) => c.type === "text")?.text ?? "");
         const m = txt.match(/\{[\s\S]*\}/);
-        if (cr.ok && m) { const o = JSON.parse(m[0]); if (o.headline) headline = String(o.headline).slice(0, 80); if (o.body) body = String(o.body).slice(0, 600); }
+        if (cr.ok && m) { const o = JSON.parse(m[0]); if (o.headline) headline = String(o.headline).slice(0, 80); if (o.body) body = String(o.body).slice(0, 600);
+          if (o.notes && typeof o.notes === "object") for (const [k, v] of Object.entries(o.notes)) if (typeof v === "string") notes[k] = v.slice(0, 320); }
         else { console.error("editorial", cr.status, cj?.error?.message); if (b.debug) (b as { _err?: string })._err = `${cr.status} stop=${cj?.stop_reason} types=${(cj?.content ?? []).map((c: { type: string }) => c.type).join(",")} text=${txt.slice(0, 300)} err=${cj?.error?.message ?? ""}`; }
       } catch (e) { console.error("editorial", e); if (b.debug) (b as { _err?: string })._err = String(e); }
     }
@@ -277,7 +288,8 @@ Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentence
       body = first ? `A ${daypart} in ${areaName} with ${first.name} a ${(first as { walk_min: number }).walk_min}-minute walk away, and ${Math.max(0, picks.length - 1)} more worth the detour below.` : `A quiet ${daypart} in ${areaName}. Wander a block and try again.`;
     }
 
-    return json({ area: areaName, wide, throttled, headline, body, seed, picks, people, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
+    const withNote = <T extends { id: string }>(p: T) => (notes[p.id] ? { ...p, note: notes[p.id] } : p);
+    return json({ area: areaName, wide, throttled, headline, body, seed, picks: picks.map(withNote), spares: { eat: spares.eat, sip: spares.sip, do: spares.do.map(withNote) }, people, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
   } catch (e) {
     console.error("tapin error:", e);
     return json({ error: "internal" }, 500);
