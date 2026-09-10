@@ -58,3 +58,14 @@ create policy mapev_del on map_events for delete to authenticated
   using (created_by = auth.uid() or is_any_staff());
 
 select 'q149 circle plans migrated';
+
+-- ---------- 4 · staff god view stops at circle plans ----------
+-- (facilitators of one community were seeing every circle pin on the map; the owner still sees all)
+create or replace function is_circle_plan(aid uuid) returns boolean
+language sql stable security definer set search_path = public as $$
+  select aid is not null and exists(select 1 from activities a where a.id = aid and a.visibility = 'circle')
+$$;
+drop policy if exists staff_all on map_events;
+create policy staff_all on map_events for all to authenticated
+  using (is_owner() or (is_any_staff() and not is_circle_plan(activity_id)))
+  with check (is_any_staff());
