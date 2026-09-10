@@ -93,13 +93,15 @@ const km = (a: { lat: number; lng: number }, b: { lat: number; lng: number }) =>
   const h = Math.sin(dLa / 2) ** 2 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * Math.sin(dLo / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 };
-async function peopleMap(lat: number, lng: number, people: { lat: number; lng: number; name: string }[]): Promise<string | null> {
-  if (!people.length) return null;
+async function peopleMap(lat: number, lng: number, people: { lat: number; lng: number; name: string; meet?: Meet }[], myMeet: Meet = null): Promise<string | null> {
+  if (!people.length && !myMeet) return null;
   let base = `https://maps.googleapis.com/maps/api/staticmap?size=600x300&scale=2&maptype=roadmap&markers=size:mid%7Ccolor:0x18857a%7C${lat.toFixed(4)},${lng.toFixed(4)}`;
   for (const p of people.slice(0, 12)) {
     const ini = (p.name || "?").trim().charAt(0).toUpperCase().replace(/[^A-Z0-9]/, "");
     base += `&markers=size:mid%7Ccolor:0x17181a${ini ? `%7Clabel:${ini}` : ""}%7C${p.lat.toFixed(4)},${p.lng.toFixed(4)}`;
+    if (p.meet) base += `&markers=size:mid%7Ccolor:0xe85d75${ini ? `%7Clabel:${ini}` : ""}%7C${p.meet.lat.toFixed(4)},${p.meet.lng.toFixed(4)}`;
   }
+  if (myMeet) base += `&markers=size:mid%7Ccolor:0xe85d75%7C${myMeet.lat.toFixed(4)},${myMeet.lng.toFixed(4)}`;
   const MAP_ID = Deno.env.get("GMAPS_MAP_ID") || "";
   let resp = MAP_ID ? await fetch(`${base}&map_id=${MAP_ID}&key=${KEY}`) : new Response(null, { status: 599 });
   if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) {
@@ -115,14 +117,24 @@ async function peopleMap(lat: number, lng: number, people: { lat: number; lng: n
 }
 async function nearbyPeople(me: ReturnType<typeof mine>, uid: string, lat: number, lng: number) {
   const since = new Date(Date.now() - 45 * 6e4).toISOString();
-  const { data: pres } = await me.from("tapin_presence").select("profile_id,area,lat,lng,picks,at,prof:profiles(id,display_name,avatar_url)").gt("at", since).neq("profile_id", uid).limit(40);
+  const { data: pres } = await me.from("tapin_presence").select("profile_id,area,lat,lng,picks,meet,at,prof:profiles(id,display_name,avatar_url)").gt("at", since).neq("profile_id", uid).limit(40);
   return (pres ?? [])
     .map((r) => ({ r, d: km({ lat, lng }, { lat: r.lat, lng: r.lng }) }))
     .filter((x) => x.d <= 1.6).sort((a, b) => a.d - b.d).slice(0, 8)
     .map(({ r, d }) => ({
       id: r.profile_id, name: (r.prof as { display_name?: string } | null)?.display_name ?? "Someone", avatar: (r.prof as { avatar_url?: string } | null)?.avatar_url ?? null,
-      area: r.area, lat: r.lat, lng: r.lng, dist_m: Math.round(d * 1000), ago_min: Math.max(0, Math.round((Date.now() - new Date(r.at).getTime()) / 6e4)), picks: Array.isArray(r.picks) ? r.picks.slice(0, 4) : [],
+      area: r.area, lat: r.lat, lng: r.lng, dist_m: Math.round(d * 1000), ago_min: Math.max(0, Math.round((Date.now() - new Date(r.at).getTime()) / 6e4)), picks: Array.isArray(r.picks) ? r.picks.slice(0, 4) : [], meet: meetOf(r.meet),
     }));
+}
+async function myMeet(me: ReturnType<typeof mine>, uid: string): Promise<Meet> {
+  const { data } = await me.from("tapin_presence").select("meet,at").eq("profile_id", uid).maybeSingle();
+  return data && Date.now() - new Date(data.at).getTime() < 45 * 6e4 ? meetOf(data.meet) : null;
+}
+type Meet = { id: string; name: string; lat: number; lng: number } | null;
+function meetOf(v: unknown): Meet {
+  const m = v as { id?: unknown; name?: unknown; lat?: unknown; lng?: unknown } | null;
+  if (!m || typeof m.lat !== "number" || typeof m.lng !== "number" || typeof m.name !== "string") return null;
+  return { id: String(m.id ?? "").slice(0, 80), name: m.name.slice(0, 80), lat: m.lat, lng: m.lng };
 }
 function rng(seed: number) { let t = (seed >>> 0) || 1; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -163,8 +175,8 @@ Deno.serve(async (req) => {
     if (b.mode === "where") return json(await whereAmI(lat, lng));
 
     if (b.mode === "peoplemap") {
-      const people = await nearbyPeople(me, user.id, lat, lng);
-      return json({ people, img: await peopleMap(lat, lng, people) });
+      const [people, mm] = await Promise.all([nearbyPeople(me, user.id, lat, lng), myMeet(me, user.id)]);
+      return json({ people, meet: mm, img: await peopleMap(lat, lng, people, mm) });
     }
 
     // seen: flip presence on/off without rebuilding a bundle
@@ -172,7 +184,7 @@ Deno.serve(async (req) => {
       if (b.visible) {
         const w = await whereAmI(lat, lng);
         const picks = Array.isArray(b.picks) ? b.picks.filter((x: unknown) => typeof x === "string").slice(0, 4) : [];
-        const { error } = await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${b.city === "atl" ? "atl" : "nyc"}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: w.area, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks, at: new Date().toISOString() });
+        const { error } = await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${b.city === "atl" ? "atl" : "nyc"}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: w.area, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks, meet: meetOf(b.meet), at: new Date().toISOString() });
         if (error) return json({ error: error.message }, 400);
       } else await me.from("tapin_presence").delete().eq("profile_id", user.id);
       return json({ ok: true });
@@ -271,10 +283,10 @@ Deno.serve(async (req) => {
     // presence: say "I'm here" (coarsely) if they chose to be seen, then look for their people nearby
     const areaLbl = area || (city === "atl" ? "Atlanta" : "New York");
     if (b.visible === true) {
-      await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${city}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: areaLbl, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks: picks.filter((p) => p.kind !== "plan").slice(0, 4).map((p) => p.name), at: new Date().toISOString() });
+      await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${city}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: areaLbl, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks: picks.filter((p) => p.kind !== "plan").slice(0, 4).map((p) => p.name), meet: meetOf(b.meet), at: new Date().toISOString() });
     } else if (b.visible === false) await me.from("tapin_presence").delete().eq("profile_id", user.id);
     const people = await nearbyPeople(me, user.id, lat, lng);
-    const peopleMapP = peopleMap(lat, lng, people);
+    const peopleMapP = peopleMap(lat, lng, people, b.visible === true ? meetOf(b.meet) : null);
 
     // editorial
     const now = new Date(Date.now() - 4 * 36e5);
@@ -293,7 +305,7 @@ Deno.serve(async (req) => {
 Where: ${areaName}, ${city === "atl" ? "Atlanta" : "New York City"}. When: ${weekday} ${daypart}.
 Picks on the list: ${named || "(none)"}.
 ${todays.length ? `Also happening today in the city: ${todays.map((a) => a.title).join("; ")}.` : ""}
-${people.length ? `People the reader knows are tapped in a few blocks away right now: ${people.map((p) => p.name.split(" ")[0]).join(", ")}. Mention this once, warmly, by first name — it's the best part.` : ""}
+${people.length ? `People the reader knows are tapped in a few blocks away right now: ${people.map((p) => p.name.split(" ")[0] + (p.meet ? ` (wants to meet at ${p.meet.name})` : "")).join(", ")}. Mention this once, warmly, by first name — it's the best part.` : ""}
 
 Walking notes: for each item below, write 1-2 sentences (20-40 words) a friend would say while walking there — what it is, why it's worth it right now. Stick to what its name, category and neighborhood make clear plus well-known facts about famous places; if unsure, keep it to mood and timing rather than specifics.
 ${noteTargets.map((p) => `- id=${p.id} | ${p.name} | ${p.kind === "poi" ? "Collide spot" : (p as { cat: string }).cat} | ${(p as { walk_min?: number }).walk_min ?? "?"} min walk`).join("\n")}

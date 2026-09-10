@@ -1556,3 +1556,6 @@ drop policy if exists waves_sel on waves;
 create policy waves_sel on waves for select to authenticated using (to_id = auth.uid() or from_id = auth.uid());
 alter publication supabase_realtime add table waves;
 select 'q166 waves migrated';
+
+-- q163 addendum (applied live 2026-09-10): a tapped-in person can propose a meet spot
+alter table tapin_presence add column if not exists meet jsonb;
