@@ -357,10 +357,15 @@ Deno.serve(async (req) => {
     if (b.mode === "visitmap") {
       if (!(await requireUser(req))) return json({ error: "auth" }, 401);
       const pids = Array.isArray(b.pids) ? b.pids.filter((x: unknown) => typeof x === "string").slice(0, 40) : [];
-      if (!pids.length) return json({ error: "pids" }, 400);
+      // extra points (hunt stops found) — plain coordinates, no POI row
+      const pts: { lat: number; lng: number }[] = Array.isArray(b.pts)
+        ? b.pts.filter((p: { lat?: unknown; lng?: unknown }) => typeof p?.lat === "number" && typeof p?.lng === "number").slice(0, 40)
+        : [];
+      if (!pids.length && !pts.length) return json({ error: "pids" }, 400);
       const url = Deno.env.get("SUPABASE_URL")!;
       const sb = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-      const { data: pins } = await sb.from("pois").select("id,lat,lng").in("id", pids).not("lat", "is", null);
+      const { data: poiPins } = pids.length ? await sb.from("pois").select("id,lat,lng").in("id", pids).not("lat", "is", null) : { data: [] };
+      const pins = [...(poiPins ?? []), ...pts];
       if (!pins?.length) return json({ error: "no_pins" }, 404);
       const marks = pins.map((p: { lat: number; lng: number }) => `${p.lat},${p.lng}`).join("%7C");
       const base =
