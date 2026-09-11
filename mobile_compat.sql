@@ -1559,3 +1559,9 @@ select 'q166 waves migrated';
 
 -- q163 addendum (applied live 2026-09-10): a tapped-in person can propose a meet spot
 alter table tapin_presence add column if not exists meet jsonb;
+
+-- q163 addendum (applied live 2026-09-10): presence audience — circle (default) or public
+alter table tapin_presence add column if not exists audience text not null default 'circle' check (audience in ('circle','public'));
+drop policy if exists tp_sel on tapin_presence;
+create policy tp_sel on tapin_presence for select to authenticated
+  using (profile_id = auth.uid() or audience = 'public' or are_connected(profile_id, auth.uid()) or shares_community(profile_id, auth.uid()));

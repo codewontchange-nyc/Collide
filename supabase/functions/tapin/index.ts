@@ -136,6 +136,7 @@ function meetOf(v: unknown): Meet {
   if (!m || typeof m.lat !== "number" || typeof m.lng !== "number" || typeof m.name !== "string") return null;
   return { id: String(m.id ?? "").slice(0, 80), name: m.name.slice(0, 80), lat: m.lat, lng: m.lng };
 }
+const audOf = (v: unknown) => (v === "public" ? "public" : "circle");
 function rng(seed: number) { let t = (seed >>> 0) || 1; return () => { t += 0x6D2B79F5; let r = Math.imul(t ^ (t >>> 15), 1 | t); r ^= r + Math.imul(r ^ (r >>> 7), 61 | r); return ((r ^ (r >>> 14)) >>> 0) / 4294967296; }; }
 
 Deno.serve(async (req) => {
@@ -184,7 +185,7 @@ Deno.serve(async (req) => {
       if (b.visible) {
         const w = await whereAmI(lat, lng);
         const picks = Array.isArray(b.picks) ? b.picks.filter((x: unknown) => typeof x === "string").slice(0, 4) : [];
-        const { error } = await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${b.city === "atl" ? "atl" : "nyc"}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: w.area, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks, meet: meetOf(b.meet), at: new Date().toISOString() });
+        const { error } = await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${b.city === "atl" ? "atl" : "nyc"}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: w.area, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks, meet: meetOf(b.meet), audience: audOf(b.audience), at: new Date().toISOString() });
         if (error) return json({ error: error.message }, 400);
       } else await me.from("tapin_presence").delete().eq("profile_id", user.id);
       return json({ ok: true });
@@ -283,7 +284,7 @@ Deno.serve(async (req) => {
     // presence: say "I'm here" (coarsely) if they chose to be seen, then look for their people nearby
     const areaLbl = area || (city === "atl" ? "Atlanta" : "New York");
     if (b.visible === true) {
-      await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${city}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: areaLbl, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks: picks.filter((p) => p.kind !== "plan").slice(0, 4).map((p) => p.name), meet: meetOf(b.meet), at: new Date().toISOString() });
+      await me.from("tapin_presence").upsert({ profile_id: user.id, cell: `${city}:${lat.toFixed(2)}:${lng.toFixed(2)}`, area: areaLbl, lat: +lat.toFixed(3), lng: +lng.toFixed(3), picks: picks.filter((p) => p.kind !== "plan").slice(0, 4).map((p) => p.name), meet: meetOf(b.meet), audience: audOf(b.audience), at: new Date().toISOString() });
     } else if (b.visible === false) await me.from("tapin_presence").delete().eq("profile_id", user.id);
     const people = await nearbyPeople(me, user.id, lat, lng);
     const peopleMapP = peopleMap(lat, lng, people, b.visible === true ? meetOf(b.meet) : null);
