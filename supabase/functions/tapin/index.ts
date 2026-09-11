@@ -51,7 +51,7 @@ async function whereAmI(lat: number, lng: number): Promise<{ area: string | null
   } catch { return { area: null, locality: null }; }
 }
 
-type Place = { id: string; name: string; types: string[]; rating: number; n: number; price: number | null; open: boolean | null; lat: number; lng: number; addr: string };
+type Place = { id: string; name: string; types: string[]; rating: number; n: number; price: number | null; open: boolean | null; lat: number; lng: number; addr: string; ph?: string | null };
 const SKIP = new Set(["lodging", "gas_station", "car_repair", "car_dealer", "parking", "atm", "bank", "hospital", "doctor", "dentist", "pharmacy", "real_estate_agency", "insurance_agency", "lawyer", "storage", "moving_company", "funeral_home", "cemetery", "school", "primary_school", "secondary_school", "university", "laundry", "locksmith", "plumber", "electrician", "car_wash", "car_rental", "subway_station", "transit_station", "bus_station", "train_station", "light_rail_station", "convenience_store", "supermarket", "grocery_or_supermarket", "drugstore", "post_office", "local_government_office", "courthouse", "police", "fire_station", "embassy", "city_hall", "hair_care", "beauty_salon", "spa", "gym", "physiotherapist", "veterinary_care", "pet_store", "hardware_store", "home_goods_store", "furniture_store", "electronics_store", "department_store", "shopping_mall", "clothing_store", "shoe_store", "jewelry_store", "florist", "travel_agency", "accounting", "finance", "church", "synagogue", "mosque", "hindu_temple", "place_of_worship"]);
 
 async function nearby(lat: number, lng: number, radius: number, extra: string): Promise<Place[]> {
@@ -60,10 +60,35 @@ async function nearby(lat: number, lng: number, radius: number, extra: string): 
   if (r.status && r.status !== "OK" && r.status !== "ZERO_RESULTS") console.error("nearby", r.status, r.error_message);
   return (r.results ?? [])
     .filter((p: { types?: string[]; business_status?: string; geometry?: unknown }) => p.geometry && (!p.business_status || p.business_status === "OPERATIONAL") && !(p.types ?? []).some((t) => SKIP.has(t)))
-    .map((p: { place_id: string; name: string; types?: string[]; rating?: number; user_ratings_total?: number; price_level?: number; opening_hours?: { open_now?: boolean }; geometry: { location: { lat: number; lng: number } }; vicinity?: string }) => ({
+    .map((p: { place_id: string; name: string; types?: string[]; rating?: number; user_ratings_total?: number; price_level?: number; opening_hours?: { open_now?: boolean }; geometry: { location: { lat: number; lng: number } }; vicinity?: string; photos?: { photo_reference: string }[] }) => ({
       id: p.place_id, name: p.name, types: p.types ?? [], rating: p.rating ?? 0, n: p.user_ratings_total ?? 0,
-      price: p.price_level ?? null, open: p.opening_hours?.open_now ?? null, lat: p.geometry.location.lat, lng: p.geometry.location.lng, addr: p.vicinity ?? "",
+      price: p.price_level ?? null, open: p.opening_hours?.open_now ?? null, lat: p.geometry.location.lat, lng: p.geometry.location.lng, addr: p.vicinity ?? "", ph: p.photos?.[0]?.photo_reference ?? null,
     }));
+}
+
+
+// Google Place photos for the "Do" cards: pulled once per place into event-media
+// (tapin/g/<id>.jpg) and remembered in tapin_cache under ph:<id>. Returns id → storage path.
+async function placePhotos(sb: ReturnType<typeof svc>, places: Place[]): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  const want = places.filter((p, i, a) => a.findIndex((q) => q.id === p.id) === i);
+  if (!want.length) return out;
+  const { data: rows } = await sb.from("tapin_cache").select("key,payload").in("key", want.map((p) => `ph:${p.id}`));
+  for (const r of rows ?? []) { const path = r.payload?.path; if (typeof path === "string" && path) out[String(r.key).slice(3)] = path; }
+  await Promise.all(want.filter((p) => !out[p.id] && p.ph).map(async (p) => {
+    try {
+      const resp = await fetch(`https://maps.googleapis.com/maps/api/place/photo?maxwidth=900&photo_reference=${p.ph}&key=${KEY}`);
+      if (!resp.ok || !(resp.headers.get("content-type") || "").startsWith("image")) return;
+      const ct = resp.headers.get("content-type") || "image/jpeg";
+      const safe = p.id.replace(/[^A-Za-z0-9_-]/g, "").slice(0, 48) || "p";
+      const path = `tapin/g/${safe}${ct.includes("png") ? ".png" : ".jpg"}`;
+      const up = await sb.storage.from("event-media").upload(path, new Uint8Array(await resp.arrayBuffer()), { contentType: ct, upsert: true });
+      if (up.error) { console.error("photo up", p.id, up.error.message); return; }
+      out[p.id] = path;
+      await sb.from("tapin_cache").upsert({ key: `ph:${p.id}`, payload: { path }, at: new Date().toISOString() });
+    } catch (e) { console.error("photo", p.id, (e as Error).message); }
+  }));
+  return out;
 }
 
 type Cat = "eat" | "coffee" | "drink" | "do";
@@ -211,7 +236,7 @@ Deno.serve(async (req) => {
     const throttled = used > 12;
 
     // pool: Google places around this grid cell, cached an hour
-    const cellKey = `p:${city}:${lat.toFixed(3)}:${lng.toFixed(3)}`;
+    const cellKey = `p2:${city}:${lat.toFixed(3)}:${lng.toFixed(3)}`;
     const { data: cached } = await sb.from("tapin_cache").select("payload,at").eq("key", cellKey).maybeSingle();
     let pool: Place[] = [], area: string | null = null, wide = false;
     if (cached && Date.now() - new Date(cached.at).getTime() < 36e5) {
@@ -292,6 +317,7 @@ Deno.serve(async (req) => {
     } else if (b.visible === false) await me.from("tapin_presence").delete().eq("profile_id", user.id);
     const people = await nearbyPeople(me, user.id, lat, lng);
     const peopleMapP = peopleMap(lat, lng, people, b.visible === true ? meetOf(b.meet) : null);
+    const photosP = placePhotos(sb, [...doo, ...dooS]).catch(() => ({} as Record<string, string>));
 
     // editorial
     const now = new Date(Date.now() - 4 * 36e5);
@@ -334,7 +360,8 @@ Reply with JSON only: {"headline": "5-8 words, no period", "body": "2-3 sentence
       body = first ? `A ${daypart} in ${areaName} with ${first.name} a ${(first as { walk_min: number }).walk_min}-minute walk away, and ${Math.max(0, picks.length - 1)} more worth the detour below.` : `A quiet ${daypart} in ${areaName}. Wander a block and try again.`;
     }
 
-    const withNote = <T extends { id: string }>(p: T) => (notes[p.id] ? { ...p, note: notes[p.id] } : p);
+    const photos = await photosP;
+    const withNote = <T extends { id: string; group?: string }>(p: T) => ({ ...p, ...(notes[p.id] ? { note: notes[p.id] } : {}), ...(p.group === "do" && photos[p.id] ? { image: photos[p.id] } : {}) });
     return json({ area: areaName, wide, throttled, headline, body, seed, picks: picks.map(withNote), spares: { eat: spares.eat, sip: spares.sip, do: spares.do.map(withNote) }, people, peopleMap: await peopleMapP, pool: pool.length, daypart, weekday, ...(b.debug ? { _err: (b as { _err?: string })._err ?? null } : {}) });
   } catch (e) {
     console.error("tapin error:", e);
