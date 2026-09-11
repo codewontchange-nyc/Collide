@@ -197,7 +197,11 @@ Deno.serve(async (req) => {
     // places already visited or dismissed on this device — never shown again (Google ids and POI ids)
     const exclude = new Set<string>(Array.isArray(b.exclude) ? b.exclude.filter((x: unknown) => typeof x === "string").slice(0, 400) : []);
     const sb = svc();
-    if (Math.random() < 0.05) await sb.from("tapin_cache").delete().lt("at", new Date(Date.now() - 864e5).toISOString());
+    if (Math.random() < 0.05) {
+      await sb.from("tapin_cache").delete().lt("at", new Date(Date.now() - 864e5).toISOString());
+      await sb.from("tapin_presence").delete().lt("at", new Date(Date.now() - 2 * 36e5).toISOString());
+      await sb.from("waves").delete().lt("created_at", new Date(Date.now() - 864e5).toISOString());
+    }
 
     // throttle: 12 bundles per person per hour
     const hourKey = `u:${user.id}:${new Date().toISOString().slice(0, 13)}`;
