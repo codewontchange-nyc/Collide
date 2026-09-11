@@ -194,7 +194,8 @@ Deno.serve(async (req) => {
     if (b.mode !== "bundle") return json({ error: "mode" }, 400);
     const city = b.city === "atl" ? "atl" : "nyc";
     const seed = Number(b.seed) || 1;
-    const exclude = new Set<string>(Array.isArray(b.exclude) ? b.exclude.filter((x: unknown) => typeof x === "string").slice(0, 60) : []);
+    // places already visited or dismissed on this device — never shown again (Google ids and POI ids)
+    const exclude = new Set<string>(Array.isArray(b.exclude) ? b.exclude.filter((x: unknown) => typeof x === "string").slice(0, 400) : []);
     const sb = svc();
     if (Math.random() < 0.05) await sb.from("tapin_cache").delete().lt("at", new Date(Date.now() - 864e5).toISOString());
 
@@ -234,7 +235,7 @@ Deno.serve(async (req) => {
     const { data: pois } = await me.from("pois").select("id,name,category,address,lat,lng,images,tier,sponsored,story").not("lat", "is", null);
     const nearPois = (pois ?? [])
       .map((p) => ({ ...p, d: km({ lat, lng }, { lat: p.lat, lng: p.lng }) }))
-      .filter((p) => p.d <= maxKm)
+      .filter((p) => p.d <= maxKm && !exclude.has(p.id))
       .sort((a, b) => (Number(!!b.sponsored) - Number(!!a.sponsored)) || a.d - b.d)
       .slice(0, 3);
     const today = new Date(Date.now() - 4 * 36e5).toISOString().slice(0, 10); // ET-ish day boundary
@@ -244,8 +245,7 @@ Deno.serve(async (req) => {
     // picks: seeded, avoiding what the person already saw
     const r = rng(seed * 7919 + pool.length);
     const score = (p: Place) => (p.rating || 3.5) * Math.log10((p.n || 15) + 10) + r() * 1.6;
-    const fresh = pool.filter((p) => !exclude.has(p.id));
-    const src = fresh.length >= 6 ? fresh : pool;
+    const src = pool.filter((p) => !exclude.has(p.id));
     const by = (c: Cat) => src.filter((p) => catOf(p.types) === c).sort((a, b) => score(b) - score(a));
     const eat = by("eat").slice(0, 3);
     const sip = [...by("coffee").slice(0, 1), ...by("drink").slice(0, 1)];
