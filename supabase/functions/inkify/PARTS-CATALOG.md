@@ -26,7 +26,7 @@ label what you see, add a row + enum entry in index.ts.
 | chin-bob-wavy | 11 | side part |
 | bob-with-headband | 08 | |
 | shoulder-length-straight | 23 | side part |
-| shoulder-length-waves | 28 | side-swept (Kathleen) |
+| shoulder-length-waves | 28 | side-swept |
 | shoulder-shag-layered | 37 | |
 | long-straight-center-part | 41 | |
 | long-voluminous-curls | 58 | |

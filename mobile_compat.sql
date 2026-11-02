@@ -526,9 +526,9 @@ language sql security definer set search_path = public as $$
 $$;
 grant execute on function directory_listings() to authenticated;
 
--- demo config: Kathleen prepaid $45, windows Tue/Thu evenings + Sat morning;
+-- demo config: Nina prepaid $45, windows Tue/Thu evenings + Sat morning;
 -- Andre deposit $10 of $30, early runs; Zoe stays free-to-book inquiry style
-update makers set booking_mode='prepaid', price_cents=4500, payment_handle='@kathleen-reid'
+update makers set booking_mode='prepaid', price_cents=4500, payment_handle='@nina-vale'
  where profile_id='615cd0ad-d2f4-410d-83da-3d282f6377cb';
 update makers set booking_mode='deposit', price_cents=3000, deposit_cents=1000, payment_handle='@andre-runs'
  where profile_id='f66da730-3a82-494f-99e7-eb8c32f2daf0';
@@ -581,14 +581,14 @@ language sql security definer set search_path = public as $$
 $$;
 grant execute on function directory_listings() to authenticated;
 
--- ---- Kathleen books as DJ Leah Rose ----
+-- ---- Nina books as DJ Nina Vale ----
 update makers set
-  headline='DJ Leah Rose — all-vinyl sets',
+  headline='DJ Nina Vale — all-vinyl sets',
   offers=array['Club & rooftop sets','Wedding selections','Listening-bar takeovers'],
-  bio='Kathleen by day, Leah Rose after dark. Strictly vinyl, strictly feeling.',
-  rate='$45/hr', booking_mode='prepaid', price_cents=4500, payment_handle='@kathleen-reid',
-  links='[{"label":"Mixcloud","url":"https://mixcloud.com/djleahrose"},{"label":"Instagram","url":"https://instagram.com/djleahrose"}]'::jsonb,
-  gallery=array['mk/demo/leah-1.jpg','mk/demo/leah-2.jpg','mk/demo/leah-3.jpg']
+  bio='Nina by day, Nina Vale after dark. Strictly vinyl, strictly feeling.',
+  rate='$45/hr', booking_mode='prepaid', price_cents=4500, payment_handle='@nina-vale',
+  links='[{"label":"Mixcloud","url":"https://mixcloud.com/djninavale"},{"label":"Instagram","url":"https://instagram.com/djninavale"}]'::jsonb,
+  gallery=array['mk/demo/nina-1.jpg','mk/demo/nina-2.jpg','mk/demo/nina-3.jpg']
  where profile_id='615cd0ad-d2f4-410d-83da-3d282f6377cb';
 
 -- ---- Code books for hacking ----

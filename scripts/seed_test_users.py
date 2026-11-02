@@ -28,16 +28,16 @@ def svc(method, path, body=None, ok_dup=True):
         raise RuntimeError(f"{path} -> {e.code} {msg}")
 
 CAST = [
-    ("jules.rivera@example.com",  "Jules Rivera",  ["Rose Sounds", "Hot Spots"]),
-    ("andre.okafor@example.com",  "Andre Okafor",  ["Sweat Now", "Rose Sounds"]),
+    ("jules.rivera@example.com",  "Jules Rivera",  ["Vale Sounds", "Hot Spots"]),
+    ("andre.okafor@example.com",  "Andre Okafor",  ["Sweat Now", "Vale Sounds"]),
     ("priya.patel@example.com",   "Priya Patel",   ["Hot Spots", "CircleBlk"]),
     ("tommy.nguyen@example.com",  "Tommy Nguyen",  ["Sweat Now"]),
-    ("zoe.kim@example.com",       "Zoe Kim",       ["Rose Sounds", "CircleBlk"]),
+    ("zoe.kim@example.com",       "Zoe Kim",       ["Vale Sounds", "CircleBlk"]),
     ("marcus.bell@example.com",   "Marcus Bell",   ["Hot Spots", "Sweat Now"]),
-    ("sofia.reyes@example.com",   "Sofia Reyes",   ["Rose Sounds"]),
+    ("sofia.reyes@example.com",   "Sofia Reyes",   ["Vale Sounds"]),
     ("dev.sharma@example.com",    "Dev Sharma",    ["CircleBlk", "Hot Spots"]),
-    ("lena.brooks@example.com",   "Lena Brooks",   ["Sweat Now", "Rose Sounds"]),
-    ("kofi.mensah@example.com",   "Kofi Mensah",   ["Hot Spots", "Rose Sounds"]),
+    ("lena.brooks@example.com",   "Lena Brooks",   ["Sweat Now", "Vale Sounds"]),
+    ("kofi.mensah@example.com",   "Kofi Mensah",   ["Hot Spots", "Vale Sounds"]),
 ]
 
 def get_or_create_user(email, name):
@@ -96,7 +96,7 @@ def main():
 
     # community chat
     CHAT = {
-        "Rose Sounds": [("Jules Rivera", "who's opening for the kickoff set?? the anticipation 🎧"),
+        "Vale Sounds": [("Jules Rivera", "who's opening for the kickoff set?? the anticipation 🎧"),
                         ("Sofia Reyes", "bringing two friends saturday, they don't know what's coming"),
                         ("Zoe Kim", "someone request more disco this time 🪩")],
         "Hot Spots":  [("Priya Patel", "found a dumpling spot that changed my life. dropping a dot later 🥟"),
@@ -134,16 +134,16 @@ def main():
     # event chat: top up every event to at least ~4-5 messages (idempotent —
     # skips events that already have enough; titles matched stripped)
     EVENT_CHAT = {
-        "Rose Sounds Kickoff Set": [("Jules Rivera", "ok but the LINEUP. someone leak the setlist"),
+        "Vale Sounds Kickoff Set": [("Jules Rivera", "ok but the LINEUP. someone leak the setlist"),
                                     ("Zoe Kim", "wearing my dancing shoes and my backup dancing shoes"),
                                     ("Sofia Reyes", "my friends keep asking what to expect and honestly? everything"),
                                     ("Andre Okafor", "post-run recovery = dancing, that's science"),
                                     ("Lena Brooks", "if the sunrise run crew shows up sleepy tomorrow, this is why")],
-        "DJ Leah Rose's Pool Party": [("Kofi Mensah", "chicken fight bracket. i'm just saying"),
+        "DJ Nina Vale's Pool Party": [("Kofi Mensah", "chicken fight bracket. i'm just saying"),
                                       ("Sofia Reyes", "SPF squad — bringing extra for everyone"),
                                       ("Marcus Bell", "calling the deep end for the whole first hour"),
                                       ("Priya Patel", "poolside snacks handled. don't ask, just trust 🥟"),
-                                      ("Jules Rivera", "leah's transitions underwater still hit different")],
+                                      ("Jules Rivera", "nina's transitions underwater still hit different")],
         "Comedy n Chill": [("Zoe Kim", "who's brave enough for the front row 👀"),
                            ("Dev Sharma", "if they do crowd work I'm hiding behind priya"),
                            ("Tommy Nguyen", "laughing counts as core work right"),
