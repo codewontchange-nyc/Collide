@@ -1,0 +1,48 @@
+/* Colony tokens. White space, thin letters, one honey accent, paper and ink. */
+:root {
+  --paper: #fcfaf6;
+  --paper-2: #f6f1e9;
+  --surface: #ffffff;
+  --ink: #1d1a17;
+  --ink-2: #5c534d;
+  --muted: #9a8f86;
+  --line: #ece6dd;
+  --line-2: #e0d8cc;
+  --honey: #d99a2b;
+  --honey-ink: #8c5f10;
+  --honey-soft: #f6e7c4;
+  --moss: #4f7a5a;
+  --danger: #c7452f;
+  --accent: var(--honey);
+  --accent-ink: var(--honey-ink);
+  --ok: var(--moss);
+
+  --display: "Fraunces", Georgia, "Times New Roman", serif;
+  --body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --r-sm: 10px;
+  --r: 16px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(29, 26, 23, 0.05), 0 6px 20px rgba(29, 26, 23, 0.06);
+  --shadow-2: 0 10px 34px rgba(29, 26, 23, 0.14);
+
+  --maxw: 560px;
+  --nav-h: 64px;
+  --space: 24px;
+  --gap: 40px;
+  --off-1: 12px;
+  --off-2: 28px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --z-hdr: 30;
+  --z-nav: 40;
+  --z-fab: 44;
+  --z-sheet: 71;
+  --z-toast: 200;
+
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 320ms;
+}
