@@ -1,0 +1,18 @@
+/* The nine type styles as classes. Each sets all five properties and a generic fallback.
+   Both label styles add uppercase: the kit's Figma sets every label in caps and the tokens do not carry the case. */
+.headline-large { font-family: var(--type-headline-large-family), sans-serif; font-weight: var(--type-headline-large-weight); font-size: var(--type-headline-large-size); line-height: var(--type-headline-large-line-height); letter-spacing: var(--type-headline-large-tracking); }
+.headline-medium { font-family: var(--type-headline-medium-family), sans-serif; font-weight: var(--type-headline-medium-weight); font-size: var(--type-headline-medium-size); line-height: var(--type-headline-medium-line-height); letter-spacing: var(--type-headline-medium-tracking); }
+.headline-small { font-family: var(--type-headline-small-family), sans-serif; font-weight: var(--type-headline-small-weight); font-size: var(--type-headline-small-size); line-height: var(--type-headline-small-line-height); letter-spacing: var(--type-headline-small-tracking); }
+.paragraph-large { font-family: var(--type-paragraph-large-family), serif; font-weight: var(--type-paragraph-large-weight); font-size: var(--type-paragraph-large-size); line-height: var(--type-paragraph-large-line-height); letter-spacing: var(--type-paragraph-large-tracking); }
+.paragraph-medium { font-family: var(--type-paragraph-medium-family), serif; font-weight: var(--type-paragraph-medium-weight); font-size: var(--type-paragraph-medium-size); line-height: var(--type-paragraph-medium-line-height); letter-spacing: var(--type-paragraph-medium-tracking); }
+.paragraph-small { font-family: var(--type-paragraph-small-family), sans-serif; font-weight: var(--type-paragraph-small-weight); font-size: var(--type-paragraph-small-size); line-height: var(--type-paragraph-small-line-height); letter-spacing: var(--type-paragraph-small-tracking); }
+.paragraph-x-small { font-family: var(--type-paragraph-x-small-family), sans-serif; font-weight: var(--type-paragraph-x-small-weight); font-size: var(--type-paragraph-x-small-size); line-height: var(--type-paragraph-x-small-line-height); letter-spacing: var(--type-paragraph-x-small-tracking); }
+.label-large { font-family: var(--type-label-large-family), monospace; font-weight: var(--type-label-large-weight); font-size: var(--type-label-large-size); line-height: var(--type-label-large-line-height); letter-spacing: var(--type-label-large-tracking); text-transform: uppercase; }
+.label-small { font-family: var(--type-label-small-family), monospace; font-weight: var(--type-label-small-weight); font-size: var(--type-label-small-size); line-height: var(--type-label-small-line-height); letter-spacing: var(--type-label-small-tracking); text-transform: uppercase; }
+
+/* Grey steps for text, by role. Never neutral-04 for text under 16px. */
+.ink { color: var(--color-neutral-10); }
+.secondary { color: var(--color-neutral-08); }
+.meta { color: var(--color-neutral-06); }
+.placeholder { color: var(--color-neutral-04); }
+.tnum { font-variant-numeric: tabular-nums; }

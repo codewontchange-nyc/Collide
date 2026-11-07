@@ -1,0 +1,152 @@
+/* Colony tokens, on the Infinite Garden system. Use a token for every color, radius,
+   border width, padding, type, duration and easing. Never write a raw value a token covers.
+   Names and values follow the kit; the Colony block at the end adds what a phone app needs. */
+:root {
+  /* color (light) */
+  --color-surface: #ffffff;
+  --color-neutral-10: #000000;
+  --color-neutral-09: #232323;
+  --color-neutral-08: #5a5a5a;
+  --color-neutral-06: #696969;
+  --color-neutral-04: #8b8b8b;
+  --color-neutral-02: #d9d9d9;
+  --color-neutral-01: #f2f2f2;
+  --color-accent-red: #ff5500;   /* attention, used sparingly: dots, the error hairline, the danger mix */
+  --color-accent-green: #6ba300; /* state: small dots, never fills */
+
+  /* font: Geist and Geist Mono stand in for the kit's licensed sans and mono; Cardo is OFL */
+  --font-sans: "Geist";
+  --font-mono: "Geist Mono";
+  --font-serif: "Cardo";
+
+  /* type: nine styles, five tokens each. Labels are uppercased at the use site. */
+  --type-headline-large-family: var(--font-sans);
+  --type-headline-large-weight: 600;
+  --type-headline-large-size: 56px;
+  --type-headline-large-line-height: 50px;
+  --type-headline-large-tracking: -0.01em;
+
+  --type-headline-medium-family: var(--font-sans);
+  --type-headline-medium-weight: 600;
+  --type-headline-medium-size: 32px;
+  --type-headline-medium-line-height: 1;
+  --type-headline-medium-tracking: -0.01em;
+
+  --type-headline-small-family: var(--font-sans);
+  --type-headline-small-weight: 500;
+  --type-headline-small-size: 16px;
+  --type-headline-small-line-height: 1.2;
+  --type-headline-small-tracking: 0;
+
+  --type-paragraph-large-family: var(--font-serif);
+  --type-paragraph-large-weight: 400;
+  --type-paragraph-large-size: 22px;
+  --type-paragraph-large-line-height: 1.5;
+  --type-paragraph-large-tracking: 0;
+
+  --type-paragraph-medium-family: var(--font-serif);
+  --type-paragraph-medium-weight: 400;
+  --type-paragraph-medium-size: 18px;
+  --type-paragraph-medium-line-height: 1.4;
+  --type-paragraph-medium-tracking: 0.01em;
+
+  --type-paragraph-small-family: var(--font-sans);
+  --type-paragraph-small-weight: 400;
+  --type-paragraph-small-size: 16px;
+  --type-paragraph-small-line-height: 1.2;
+  --type-paragraph-small-tracking: 0;
+
+  --type-paragraph-x-small-family: var(--font-sans);
+  --type-paragraph-x-small-weight: 400;
+  --type-paragraph-x-small-size: 14px;
+  --type-paragraph-x-small-line-height: 1.2;
+  --type-paragraph-x-small-tracking: 0;
+
+  --type-label-large-family: var(--font-mono);
+  --type-label-large-weight: 400;
+  --type-label-large-size: 14px;
+  --type-label-large-line-height: 1.2;
+  --type-label-large-tracking: 0.05em;
+
+  --type-label-small-family: var(--font-mono);
+  --type-label-small-weight: 400;
+  --type-label-small-size: 12px;
+  --type-label-small-line-height: 1.2;
+  --type-label-small-tracking: 0.06em;
+
+  /* padding */
+  --padding-small: 8px;
+  --padding-med: 16px;
+  --padding-large: 32px;
+  --padding-x-large: 64px;
+
+  /* radius and border */
+  --radius-small: 1px;
+  --radius-med: 4px;
+  --radius-large: 12px;
+  --border-width: 1px;
+
+  /* motion: durations */
+  --motion-fast: 120ms;
+  --motion-normal: 200ms;
+  --motion-entrance: 1000ms;
+  --motion-exit: 400ms;
+  --motion-duration-instant: 100ms;
+  --motion-duration-exit: 240ms;
+  --motion-duration-slow: 800ms;
+  --motion-duration-hero: 1700ms;
+
+  /* motion: distances and staggers */
+  --motion-distance-sm: 5px;
+  --motion-distance-md: 8px;
+  --motion-distance-lg: 12px;
+  --motion-stagger-xs: 55ms;
+  --motion-stagger-sm: 80ms;
+  --motion-stagger-md: 120ms;
+  --motion-stagger-lg: 170ms;
+
+  /* easing */
+  --ease-neutral: cubic-bezier(0.5, 0, 0.5, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-feature-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-expressive: cubic-bezier(0.2, 0, 0, 1);
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-line-draw: cubic-bezier(0.3, 0.3, 0.65, 1);
+  --ease-node: cubic-bezier(0.25, 0.8, 0.3, 1);
+  --ease-node-exit: cubic-bezier(0.7, 0, 0.75, 0.2);
+  --ease-signal: cubic-bezier(0.45, 0, 0.55, 1);
+
+  /* Colony additions, named in the same style. None of these exist in the kit. */
+  --padding-x-small: 4px;            /* the kit writes 4px raw between segmented items; Colony names it */
+  --size-touch: 44px;                /* minimum hit area; the kit has no touch rule (its Button is 52px, Tabs 35px) */
+  --size-control: 52px;              /* the Button's natural height: 16 + 20 + 16 */
+  --size-bar: 56px;                  /* the kit's bar height: padding-large + padding-med + padding-small */
+  --page-max: 560px;                 /* Colony's column. The kit's page.max is a 1312px to 1536px desktop measure */
+  --page-gutter: 16px;               /* the kit's page.gutter: "16px below 760px wide" */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-height: calc(var(--size-bar) + var(--safe-bottom));
+  --z-bar: 40;                       /* the kit's bar is z-index 40 */
+  --z-nav: 40;
+  --z-sheet: 50;
+  --z-toast: 60;
+
+  color-scheme: light;
+}
+
+/* Dark mode: the ladder mirrors. Set data-mode on <html> (or any subtree). Never write a dark color by hand. */
+[data-mode="dark"] {
+  --color-surface: #000000;
+  --color-neutral-10: #ffffff;
+  --color-neutral-09: #f2f2f2;
+  --color-neutral-08: #d9d9d9;
+  --color-neutral-06: #8b8b8b;
+  --color-neutral-04: #696969;
+  --color-neutral-02: #5a5a5a;
+  --color-neutral-01: #232323;
+  --color-accent-red: #ff5500;
+  --color-accent-green: #c1fd50;
+  color-scheme: dark;
+}
