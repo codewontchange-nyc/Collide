@@ -1,0 +1,13 @@
+/* Specimen: a stage with the hairline around it and a mono caption under it. */
+.ig-specimen { display: grid; gap: var(--padding-small); min-width: 0; }
+.ig-specimen__stage { display: flex; flex-wrap: wrap; align-items: center; gap: var(--padding-small); min-width: 0; min-height: var(--size-control);
+  padding: var(--padding-med); border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small); background: var(--color-surface); color: var(--color-neutral-10); }
+.ig-specimen__stage > * { min-width: 0; max-width: 100%; }   /* a wide render (tabs, a scrolling row) stays inside its stage */
+.ig-specimen__stage > .ig-scroll-x, .ig-specimen__stage > .ig-chiprow--scroll, .ig-specimen__stage > .ig-tabs--scroll { width: calc(100% + 2 * var(--page-gutter)); max-width: none; }   /* the gutter bleed row bleeds into the stage padding */
+.ig-specimen--ground .ig-specimen__stage { background: var(--color-neutral-01); }
+.ig-specimen--inverted .ig-specimen__stage { background: var(--color-neutral-10); border-color: var(--color-neutral-10); color: var(--color-surface); }
+.ig-specimen__label { color: var(--color-neutral-06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-specimen__stage { transition: none; animation: none; }
+}

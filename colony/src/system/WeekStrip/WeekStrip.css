@@ -1,0 +1,31 @@
+/* WeekStrip: seven cells, a mono day name over the date, a 3px mark for a busy day. Today is the inverted cell
+   (a cell, not a block: it does not count as the screen's one inverted block). A calendar does not move. */
+.ig-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--padding-x-small); min-width: 0; }
+.ig-week__item { display: grid; min-width: 0; }
+.ig-week__day { display: grid; justify-items: center; align-content: start; gap: var(--padding-x-small); width: 100%; min-width: 0; min-height: var(--size-touch);
+  padding: var(--padding-small) 0; border-bottom: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small); color: var(--color-neutral-10);
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.ig-week__name { color: var(--color-neutral-06); }
+.ig-week__num { color: inherit; }
+.ig-week__day[data-relation='future'], .ig-week__day[data-relation='future'] .ig-week__name { color: var(--color-neutral-06); }
+.ig-week__day[data-relation='today'], .ig-week__day[data-relation='today'] .ig-week__name { color: var(--color-neutral-01); }
+.ig-week__day[data-relation='today'] { background: var(--color-neutral-10); border-bottom-color: var(--color-neutral-06); }
+.ig-week__day[data-selected]:not([data-relation='today']) { background: var(--color-neutral-02); }
+/* The mark: always drawn so the cells align; transparent on a quiet day. */
+.ig-week__mark { width: 3px; height: 3px; border-radius: 50%; background: transparent; }
+.ig-week__mark[data-busy='true'] { background: currentColor; }
+
+/* With onSelect each day is a button (Recipe A) that scales 0.99 like a cell. */
+button.ig-week__day { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+button.ig-week__day:active { scale: 0.99; }
+button.ig-week__day:not([data-relation='today']):active { background: var(--color-neutral-01); }
+@media (hover: hover) {
+  button.ig-week__day:not([data-relation='today']):not([data-selected]):hover { background: var(--color-neutral-01); }
+}
+button.ig-week__day:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+button.ig-week__day[data-relation='today']:focus-visible { outline: calc(var(--border-width) * 2) solid currentColor; outline-offset: calc(var(--border-width) * -2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-week__day, button.ig-week__day { transition: none; animation: none; }
+}

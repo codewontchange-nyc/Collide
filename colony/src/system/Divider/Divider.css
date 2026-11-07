@@ -1,0 +1,7 @@
+/* Divider: one hairline, no margin. */
+.ig-divider { width: 100%; height: 0; margin: 0; border: 0; border-top: var(--border-width) solid var(--color-neutral-02); }
+.ig-divider--ink { border-top-color: var(--color-neutral-10); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-divider { transition: none; animation: none; }
+}

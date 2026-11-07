@@ -1,0 +1,36 @@
+/* Stepper, column: a hairline rail down the left with a 9px circle mark per step (the rail mark; the one allowed circle besides dots),
+   the index in mono digits (not uppercased), the label in headline-small and a hint under it. Done steps are links. */
+.ig-stepper { --ig-stepper-mark: 9px; color: var(--color-neutral-10); }
+.ig-stepper__list { display: grid; }
+.ig-stepper__step { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: var(--padding-med); align-items: baseline;
+  margin-left: var(--padding-x-small); padding: 0 0 var(--padding-large) var(--padding-med); border-left: var(--border-width) solid var(--color-neutral-02);
+  color: var(--color-neutral-06); }
+.ig-stepper__step:last-child { padding-bottom: 0; }
+.ig-stepper__step[data-status='done'] { color: var(--color-neutral-08); }
+.ig-stepper__step[data-status='current'] { color: var(--color-neutral-10); }
+/* The mark straddles the rail: its center sits on the hairline, 4px down to meet the label's cap height. */
+.ig-stepper__mark { position: absolute; top: var(--padding-x-small); left: calc((var(--ig-stepper-mark) + var(--border-width)) / -2);
+  width: var(--ig-stepper-mark); height: var(--ig-stepper-mark); border: var(--border-width) solid var(--color-neutral-02); border-radius: 50%; background: var(--color-surface);
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.ig-stepper__step[data-status='done'] .ig-stepper__mark { border-color: var(--color-neutral-10); }
+.ig-stepper__step[data-status='current'] .ig-stepper__mark { border-color: var(--color-neutral-10); background: var(--color-neutral-10); }
+.ig-stepper__index { grid-column: 1; grid-row: 1; text-transform: none; color: var(--color-neutral-06); }
+.ig-stepper__label { grid-column: 2; grid-row: 1; min-width: 0; overflow-wrap: anywhere; }
+.ig-stepper__hint { grid-column: 2; margin-top: var(--padding-x-small); color: var(--color-neutral-08); }
+.ig-stepper__step[data-status='todo'] .ig-stepper__hint { color: var(--color-neutral-06); }
+/* A linked step: the link reaches the whole step (Recipe B, the step is at least 44px) and underlines on hover. */
+.ig-stepper__step[data-href] { min-height: var(--size-touch); }
+.ig-stepper__link { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: color var(--motion-fast) var(--ease-standard); }
+.ig-stepper__link::before { content: ''; position: absolute; inset: 0; }
+.ig-stepper__link:focus-visible { outline: none; }
+.ig-stepper__link:focus-visible::before { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; border-radius: var(--radius-small); }
+.ig-stepper__link:active { color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
+
+@media (hover: hover) {
+  .ig-stepper__link:hover { color: var(--color-neutral-10); text-decoration: underline; text-underline-offset: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-stepper__mark, .ig-stepper__link { transition: none; animation: none; }
+}

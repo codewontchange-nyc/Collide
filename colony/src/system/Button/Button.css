@@ -1,0 +1,39 @@
+/* Button: the kit's one pill. 16 + 20 + 16 = 52px, label in headline-small, the dot arrow trailing with a 32px gap.
+   No press scale: a Button changes background only, over the instant duration on :active. */
+.ig-button { position: relative; display: inline-flex; align-items: center; gap: var(--padding-large); min-height: var(--size-control); max-width: 100%;
+  padding: var(--padding-med); border: 0; border-radius: var(--radius-large); background: var(--ig-button-bg); color: var(--ig-button-fg);
+  text-decoration: none; white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+
+/* Variants: the custom properties each one sets. */
+.ig-button--dark { --ig-button-bg: var(--color-neutral-10); --ig-button-fg: var(--color-surface); --ig-button-bg-hover: var(--color-neutral-09); --ig-button-bg-disabled: var(--color-neutral-08); }
+.ig-button--grey { --ig-button-bg: var(--color-neutral-02); --ig-button-fg: var(--color-neutral-10); --ig-button-bg-hover: var(--color-neutral-04); }
+.ig-button--light { --ig-button-bg: var(--color-surface); --ig-button-fg: var(--color-neutral-10); --ig-button-bg-hover: var(--color-neutral-01); }
+.ig-button--outlined { --ig-button-bg: var(--color-surface); --ig-button-fg: var(--color-neutral-10); --ig-button-bg-hover: var(--color-neutral-01); --ig-button-ring: var(--color-neutral-10);
+  box-shadow: inset 0 0 0 var(--border-width) var(--ig-button-ring); }   /* an inset ring keeps the 52px height; a border, not a shadow */
+.ig-button--glassy { --ig-button-bg: color-mix(in srgb, var(--color-neutral-02) 25%, transparent); --ig-button-fg: var(--color-surface);
+  --ig-button-bg-hover: color-mix(in srgb, var(--color-neutral-04) 25%, transparent); --ig-button-fg-disabled: var(--color-neutral-02);
+  backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }   /* the one blur in the system: the kit's dark surface control */
+.ig-button--danger { --ig-button-bg: color-mix(in srgb, var(--color-accent-red) 72%, var(--color-neutral-10)); --ig-button-fg: var(--color-surface);
+  --ig-button-bg-hover: color-mix(in srgb, var(--color-accent-red) 60%, var(--color-neutral-10)); }
+
+/* Parts */
+.ig-button__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ig-button__icon { display: grid; place-items: center; width: 20px; height: 20px; flex-shrink: 0; }
+.ig-button--leading { gap: var(--padding-small); }
+.ig-button--block { width: 100%; justify-content: center; }
+.ig-button--icon-only { width: var(--size-control); height: var(--size-control); padding: 0; justify-content: center; gap: 0; }
+.ig-button--fab { position: fixed; z-index: calc(var(--z-nav) + 1); bottom: calc(var(--nav-height) + var(--padding-med));
+  right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2 + var(--page-gutter))); }
+
+/* States */
+.ig-button:not(:disabled):not([aria-disabled='true']):active { background: var(--ig-button-bg-hover); transition-duration: var(--motion-duration-instant); }
+.ig-button:disabled, .ig-button[aria-disabled='true'] { --ig-button-ring: var(--color-neutral-02);
+  background: var(--ig-button-bg-disabled, var(--ig-button-bg)); color: var(--ig-button-fg-disabled, var(--color-neutral-04)); cursor: not-allowed; }
+@media (hover: hover) {
+  .ig-button:not(:disabled):not([aria-disabled='true']):hover { background: var(--ig-button-bg-hover); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-button { transition: none; animation: none; }
+}

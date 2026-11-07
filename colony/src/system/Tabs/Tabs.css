@@ -1,0 +1,29 @@
+/* Tabs: views, not filters. A padded surface row; the selected tab fills neutral-02. Each tab is about 43px, the padding makes the row 59 (Recipe B exceeded). */
+.ig-tabs { display: flex; min-width: 0; gap: var(--padding-x-small); padding: var(--padding-small); background: var(--color-surface); border-radius: var(--radius-small); }
+.ig-tabs__tab { position: relative; flex: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 12px var(--padding-med); /* touch row */
+  border: 0; border-radius: var(--radius-small); background: none; color: var(--color-neutral-08); white-space: nowrap; text-align: center;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-tabs--fill .ig-tabs__tab { flex: 1; }
+.ig-tabs__tab[aria-selected='true'] { background: var(--color-neutral-02); color: var(--color-neutral-10); }
+.ig-tabs__count { margin-left: var(--padding-x-small); color: var(--color-neutral-06); vertical-align: baseline; }
+.ig-tabs__tab[aria-selected='true'] .ig-tabs__count { color: var(--color-neutral-08); }
+
+/* The scrolling form: nowrap in the gutter bleed. */
+.ig-tabs--scroll { flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(var(--page-gutter) * -1); padding: var(--padding-small) var(--page-gutter); scrollbar-width: none; }
+.ig-tabs--scroll::-webkit-scrollbar { display: none; }
+
+/* States. The ring is inset because the tab sits inside a bar. */
+.ig-tabs__tab:active { scale: 0.99; }
+.ig-tabs__tab:focus-visible { outline: calc(var(--border-width) * 2) solid var(--color-neutral-10); outline-offset: calc(var(--border-width) * -2); }
+/* The kit's 3px hover dot: pointer only, under the label, fading over fast standard. */
+.ig-tabs__tab::after { content: ''; position: absolute; left: 50%; bottom: var(--padding-x-small); width: 3px; height: 3px; translate: -50% 0; border-radius: 50%;
+  background: var(--color-neutral-10); opacity: 0; transition: opacity var(--motion-fast) var(--ease-standard); }
+@media (hover: hover) {
+  .ig-tabs__tab:hover { color: var(--color-neutral-10); }
+  .ig-tabs__tab:hover:not([aria-selected='true'])::after { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-tabs__tab, .ig-tabs__tab::after { transition: none; animation: none; }
+}

@@ -1,0 +1,49 @@
+/* TokensSection: the tokens specimens. Swatches in five columns, the nine type rows, spacing squares, radii, the eleven easing tiles.
+   Values come from the computed style, so nothing here names a color. */
+.ig-tokens { display: grid; gap: var(--padding-large); min-width: 0; color: var(--color-neutral-10); }
+.ig-tokens__block { display: grid; gap: var(--padding-med); min-width: 0; }
+.ig-tokens__head { color: var(--color-neutral-06); }
+.ig-tokens__note { color: var(--color-neutral-08); max-width: 60ch; }
+.ig-tokens__name { color: var(--color-neutral-10); overflow-wrap: anywhere; }
+.ig-tokens__value { color: var(--color-neutral-06); overflow-wrap: anywhere; }
+
+/* Color: ten 44px squares with the hairline, five to a row */
+.ig-tokens__colors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--padding-med) var(--padding-small); }
+.ig-tokens__swatch { display: grid; gap: var(--padding-x-small); min-width: 0; align-content: start; }
+.ig-tokens__chip { display: block; width: var(--size-touch); height: var(--size-touch); border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small);
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+
+/* Type: each row is the sample set in itself, with the quintet beside it from 480px and under it on a phone */
+.ig-tokens__type { display: grid; border-top: var(--border-width) solid var(--color-neutral-10); }
+.ig-tokens__type-row { display: grid; gap: var(--padding-x-small); padding: var(--padding-med) 0; border-bottom: var(--border-width) solid var(--color-neutral-02); min-width: 0; }
+.ig-tokens__sample { min-width: 0; overflow-wrap: anywhere; color: var(--color-neutral-10); }
+.ig-tokens__quintet { min-width: 0; }
+@media (min-width: 480px) {
+  .ig-tokens__type-row { grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); column-gap: var(--padding-med); align-items: baseline; }
+}
+
+/* Spacing and radius: a square per token, bottom aligned, the name and the value under */
+.ig-tokens__spacing, .ig-tokens__radii { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--padding-med); }
+.ig-tokens__space { display: grid; gap: var(--padding-x-small); justify-items: start; align-content: end; min-width: 0; }
+.ig-tokens__bar { display: block; background: var(--color-neutral-02); border-radius: var(--radius-small); }
+.ig-tokens__radius-box { display: block; width: var(--size-touch); height: var(--size-touch); border: var(--border-width) solid var(--color-neutral-02); background: var(--color-neutral-01); }
+
+/* Easing: eleven tiles, each a 44px button with the curve, a 4px track and the 5px dot (the sm motion distance) */
+.ig-tokens__eases { display: grid; grid-template-columns: repeat(auto-fill, minmax(calc(var(--size-touch) * 2), 1fr)); gap: var(--padding-med); }
+.ig-ease { display: grid; gap: var(--padding-small); justify-items: start; min-width: 0; }
+.ig-ease__tile { display: grid; place-items: center; width: var(--size-touch); height: var(--size-touch); padding: 0; border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small);
+  background: var(--color-surface); color: var(--color-neutral-10); -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-ease__tile:active { scale: 0.99; }
+.ig-ease__guide { fill: none; stroke: var(--color-neutral-02); }
+.ig-ease__curve { fill: none; stroke: currentColor; }
+.ig-ease__track { position: relative; display: block; width: 100%; height: var(--padding-x-small); background: var(--color-neutral-02); border-radius: var(--radius-small); }
+.ig-ease__dot { position: absolute; top: 50%; left: 0; width: var(--motion-distance-sm); height: var(--motion-distance-sm); translate: 0 -50%; border-radius: 50%; background: var(--color-neutral-10); }
+.ig-ease__name { color: var(--color-neutral-10); overflow-wrap: anywhere; }
+@media (hover: hover) {
+  .ig-ease__tile:hover { border-color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-tokens__chip, .ig-ease__tile, .ig-ease__dot { transition: none; animation: none; }
+}

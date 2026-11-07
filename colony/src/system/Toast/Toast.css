@@ -1,0 +1,9 @@
+/* ToastHost: the fixed stack above the tab bar, lifted by --fab-clearance while a FAB is mounted. The toast itself is Notice placement="toast".
+   On a bare screen --nav-height is the safe area alone, so the host sits at the bottom edge. */
+.ig-toast-host { position: fixed; left: 50%; translate: -50% 0; bottom: calc(var(--nav-height) + var(--padding-med) + var(--fab-clearance, 0px));
+  z-index: var(--z-toast); display: grid; gap: var(--padding-small); width: min(100% - 2 * var(--page-gutter), 360px); pointer-events: none; }
+.ig-toast-host__item { min-width: 0; pointer-events: none; }   /* the toast inside re enables pointer events */
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-toast-host__item { transition: none; animation: none; }
+}

@@ -1,0 +1,17 @@
+/* Loading: the kit's 4px track with a 30% ink segment sweeping left to right over 1.2s, or a mono sentence with the default dot breathing before it.
+   once: the segment is the full width and slides in from the left a single time, ending full. One keyframe serves both; the travel is a custom property. */
+.ig-loading--bar { --ig-loading-travel: calc(100% / 0.3); --ig-loading-duration: calc(var(--motion-entrance) * 1.2);
+  display: block; width: 100%; height: var(--padding-x-small); overflow: hidden; border-radius: var(--radius-small); background: var(--color-neutral-02); }
+.ig-loading__sweep { display: block; width: 30%; height: 100%; border-radius: var(--radius-small); background: var(--color-neutral-10); translate: -100% 0;
+  animation: ig-loading-sweep var(--ig-loading-duration) var(--ease-standard) infinite; }
+.ig-loading--once { --ig-loading-travel: 0%; }
+.ig-loading--once .ig-loading__sweep { width: 100%; animation-iteration-count: 1; animation-fill-mode: forwards; }
+@keyframes ig-loading-sweep { from { translate: -100% 0; } to { translate: var(--ig-loading-travel) 0; } }
+
+.ig-loading--sentence { display: flex; align-items: center; justify-content: center; gap: var(--padding-x-small); color: var(--color-neutral-08); text-align: center; }
+.ig-loading__dot { margin: -4px; }   /* pulled tight beside its word, as in rows */
+.ig-loading__word { min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-loading__sweep { transition: none; animation: none; translate: 0 0; }   /* a static segment; once ends full */
+}

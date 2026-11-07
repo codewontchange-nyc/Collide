@@ -1,0 +1,39 @@
+/* Card: the operator pages' card. Three grounds and no more; no shadow, no even child indent. */
+.ig-card { display: grid; align-content: start; gap: var(--padding-med); min-width: 0; padding: var(--padding-med);
+  border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small); background: var(--color-surface); color: var(--color-neutral-10);
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.ig-card--ground { border-color: transparent; background: var(--color-neutral-01); }
+.ig-card--inverted { border-color: transparent; background: var(--color-neutral-10); color: var(--color-surface); --ig-avatar-ring: var(--color-neutral-10); }
+.ig-card--inverted .ig-card__body { color: var(--color-neutral-02); }
+.ig-card__item { display: grid; min-width: 0; }
+
+/* Parts */
+.ig-card__top { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--padding-med); min-width: 0; }
+.ig-card__title { min-width: 0; }
+.ig-card__body { color: var(--color-neutral-08); }
+
+/* Pressable: the whole card is the target; it washes and scales 0.99 like a row. */
+.ig-card--pressable { width: 100%; text-align: left; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-card--pressable:active { scale: 0.99; }
+.ig-card--pressable:active { background: var(--color-neutral-01); }
+.ig-card--ground.ig-card--pressable:active { background: var(--color-neutral-02); }
+.ig-card--inverted.ig-card--pressable:active { background: var(--color-neutral-09); }
+@media (hover: hover) {
+  .ig-card--pressable:hover { background: var(--color-neutral-01); }
+  .ig-card--ground.ig-card--pressable:hover { background: var(--color-neutral-02); }
+  .ig-card--inverted.ig-card--pressable:hover { background: var(--color-neutral-09); }
+}
+
+/* Selected or pressed: the edge card's border goes ink; the ground card draws an inset hairline (a border, not a shadow). */
+.ig-card[aria-pressed='true'], .ig-card[data-selected] { border-color: var(--color-neutral-10); }
+.ig-card--ground[aria-pressed='true'], .ig-card--ground[data-selected] { border-color: transparent; box-shadow: inset 0 0 0 var(--border-width) var(--color-neutral-10); }
+.ig-card--inverted[aria-pressed='true'], .ig-card--inverted[data-selected] { border-color: var(--color-surface); }
+
+/* Focus: the ring, inset on an inverted ground in its own color. */
+.ig-card--pressable:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+.ig-card--inverted.ig-card--pressable:focus-visible { outline: calc(var(--border-width) * 2) solid currentColor; outline-offset: calc(var(--border-width) * -2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-card, .ig-card--pressable { transition: none; animation: none; }
+}

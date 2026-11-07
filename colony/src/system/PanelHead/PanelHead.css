@@ -1,0 +1,16 @@
+/* PanelHead: index, title, meta or action, a rule under. The .ig-panel grid lives in base.css. */
+.ig-panel__intro { display: grid; gap: var(--padding-small); min-width: 0; }
+.ig-panel__head { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--padding-med); align-items: baseline; min-width: 0;
+  padding-bottom: var(--padding-small); border-bottom: var(--border-width) solid var(--color-neutral-02); color: var(--color-neutral-10); }
+.ig-panel__head--indexed { grid-template-columns: auto minmax(0, 1fr) auto; }
+.ig-panel__head--ink { border-bottom-color: var(--color-neutral-10); }
+.ig-panel__index { color: var(--color-neutral-06); width: 2ch; white-space: nowrap; }
+.ig-panel__title { min-width: 0; }
+.ig-panel__end { display: flex; align-items: baseline; justify-content: flex-end; gap: var(--padding-med); min-width: 0; }
+.ig-panel__meta { color: var(--color-neutral-06); white-space: nowrap; text-align: right; }
+.ig-panel__action { display: inline-flex; }
+.ig-panel__description { color: var(--color-neutral-08); max-width: 60ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-panel__head { transition: none; animation: none; }
+}

@@ -13,6 +13,7 @@ import { Today } from "@/screens/provider/Today";
 import { Earnings } from "@/screens/provider/Earnings";
 import { Availability } from "@/screens/provider/Availability";
 import { Mark } from "@/brand/Mark";
+import { SystemLibrary } from "@/system/library/SystemLibrary";
 
 const router = createBrowserRouter(
   [
@@ -30,6 +31,7 @@ const router = createBrowserRouter(
         { path: "/provider", element: <Today /> },
         { path: "/provider/earnings", element: <Earnings /> },
         { path: "/provider/availability", element: <Availability /> },
+        { path: "/system", element: <SystemLibrary /> },
         { path: "*", element: <Home /> },
       ],
     },

@@ -1,0 +1,20 @@
+/* SegmentedMono: a hairline row of mono segments, the checked one solid ink. 44px tall (Recipe A). */
+.ig-segmented { display: inline-flex; min-height: var(--size-touch); max-width: 100%; overflow: hidden; border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small); }
+.ig-segmented__item { display: inline-flex; align-items: center; justify-content: center; min-width: 0; padding: 0 var(--padding-med); border: 0;
+  border-left: var(--border-width) solid var(--color-neutral-02); background: var(--color-surface); color: var(--color-neutral-08); white-space: nowrap;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-segmented__item:first-child { border-left: 0; }
+.ig-segmented__item[aria-checked='true'] { background: var(--color-neutral-10); border-left-color: var(--color-neutral-10); color: var(--color-surface); }
+
+/* States. The ring is inset because the item sits inside a bar. */
+.ig-segmented__item:active { scale: 0.99; }
+.ig-segmented__item:focus-visible { outline: calc(var(--border-width) * 2) solid var(--color-neutral-10); outline-offset: calc(var(--border-width) * -2); }
+.ig-segmented__item[aria-checked='true']:focus-visible { outline-color: var(--color-surface); }
+@media (hover: hover) {
+  .ig-segmented__item:not([aria-checked='true']):hover { color: var(--color-neutral-10); background: var(--color-neutral-01); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-segmented__item { transition: none; animation: none; }
+}

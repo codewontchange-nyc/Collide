@@ -1,0 +1,8 @@
+/* Glyph: a 20px hairline drawing in currentColor. The dot arrow and the caret keep their own boxes (13 and 8, set as SVG attributes). */
+.ig-glyph { flex: none; width: 20px; height: 20px; }
+.ig-dot-arrow { flex: none; }
+.ig-caret { flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-glyph, .ig-dot-arrow, .ig-caret { transition: none; animation: none; }
+}

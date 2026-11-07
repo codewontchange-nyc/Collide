@@ -1,0 +1,36 @@
+/* TextField: a mono label over a hairline box with a 16px input, a hint or an error under it.
+   The box goes ink on hover and focus within, red on error. Input padding 12px 0 (touch row) makes the box 43px. */
+.ig-text-field { display: grid; gap: var(--padding-x-small); min-width: 0; color: var(--color-neutral-10); }
+.ig-text-field__label, .ig-text-field__hint { color: var(--color-neutral-08); }
+.ig-text-field__box { display: flex; align-items: flex-start; gap: var(--padding-small); min-width: 0;
+  border-bottom: var(--border-width) solid var(--color-neutral-02);
+  transition: border-color var(--motion-fast) var(--ease-standard); }
+.ig-text-field__box:focus-within { border-bottom-color: var(--color-neutral-10); }
+.ig-text-field--error .ig-text-field__box, .ig-text-field--error .ig-text-field__box:focus-within { border-bottom-color: var(--color-accent-red); }
+.ig-text-field__input { flex: 1; min-width: 0; width: 100%; margin: 0; padding: 12px 0; /* touch row */ border: 0; border-radius: 0; background: none;
+  color: var(--color-neutral-10); appearance: none; -webkit-appearance: none; }
+textarea.ig-text-field__input { resize: vertical; }
+.ig-text-field__input::placeholder { color: var(--color-neutral-04); opacity: 1; }
+.ig-text-field__input:focus { outline: none; }
+.ig-text-field__input:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+/* The affix sits on the input's line: label-large at the paragraph line height so the baselines meet. */
+.ig-text-field__affix { flex: none; padding: 12px 0; /* touch row */ color: var(--color-neutral-08); line-height: var(--type-paragraph-small-line-height); white-space: nowrap; }
+.ig-text-field__error { color: color-mix(in srgb, var(--color-accent-red) 72%, var(--color-neutral-10)); }
+
+/* A read only value renders the same box in the secondary grey. */
+.ig-text-field--readonly .ig-text-field__input { color: var(--color-neutral-08); }
+.ig-text-field--readonly .ig-text-field__box:focus-within { border-bottom-color: var(--color-neutral-02); }
+
+/* Disabled: the 16px value may sit in neutral-04 (the Button's disabled label does too); the 12px label stays readable in neutral-06. */
+.ig-text-field--disabled { color: var(--color-neutral-04); }
+.ig-text-field--disabled .ig-text-field__label, .ig-text-field--disabled .ig-text-field__hint, .ig-text-field--disabled .ig-text-field__affix { color: var(--color-neutral-06); }
+.ig-text-field--disabled .ig-text-field__box { border-bottom-color: var(--color-neutral-01); }
+.ig-text-field--disabled .ig-text-field__input { color: var(--color-neutral-04); cursor: not-allowed; }
+
+@media (hover: hover) {
+  .ig-text-field:not(.ig-text-field--disabled):not(.ig-text-field--readonly):not(.ig-text-field--error) .ig-text-field__box:hover { border-bottom-color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-text-field__box { transition: none; animation: none; }
+}

@@ -1,0 +1,9 @@
+/* Kicker: the mono eyebrow in one of three greys. Type comes from label-small; this file sets color only. */
+.ig-kicker { margin: 0; color: var(--color-neutral-08); }
+.ig-kicker--secondary { color: var(--color-neutral-08); }
+.ig-kicker--meta { color: var(--color-neutral-06); }
+.ig-kicker--ink { color: var(--color-neutral-10); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-kicker { transition: none; animation: none; }
+}

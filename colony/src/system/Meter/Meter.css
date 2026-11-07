@@ -1,0 +1,16 @@
+/* Meter: the 4px track (the kit draws it three times the same way), up to two series, a swatch legend.
+   The track is neutral-01 in both modes so the second series (neutral-04) still reads against it in dark. */
+.ig-meter { display: grid; gap: var(--padding-small); min-width: 0; }
+.ig-meter__track { display: flex; height: var(--padding-x-small); border-radius: var(--radius-small); background: var(--color-neutral-01); overflow: hidden; }   /* the 4px track */
+.ig-meter__fill { display: block; height: 100%; flex: none; transition: width var(--motion-normal) var(--ease-standard); }
+.ig-meter__fill--direct, .ig-meter__fill--one, .ig-meter__swatch--direct, .ig-meter__swatch--one { background: var(--color-neutral-10); }
+.ig-meter__fill--pool, .ig-meter__fill--two, .ig-meter__swatch--pool, .ig-meter__swatch--two { background: var(--color-neutral-04); }
+/* A ranked set: only the highlighted bar is ink; the rest go neutral-04. */
+.ig-meter[data-highlight='false'] .ig-meter__fill, .ig-meter[data-highlight='false'] .ig-meter__swatch { background: var(--color-neutral-04); }
+.ig-meter__legend { display: flex; flex-wrap: wrap; gap: var(--padding-med); color: var(--color-neutral-08); }
+.ig-meter__key { display: inline-flex; align-items: center; white-space: nowrap; }
+.ig-meter__swatch { display: inline-block; flex: none; width: var(--padding-small); height: var(--padding-small); margin-right: var(--padding-x-small); border-radius: var(--radius-small); }   /* an 8px square */
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-meter__fill { transition: none; animation: none; }
+}

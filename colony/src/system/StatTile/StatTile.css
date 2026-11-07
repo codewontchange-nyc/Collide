@@ -1,0 +1,12 @@
+/* StatTile: label over the 56px numeral. No min-height, no padding-block, no ground at page level. */
+.ig-stat-tile { display: flex; flex-direction: column; justify-content: center; gap: var(--padding-small); min-width: 0; color: var(--color-neutral-10); }
+.ig-stat-tile__label { color: var(--color-neutral-06); }
+.ig-stat-tile__figure { display: flex; align-items: flex-start; gap: var(--padding-small); }
+.ig-stat-tile__value { min-width: 0; white-space: nowrap; }
+.ig-stat-tile__unit { flex: none; margin-block: 2px; padding: 2px var(--padding-x-small); border-radius: 2px; background: var(--color-neutral-02); color: var(--color-neutral-10); white-space: nowrap; }
+/* Boxed (library only): on a neutral-01 ground it takes the small radius like every card, not the kit's 12px. */
+.ig-stat-tile--boxed { padding: var(--padding-med); border-radius: var(--radius-small); background: var(--color-neutral-01); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-stat-tile, .ig-stat-tile__value { transition: none; animation: none; }
+}

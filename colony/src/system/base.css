@@ -1,0 +1,44 @@
+/* Reset */
+*, *::before, *::after { box-sizing: border-box; }
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+body { margin: 0; height: 100%; }
+body:has(.ig-main) { overflow: hidden; }   /* the window never scrolls once main is the scroller (critic (c)5); routes still on the old shell keep the window */
+#root { height: 100%; }
+h1, h2, h3, h4, p, dl, dd, figure, ol, ul { margin: 0; }
+ol, ul { padding: 0; list-style: none; }
+img, svg { display: block; }
+img { max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; text-align: inherit; }
+input, textarea, select { font: inherit; color: inherit; }
+strong, b { font-weight: var(--type-headline-small-weight); }   /* 500, never 700 */
+em { font-style: normal; }   /* the system has no italic; voice is carried by Cardo at paragraph sizes */
+::selection { background: var(--color-neutral-02); }
+
+/* Focus */
+:focus { outline: none; }
+:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+
+/* Touch defaults, on every pressable the components render */
+button, [role='button'], [role='tab'], [role='switch'], [role='radio'], a[href], label, summary {
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+button:not(:disabled), [role='button']:not([aria-disabled='true']), a[href] { cursor: pointer; }
+
+/* The scroll container: main scrolls, the bars and hosts stay (critic (c)5) */
+.ig-main { position: relative; height: 100dvh; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; background: var(--color-surface);
+  scroll-padding-top: calc(var(--safe-top) + var(--padding-med)); scroll-padding-bottom: calc(var(--nav-height) + var(--padding-large)); }
+.ig-main--bare { scroll-padding-bottom: calc(var(--safe-bottom) + var(--padding-large)); }   /* welcome and start: no tab bar */
+
+/* The column */
+.ig-page { display: grid; gap: var(--padding-large); align-content: start; width: 100%; max-width: var(--page-max); margin: 0 auto;
+  padding: calc(var(--safe-top) + var(--padding-med)) var(--page-gutter) calc(var(--nav-height) + var(--padding-large) + var(--fab-clearance, 0px)); }
+.ig-page--bare { padding-bottom: calc(var(--safe-bottom) + var(--padding-large)); min-height: 100dvh; }
+.ig-panel { display: grid; gap: var(--padding-med); min-width: 0; }
+.ig-scroll-x { display: flex; flex-wrap: nowrap; gap: var(--padding-x-small); overflow-x: auto; margin: 0 calc(var(--page-gutter) * -1); padding: 0 var(--page-gutter); scrollbar-width: none; }
+.ig-scroll-x::-webkit-scrollbar { display: none; }
+.ig-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }   /* visually hidden */
+
+/* Reduced motion, global */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}

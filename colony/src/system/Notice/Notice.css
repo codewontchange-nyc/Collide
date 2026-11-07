@@ -1,0 +1,48 @@
+/* Notice: a dot, a title and a body, an underlined mono action and a close glyph.
+   inline is the neutral-01 box; banner runs edge to edge with a hairline under it; toast is ink on surface text with the one shadow. */
+.ig-notice { display: flex; align-items: flex-start; gap: var(--padding-small); padding: var(--padding-med);
+  border-radius: var(--radius-small); background: var(--color-neutral-01); color: var(--color-neutral-10); }
+.ig-notice__dot { flex: none; margin: -1px -2px 0; }   /* seats the 20px dot on the first line */
+.ig-notice__text { display: grid; gap: 2px; flex: 1; min-width: 0; }   /* title to body gap */
+.ig-notice__body { color: var(--color-neutral-08); overflow-wrap: anywhere; }
+.ig-notice__title + .ig-notice__body { color: var(--color-neutral-08); }
+
+/* The action: text height drawn, 44px tall by the negative pull, so the row height holds and the underline stays under the word. */
+.ig-notice__action { position: relative; display: inline-flex; align-items: center; flex: none; min-height: var(--size-touch); margin: -12px 0; /* touch row, pulled */
+  padding: 0; border: 0; background: none; color: inherit; text-decoration: none; white-space: nowrap; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; }
+.ig-notice__action-label { display: block; border-bottom: var(--border-width) solid currentColor; color: var(--color-neutral-08);
+  transition: color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.ig-notice__action:active .ig-notice__action-label { color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
+
+/* The close: a 20px glyph in a 44px hit box; the pull keeps 20px of layout. */
+.ig-notice__close { display: grid; place-items: center; flex: none; width: var(--size-touch); height: var(--size-touch); margin: -12px; /* 44 around 20 */
+  padding: 0; border: 0; border-radius: var(--radius-small); background: none; color: var(--color-neutral-08); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
+  transition: color var(--motion-fast) var(--ease-standard); }
+.ig-notice__close:active { color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
+
+/* Banner */
+.ig-notice--banner { border-radius: 0; border-bottom: var(--border-width) solid var(--color-neutral-02); }
+.ig-notice--banner.ig-notice--error { border-bottom-color: var(--color-accent-red); }
+
+/* Toast: ink on surface text, the system's one shadow, a 200ms rise on enter. */
+.ig-notice--toast { width: min(360px, 100%); background: var(--color-neutral-10); color: var(--color-surface); pointer-events: auto;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-neutral-10) 16%, transparent);
+  animation: ig-notice-enter var(--motion-normal) var(--ease-enter); }
+.ig-notice--toast .ig-notice__body, .ig-notice--toast .ig-notice__title + .ig-notice__body, .ig-notice--toast .ig-notice__close, .ig-notice--toast .ig-notice__action-label { color: var(--color-neutral-02); }
+.ig-notice--toast .ig-notice__action:active .ig-notice__action-label, .ig-notice--toast .ig-notice__close:active { color: var(--color-surface); }
+.ig-notice--toast .ig-notice__action:focus-visible, .ig-notice--toast .ig-notice__close:focus-visible { outline-color: currentColor; }
+/* The one data-mode rule allowed in a component file: a white halo on black is not a shadow, so dark mode draws an outline instead. */
+[data-mode="dark"] .ig-notice--toast { box-shadow: none; outline: var(--border-width) solid var(--color-neutral-02); }
+@keyframes ig-notice-enter { from { opacity: 0; translate: 0 var(--motion-distance-sm); } }
+
+@media (hover: hover) {
+  .ig-notice__action:hover .ig-notice__action-label { color: var(--color-neutral-10); }
+  .ig-notice__close:hover { color: var(--color-neutral-10); }
+  .ig-notice--toast .ig-notice__action:hover .ig-notice__action-label, .ig-notice--toast .ig-notice__close:hover { color: var(--color-surface); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-notice--toast, .ig-notice__action-label, .ig-notice__close { transition: none; animation: none; }
+}

@@ -1,0 +1,10 @@
+/* Mark: the colony ring on the dot grid, in currentColor. The ring draws in clockwise 30ms per dot at md and 20ms at lg. */
+.ig-mark { display: inline-flex; align-items: center; gap: var(--padding-med); color: inherit; }   /* ink on surface, surface on an inverted ground */
+.ig-mark--lg.ig-mark--wordmark { flex-direction: column; }
+.ig-mark__grid { color: inherit; }
+.ig-mark--lg .ig-mark__grid { --ig-settle-step: calc(var(--motion-fast) / 6); }   /* 20ms per dot on the 32 dot ring */
+.ig-mark__word { color: inherit; white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-mark, .ig-mark__grid { transition: none; animation: none; }
+}

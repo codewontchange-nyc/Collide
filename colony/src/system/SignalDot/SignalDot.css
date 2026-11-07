@@ -1,0 +1,27 @@
+/* SignalDot: a 20px dot, r 7, that says a state. The one ig-status-pulse keyframes live here. */
+.ig-dot { flex: none; width: 20px; height: 20px; }
+.ig-dot--signal circle { fill: var(--color-neutral-04); transform-box: fill-box; transform-origin: center;
+  transition: fill var(--motion-fast) var(--ease-standard); }
+.ig-dot--signal[data-state='error'] circle { fill: var(--color-accent-red); }
+.ig-dot--signal[data-state='success'] circle { fill: var(--color-accent-green); }
+.ig-dot--signal[data-state='inactive'] circle { fill: var(--color-neutral-01); stroke: var(--color-neutral-02); stroke-width: var(--border-width); }
+/* In rows the dot is pulled tight. */
+.ig-dot--tight { margin: -4px; }
+
+/* The status pulse: radius 15 to 17 of 16, opacity 0.45 to 1, 2.7s per cycle on the signal curve. A live yes or a failure breathes. */
+@keyframes ig-status-pulse {
+  0%, 100% { scale: 0.9375; opacity: 0.45; }
+  50% { scale: 1.0625; opacity: 1; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ig-dot--signal[data-pulse='true'] circle { animation: ig-status-pulse 2.7s var(--ease-signal) infinite; }
+}
+
+/* StatusWord: the dot and its word. */
+.ig-status { display: inline-flex; align-items: center; gap: var(--padding-x-small); color: var(--color-neutral-08); white-space: nowrap; }
+.ig-status--ink { color: var(--color-neutral-10); }
+.ig-status__word { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-dot--signal circle, .ig-dot--signal[data-pulse='true'] circle { transition: none; animation: none; }
+}

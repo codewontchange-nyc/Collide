@@ -1,0 +1,26 @@
+/* FilterChip: the pressable chip that stays pressed. About 32px tall; its row makes it 44 (Recipe B). Press scales 0.99 like a row. */
+.ig-chip { display: inline-flex; align-items: center; gap: var(--padding-x-small); padding: var(--padding-small) 12px; /* touch chip, about 32px */
+  border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small); background: var(--color-surface); color: var(--color-neutral-08);
+  white-space: nowrap; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-chip[aria-pressed='true'] { background: var(--color-neutral-10); border-color: var(--color-neutral-10); color: var(--color-surface); }
+.ig-chip__count { color: var(--color-neutral-06); }   /* neutral-06, not neutral-04: 12px mono must pass AA (critic (c)2) */
+.ig-chip[aria-pressed='true'] .ig-chip__count { color: var(--color-neutral-02); }
+
+/* States */
+.ig-chip:not(:disabled):active { scale: 0.99; }
+.ig-chip:disabled { color: var(--color-neutral-06); border-color: var(--color-neutral-01); cursor: not-allowed; }
+.ig-chip:disabled[aria-pressed='true'] { background: var(--color-neutral-06); border-color: var(--color-neutral-06); color: var(--color-surface); }
+@media (hover: hover) {
+  .ig-chip:not(:disabled):hover { border-color: var(--color-neutral-10); }
+}
+
+/* ChipRow: a wrapping row of chips padded to 44px. With scroll it is the gutter bleed row (.ig-scroll-x) and never wraps. */
+.ig-chiprow { display: flex; flex-wrap: wrap; align-items: center; gap: var(--padding-x-small); padding: 6px 0; /* row to 44px */ min-height: var(--size-touch); }
+.ig-chiprow--scroll { flex-wrap: nowrap; overflow-x: auto; margin: 0 calc(var(--page-gutter) * -1); padding: 6px var(--page-gutter); scrollbar-width: none; }
+.ig-chiprow--scroll::-webkit-scrollbar { display: none; }
+.ig-chiprow--scroll > .ig-chip { flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-chip { transition: none; animation: none; }
+}

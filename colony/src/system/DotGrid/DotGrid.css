@@ -1,0 +1,35 @@
+/* DotGrid: the lit point array. Dots never move; every mood is a cross fade of fill or opacity between two lit sets.
+   The two keyframes every dot mark shares live here: ig-settle (the scale in) and ig-ambient (the 2400ms cross fade). */
+.ig-dotgrid { flex: none; }
+.ig-dotgrid--sm { width: 20px; height: 20px; }
+.ig-dotgrid--md { width: 44px; height: 44px; }
+.ig-dotgrid--lg { width: 84px; height: 84px; }
+.ig-dotgrid__dot { fill: var(--color-neutral-02); transform-box: fill-box; transform-origin: center;
+  transition: fill var(--motion-normal) var(--ease-standard), opacity var(--motion-normal) var(--ease-standard); }
+.ig-dotgrid__dot[data-lit='true'] { fill: currentColor; }
+.ig-dotgrid--unlit-surface .ig-dotgrid__dot[data-lit='false'] { fill: var(--color-surface); }
+.ig-dotgrid--unlit-dim .ig-dotgrid__dot[data-lit='false'] { fill: currentColor; opacity: 0.25; }
+.ig-dotgrid--unlit-none .ig-dotgrid__dot[data-lit='false'] { display: none; }
+
+/* Settle: lit dots scale in from nothing, one step apart in --i order. The step is 30ms (a quarter of --motion-fast);
+   the Mark at lg sets --ig-settle-step to 20ms and the companion's enter sets 110ms per ring. */
+.ig-dotgrid--settle .ig-dotgrid__dot[data-lit='true'] { animation: ig-settle var(--motion-normal) var(--ease-enter) both;
+  animation-delay: calc(var(--i, 0) * var(--ig-settle-step, calc(var(--motion-fast) / 4))); }
+@keyframes ig-settle { from { scale: 0; } }
+
+/* Ambient: each dot breathes between its weight in pattern A (--a) and pattern B (--b), 2400ms per cycle
+   (twelve times --motion-normal), rippling out from the center 110ms per ring (twice --motion-stagger-xs). */
+.ig-dotgrid--ambient .ig-dotgrid__dot[data-lit='true'] { opacity: var(--a, 1);
+  animation: ig-ambient calc(var(--motion-normal) * 12) var(--ease-editorial) infinite; animation-delay: calc(var(--r, 0) * var(--motion-stagger-xs) * 2); }
+@keyframes ig-ambient { 0%, 100% { opacity: var(--a, 1); } 50% { opacity: var(--b, 1); } }
+
+/* Relight (the Jar): only the newly lit dots settle in, in reading order within the new set, the step compressed so the run
+   never exceeds 240ms (the component sets --ig-settle-step); dots that go dark fade first over the exit duration. */
+.ig-dotgrid--relight .ig-dotgrid__dot[data-fresh='true'] { animation: ig-settle var(--motion-normal) var(--ease-enter) both;
+  animation-delay: calc(var(--i, 0) * var(--ig-settle-step, calc(var(--motion-fast) / 4))); }
+.ig-dotgrid--relight .ig-dotgrid__dot[data-fresh='out'] { transition: fill var(--motion-duration-exit) var(--ease-exit); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-dotgrid__dot, .ig-dotgrid--settle .ig-dotgrid__dot[data-lit='true'], .ig-dotgrid--ambient .ig-dotgrid__dot[data-lit='true'],
+  .ig-dotgrid--relight .ig-dotgrid__dot[data-fresh='true'], .ig-dotgrid--relight .ig-dotgrid__dot[data-fresh='out'] { transition: none; animation: none; }
+}

@@ -1,0 +1,20 @@
+/* MetricStrip: the figures under the title. The auto fit grid sits on the root (two columns from 352px);
+   columns 2 pins two figures side by side on a phone; an odd count leaves the last cell empty on purpose. */
+.ig-metric-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr)); gap: 0 var(--padding-large); min-width: 0; color: var(--color-neutral-10); }
+.ig-metric-strip--cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.ig-metric-strip--cols-1 { grid-template-columns: minmax(0, 1fr); }
+.ig-metric-strip--strip { border-top: var(--border-width) solid var(--color-neutral-10); }
+.ig-metric-strip--tiles { gap: var(--padding-x-small); border-radius: var(--radius-small); overflow: clip; }
+.ig-metric-strip__item { display: grid; gap: var(--padding-x-small); align-content: start; min-width: 0; padding: var(--padding-med) 0; border-bottom: var(--border-width) solid var(--color-neutral-02); }
+.ig-metric-strip--tiles .ig-metric-strip__item { padding: var(--padding-med); border-bottom: 0; background: var(--color-neutral-01); }
+.ig-metric-strip__label { color: var(--color-neutral-08); }
+.ig-metric-strip__figure { display: flex; align-items: flex-start; gap: var(--padding-small); padding-top: var(--padding-x-small); }
+.ig-metric-strip__value { min-width: 0; white-space: nowrap; }
+.ig-metric-strip__unit { flex: none; margin-block: 2px; padding: 2px var(--padding-x-small); border-radius: 2px; background: var(--color-neutral-02); color: var(--color-neutral-10); white-space: nowrap; }
+.ig-metric-strip__delta { display: flex; align-items: center; gap: var(--padding-x-small); color: var(--color-neutral-10); }
+.ig-metric-strip__delta .ig-caret { flex: none; }
+.ig-metric-strip__note { color: var(--color-neutral-08); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-metric-strip, .ig-metric-strip__item { transition: none; animation: none; }
+}

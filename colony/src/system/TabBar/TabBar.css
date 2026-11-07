@@ -1,0 +1,27 @@
+/* TabBar: the kit's SectionNav bar flipped to the bottom. Fixed, surface, a hairline on top, the 3px dot straddling it on the
+   current tab (overflow stays visible so the dot is never clipped). Each tab is the full 56px column, well over 44px. */
+.ig-tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-nav); display: flex; justify-content: center; overflow: visible;
+  padding-bottom: var(--safe-bottom); background: var(--color-surface); border-top: var(--border-width) solid var(--color-neutral-02); user-select: none; }
+.ig-tabbar--inline { position: static; }   /* library only: in flow */
+.ig-tabbar__list { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; max-width: var(--page-max); }
+.ig-tabbar__item { display: grid; min-width: 0; }
+.ig-tabbar__link { position: relative; display: grid; justify-items: center; align-content: center; gap: var(--padding-x-small); height: var(--size-bar); min-width: 0;
+  color: var(--color-neutral-08); text-decoration: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-tabbar__link[aria-current='page'] { color: var(--color-neutral-10); }
+.ig-tabbar__link:active { scale: 0.99; }
+/* The 3px dot, straddling the hairline. */
+.ig-tabbar__link::after { content: ''; position: absolute; top: -2px; left: 50%; width: 3px; height: 3px; border-radius: 50%; background: var(--color-neutral-10);
+  translate: -50% 0; opacity: 0; transition: opacity var(--motion-fast) var(--ease-standard); }
+.ig-tabbar__link[aria-current='page']::after { opacity: 1; }
+.ig-tabbar__link:focus-visible { outline: calc(var(--border-width) * 2) solid var(--color-neutral-10); outline-offset: calc(var(--border-width) * -2); }
+/* Marks: unlit dots are surface in the bar, so a mark shows only its lit dots; the other tabs' marks sit at 0.3. */
+.ig-tabbar__mark { opacity: 0.3; transition: opacity var(--motion-fast) var(--ease-standard); }
+.ig-tabbar__link[aria-current='page'] .ig-tabbar__mark { opacity: 1; }
+/* The word: "Availability" is 97px in a 125px column, so it may never wrap. */
+.ig-tabbar__word { max-width: 100%; min-width: 0; padding: 0 var(--padding-x-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ig-tabbar__count { color: var(--color-neutral-06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-tabbar__link, .ig-tabbar__link::after, .ig-tabbar__mark { transition: none; animation: none; }
+}

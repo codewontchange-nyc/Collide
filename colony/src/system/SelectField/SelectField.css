@@ -1,0 +1,40 @@
+/* SelectField: TextField's hairline box around a native select, appearance none, a chevron-down glyph at the right.
+   Not the kit's 12px Dropdown pill: radius none. The select keeps 16px (paragraph-small) so iOS never zooms. */
+.ig-select { display: grid; gap: var(--padding-x-small); min-width: 0; color: var(--color-neutral-10); }
+.ig-select__label, .ig-select__hint { color: var(--color-neutral-08); }
+.ig-select__box { position: relative; display: flex; align-items: center; min-width: 0;
+  border-bottom: var(--border-width) solid var(--color-neutral-02);
+  transition: border-color var(--motion-fast) var(--ease-standard); }
+.ig-select__box:focus-within { border-bottom-color: var(--color-neutral-10); }
+.ig-select--error .ig-select__box, .ig-select--error .ig-select__box:focus-within { border-bottom-color: var(--color-accent-red); }
+/* 12px 0 is the touch row; the right padding leaves room for the 20px chevron and a 4px gap. */
+.ig-select__input { flex: 1; min-width: 0; width: 100%; margin: 0; padding: 12px calc(20px + var(--padding-x-small)) 12px 0; /* touch row */
+  border: 0; border-radius: 0; background: none; color: var(--color-neutral-10); appearance: none; -webkit-appearance: none; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.ig-select__input:focus { outline: none; }
+.ig-select__input:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+.ig-select__chevron { position: absolute; right: 0; top: 50%; translate: 0 -50%; color: var(--color-neutral-08); pointer-events: none;
+  transition: color var(--motion-fast) var(--ease-standard); }
+.ig-select__box:focus-within .ig-select__chevron { color: var(--color-neutral-10); }
+.ig-select__error { color: color-mix(in srgb, var(--color-accent-red) 72%, var(--color-neutral-10)); }
+
+/* Overlay: the kit's checkbox trick. The visible value is mono; the real select sits over it at opacity 0 so one tap opens the OS picker. */
+.ig-select--overlay .ig-select__value { flex: 1; min-width: 0; padding: 12px calc(20px + var(--padding-x-small)) 12px 0; /* touch row */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-neutral-10);
+  animation: ig-select-swap var(--motion-fast) var(--ease-standard); }
+.ig-select--overlay .ig-select__input { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; opacity: 0; }
+@keyframes ig-select-swap { from { opacity: 0; } }
+
+/* Disabled */
+.ig-select--disabled .ig-select__label, .ig-select--disabled .ig-select__hint, .ig-select--disabled .ig-select__chevron { color: var(--color-neutral-06); }
+.ig-select--disabled .ig-select__box { border-bottom-color: var(--color-neutral-01); }
+.ig-select--disabled .ig-select__input, .ig-select--disabled .ig-select__value { color: var(--color-neutral-04); cursor: not-allowed; }
+
+@media (hover: hover) {
+  .ig-select:not(.ig-select--disabled):not(.ig-select--error) .ig-select__box:hover { border-bottom-color: var(--color-neutral-10); }
+  .ig-select:not(.ig-select--disabled) .ig-select__box:hover .ig-select__chevron { color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-select__box, .ig-select__chevron, .ig-select--overlay .ig-select__value { transition: none; animation: none; }
+}

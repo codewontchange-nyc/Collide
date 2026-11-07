@@ -1,0 +1,17 @@
+/* NumberStepper: two 44px hairline squares (Recipe A) around a tabular figure that is the spinbutton. */
+.ig-stepper-num { display: inline-flex; align-items: center; gap: var(--padding-x-small); color: var(--color-neutral-10); }
+.ig-stepper-num__btn { display: grid; place-items: center; flex: none; width: var(--size-touch); height: var(--size-touch); padding: 0;
+  border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small); background: var(--color-surface); color: var(--color-neutral-10);
+  cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.ig-stepper-num__btn:not(:disabled):active { border-color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
+.ig-stepper-num__btn:disabled { color: var(--color-neutral-02); border-color: var(--color-neutral-01); cursor: not-allowed; }
+.ig-stepper-num__value { min-width: 6ch; padding: 0 var(--padding-x-small); text-align: center; white-space: nowrap; border-radius: var(--radius-small); }
+
+@media (hover: hover) {
+  .ig-stepper-num__btn:not(:disabled):hover { border-color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-stepper-num__btn { transition: none; animation: none; }
+}

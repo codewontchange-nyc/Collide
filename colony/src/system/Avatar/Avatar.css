@@ -1,0 +1,25 @@
+/* Avatar: the only round thing. The 2px ring reads --ig-avatar-ring (surface by default; an inverted Card sets it to ink). */
+.ig-avatar { position: relative; display: inline-grid; place-items: center; flex-shrink: 0; width: var(--ig-avatar-size); height: var(--ig-avatar-size);
+  border-radius: 50%; background: var(--color-neutral-01); color: var(--color-neutral-10); box-shadow: 0 0 0 2px var(--ig-avatar-ring, var(--color-surface)); }   /* a ring, not a shadow */
+.ig-avatar--sm { --ig-avatar-size: 20px; }
+.ig-avatar--md { --ig-avatar-size: var(--size-touch); }
+.ig-avatar--lg { --ig-avatar-size: 84px; }
+.ig-avatar__img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+.ig-avatar__initials { text-transform: uppercase; letter-spacing: 0; line-height: 1; user-select: none; }
+/* sm initials are the one sub 12px text in the system: 9px mono, decorative; the name is in aria-label. */
+.ig-avatar--sm .ig-avatar__initials { font-family: var(--type-label-small-family), monospace; font-weight: var(--type-label-small-weight); font-size: 9px; }
+.ig-avatar--rest { color: var(--color-neutral-08); }
+/* The state dot: 25% of the size, at least 6px, the surface ring, fills as SignalDot. */
+.ig-avatar__state { position: absolute; right: 0; bottom: 0; width: 25%; height: 25%; min-width: 6px; min-height: 6px; border-radius: 50%;
+  background: var(--color-neutral-04); box-shadow: 0 0 0 2px var(--ig-avatar-ring, var(--color-surface)); }
+.ig-avatar__state[data-state='success'] { background: var(--color-accent-green); }
+.ig-avatar__state[data-state='error'] { background: var(--color-accent-red); }
+.ig-avatar__state[data-state='inactive'] { background: var(--color-neutral-01); box-shadow: 0 0 0 var(--border-width) var(--color-neutral-02), 0 0 0 2px var(--ig-avatar-ring, var(--color-surface)); }
+
+/* Stack: 6px of overlap, the +N as a rest avatar in neutral-08. */
+.ig-avatar-stack { display: inline-flex; align-items: center; padding-left: 6px; }
+.ig-avatar-stack .ig-avatar { margin-left: -6px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-avatar, .ig-avatar__state { transition: none; animation: none; }
+}

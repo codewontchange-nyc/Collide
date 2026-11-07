@@ -1,4 +1,4 @@
-/* Colony tokens, on the Infinite Garden system. Use a token for every color, radius,
+/* Colony tokens, on the kit system. Use a token for every color, radius,
    border width, padding, type, duration and easing. Never write a raw value a token covers.
    Names and values follow the kit; the Colony block at the end adds what a phone app needs. */
 :root {

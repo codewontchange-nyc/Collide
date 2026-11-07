@@ -1,0 +1,16 @@
+/* Steps: the Start wizard's progress. The track is the kit's 4px line (Loading bar, Slider, RankingList) with an ink fill that grows over the normal duration.
+   The dots are the library variant: 6px circles, the current one ringed. */
+.ig-steps--track { display: block; width: 100%; height: var(--padding-x-small); border-radius: var(--radius-small); background: var(--color-neutral-02); overflow: hidden; }
+.ig-steps__fill { display: block; height: 100%; border-radius: var(--radius-small); background: var(--color-neutral-10);
+  transition: width var(--motion-normal) var(--ease-standard); }
+
+.ig-steps--dots { --ig-steps-dot: 6px; display: inline-flex; align-items: center; gap: var(--padding-small); height: var(--size-touch); padding: 0 var(--padding-x-small); }
+.ig-steps__dot { width: var(--ig-steps-dot); height: var(--ig-steps-dot); border-radius: 50%; background: var(--color-neutral-02);
+  transition: background-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.ig-steps__dot[data-status='done'] { background: var(--color-neutral-10); }
+/* The current dot's ring: a zero blur box-shadow is a border, not a shadow. */
+.ig-steps__dot[data-status='current'] { background: var(--color-neutral-10); box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 calc(3px + var(--border-width)) var(--color-neutral-10); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-steps__fill, .ig-steps__dot { transition: none; animation: none; }
+}

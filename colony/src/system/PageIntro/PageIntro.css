@@ -1,0 +1,24 @@
+/* PageIntro: the masthead. Trail, two tone title (the muted half on its own line), one sentence, actions, the under slot.
+   The trail scrolls with the page; there is no sticky form. */
+.ig-page-intro { display: grid; gap: var(--padding-med); min-width: 0; color: var(--color-neutral-10); }
+.ig-page-intro__trail { display: flex; align-items: center; gap: var(--padding-small); min-height: var(--size-touch); min-width: 0; }
+.ig-page-intro__back { flex: none; margin-left: calc(var(--padding-small) * -1); }   /* the glyph sits on the column; the hit box reaches into the gutter */
+.ig-page-intro__eyebrow { min-width: 0; }
+.ig-page-intro__aside { flex: none; display: flex; align-items: center; margin-left: auto; }
+.ig-page-intro__body { display: grid; gap: var(--padding-med); min-width: 0; }
+.ig-page-intro__title { text-wrap: balance; overflow-wrap: anywhere; }
+.ig-page-intro__title-muted { display: block; color: var(--color-neutral-04); }
+.ig-page-intro__intro { max-width: 60ch; color: var(--color-neutral-10); }
+.ig-page-intro__actions { display: flex; flex-wrap: wrap; gap: var(--padding-small); }
+.ig-page-intro__under { display: grid; gap: var(--padding-med); padding-top: var(--padding-med); min-width: 0; }
+
+/* The editorial intro steps up from paragraph-medium to paragraph-large at 480px. A class cannot change at a breakpoint,
+   so this is the one place a component reads the type tokens directly. */
+@media (min-width: 480px) {
+  .ig-page-intro--editorial .ig-page-intro__intro { font-family: var(--type-paragraph-large-family), serif; font-weight: var(--type-paragraph-large-weight);
+    font-size: var(--type-paragraph-large-size); line-height: var(--type-paragraph-large-line-height); letter-spacing: var(--type-paragraph-large-tracking); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-page-intro, .ig-page-intro__title { transition: none; animation: none; }
+}

@@ -1,0 +1,66 @@
+/* List: the hairline list. The row grid is built from the cells present (data-cols: i index, l leading, m main, t trailing),
+   so an empty column never takes a gap. Rows are 44px touch rows by default; the last row keeps its hairline. */
+.ig-list { display: grid; min-width: 0; }
+.ig-list--ink { border-top: var(--border-width) solid var(--color-neutral-10); }
+.ig-list--hairline { border-top: var(--border-width) solid var(--color-neutral-02); }
+.ig-list__item { display: grid; min-width: 0; }
+
+.ig-row { position: relative; isolation: isolate; display: grid; column-gap: var(--padding-med); align-items: center; width: 100%; min-width: 0;
+  min-height: var(--size-touch); padding: 12px 0; /* touch row */ border-bottom: var(--border-width) solid var(--color-neutral-02); color: var(--color-neutral-10); text-align: left;
+  transition: color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+.ig-row[data-cols='m'] { grid-template-columns: minmax(0, 1fr); }
+.ig-row[data-cols='im'] { grid-template-columns: var(--ig-index, 2ch) minmax(0, 1fr); }
+.ig-row[data-cols='lm'] { grid-template-columns: auto minmax(0, 1fr); }
+.ig-row[data-cols='ilm'] { grid-template-columns: var(--ig-index, 2ch) auto minmax(0, 1fr); }
+.ig-row[data-cols='mt'] { grid-template-columns: minmax(0, 1fr) auto; }
+.ig-row[data-cols='imt'] { grid-template-columns: var(--ig-index, 2ch) minmax(0, 1fr) auto; }
+.ig-row[data-cols='lmt'] { grid-template-columns: auto minmax(0, 1fr) auto; }
+.ig-row[data-cols='ilmt'] { grid-template-columns: var(--ig-index, 2ch) auto minmax(0, 1fr) auto; }
+.ig-row--ink { border-top: var(--border-width) solid var(--color-neutral-10); }
+.ig-list--dense .ig-row { padding: var(--padding-small) 0; min-height: 0; }
+.ig-list--reading .ig-row { padding: var(--padding-med) 0; }
+
+/* Cells */
+.ig-row__index { color: var(--color-neutral-06); width: var(--ig-index, 2ch); white-space: nowrap; }
+.ig-row__leading { display: grid; place-items: center; min-width: 0; }
+.ig-row__main { display: grid; gap: var(--padding-x-small); min-width: 0; }
+.ig-row__title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-width: 0; }
+.ig-row--ellipsis .ig-row__title { display: block; white-space: nowrap; text-overflow: ellipsis; }
+.ig-row__facts { min-width: 0; }
+.ig-row__facts--sentence { color: var(--color-neutral-08); }
+.ig-row__end { justify-self: end; display: grid; justify-items: end; gap: var(--padding-x-small); text-align: right; }
+.ig-row__trailing { display: flex; align-items: center; gap: var(--padding-small); }
+.ig-row__trailing-meta { color: var(--color-neutral-06); text-align: right; white-space: nowrap; }
+.ig-row__chevron { color: var(--color-neutral-04); }
+/* The Needs tile: a 44px neutral-01 square with one initial in neutral-04 (decorative; the title carries the name). */
+.ig-row__tile { display: grid; place-items: center; width: var(--size-touch); height: var(--size-touch); border-radius: var(--radius-small); background: var(--color-neutral-01); color: var(--color-neutral-04); }
+
+/* The wash and the fill are drawn by ::after, inset into the gutter (or a sheet body's --bleed), so the wash bleeds edge to edge
+   while the text and the hairline stay on the column. */
+.ig-row::after { content: ''; position: absolute; inset: 0 calc(var(--bleed, var(--page-gutter)) * -1); z-index: -1; background: transparent; pointer-events: none;
+  transition: background-color var(--motion-fast) var(--ease-standard); }
+
+/* Pressable */
+.ig-row--pressable { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer; }
+.ig-row--pressable:not(:disabled):not([aria-disabled='true']):active { scale: 0.99; }
+.ig-row--pressable:not(:disabled):not([aria-disabled='true']):active::after { background: var(--color-neutral-01); }
+.ig-row--pressable:focus-visible { outline: calc(var(--border-width) * 2) solid var(--color-neutral-10); outline-offset: calc(var(--border-width) * -2); }
+@media (hover: hover) {
+  .ig-row--pressable:not(:disabled):not([aria-disabled='true']):hover::after { background: var(--color-neutral-01); }
+  a.ig-row--pressable:not([aria-disabled='true']):hover .ig-row__title { text-decoration: underline; text-underline-offset: 2px; }
+}
+
+/* Selected or current: the neutral-02 fill and the 2px rail at the fill's left edge. */
+.ig-row[data-selected]::after, .ig-row[aria-current='true']::after { background: var(--color-neutral-02); }
+.ig-row[data-selected]::before, .ig-row[aria-current='true']::before { content: ''; position: absolute; top: 0; bottom: 0;
+  left: calc(var(--bleed, var(--page-gutter)) * -1 - var(--border-width)); border-left: calc(var(--border-width) * 2) solid var(--color-neutral-10); }
+
+/* Disabled: still readable (neutral-06, not -04: "Nothing scheduled" has to be read), no wash, no chevron. */
+.ig-row:disabled, .ig-row[aria-disabled='true'] { color: var(--color-neutral-06); cursor: default; }
+.ig-row:disabled .ig-row__facts--sentence, .ig-row[aria-disabled='true'] .ig-row__facts--sentence,
+.ig-row:disabled .ig-row__index, .ig-row[aria-disabled='true'] .ig-row__index { color: var(--color-neutral-06); }
+.ig-row:disabled .ig-row__chevron, .ig-row[aria-disabled='true'] .ig-row__chevron { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-row, .ig-row::after { transition: none; animation: none; }
+}

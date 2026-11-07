@@ -16,3 +16,6 @@
 .meta { color: var(--color-neutral-06); }
 .placeholder { color: var(--color-neutral-04); }
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* The body's default: paragraph-small in ink on surface. base.css owns the reset; the body's type belongs here with the nine styles. */
+body { color: var(--color-neutral-10); background: var(--color-surface); font-family: var(--font-sans), sans-serif; font-weight: var(--type-paragraph-small-weight); font-size: var(--type-paragraph-small-size); line-height: var(--type-paragraph-small-line-height); -webkit-font-smoothing: antialiased; }

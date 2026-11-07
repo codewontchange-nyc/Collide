@@ -1,0 +1,40 @@
+/* Companion: the living mark. A 5 by 5 DotGrid (the md geometry) in a 44px box, not a target. Dots never move:
+   every mood is a cross fade of fill or opacity between two lit sets; the phase attribute picks the easing. */
+.ig-companion { display: grid; place-items: center; width: var(--size-touch); height: var(--size-touch); flex: none; color: var(--color-neutral-10); }
+.ig-companion__mark { color: inherit; }
+
+/* Enter: center first, 110ms per ring (twice the xs stagger), on the editorial curve. */
+.ig-companion[data-phase='enter'] .ig-dotgrid { --ig-settle-step: calc(var(--motion-stagger-xs) * 2); }
+.ig-companion[data-phase='enter'] .ig-dotgrid--settle .ig-dotgrid__dot[data-lit='true'] { animation-timing-function: var(--ease-editorial); }
+
+/* Rest: the settled plus (A: 7, 11, 12, 13, 17) and the ring around the center (B: 6, 7, 8, 11, 13, 16, 17, 18) cross fade
+   every 2400ms, rippling out from the center 110ms per ring. The dots the two sets share stay lit; the others breathe
+   between 1 and 0.25. nth-child is the cell's reading index plus one. */
+.ig-companion[data-phase='rest'] .ig-dotgrid__dot[data-lit='true'] { opacity: var(--a, 1);
+  animation: ig-ambient calc(var(--motion-normal) * 12) var(--ease-editorial) infinite; animation-delay: calc(var(--r, 0) * var(--motion-stagger-xs) * 2); }
+.ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(13) { --a: 1; --b: 0.25; --r: 0; }
+.ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(8), .ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(12),
+.ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(14), .ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(18) { --a: 1; --b: 1; --r: 1; }
+.ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(7), .ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(9),
+.ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(17), .ig-companion[data-phase='rest'] .ig-dotgrid__dot:nth-child(19) { --a: 0.25; --b: 1; --r: 1; }
+
+/* Gather: dots light in reading order 20ms apart (timed in the component) on the standard fill transition;
+   the collapse to one and the return to A run on the exit duration and curve. */
+.ig-companion[data-phase='collapse'] .ig-dotgrid__dot, .ig-companion[data-phase='return-gather'] .ig-dotgrid__dot { transition: fill var(--motion-duration-exit) var(--ease-exit), opacity var(--motion-duration-exit) var(--ease-exit); }
+/* Nod: A fills to the center block over fast standard and returns over the long exit. */
+.ig-companion[data-phase='nod'] .ig-dotgrid__dot { transition: fill var(--motion-fast) var(--ease-standard), opacity var(--motion-fast) var(--ease-standard); }
+.ig-companion[data-phase='return-nod'] .ig-dotgrid__dot { transition: fill var(--motion-exit) var(--ease-standard), opacity var(--motion-exit) var(--ease-standard); }
+
+/* The bubble: the kit's inverted card as a speech line, fixed at the top right of the column, through the overlay slot.
+   The screen's one inverted block while it shows. No tail, no shadow, no italic. */
+.ig-companion__line { position: fixed; top: calc(var(--safe-top) + var(--padding-small)); right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2 + var(--page-gutter)));
+  z-index: var(--z-toast); display: grid; gap: 2px; max-width: min(100% - 2 * var(--page-gutter), 320px); padding: var(--padding-small) var(--padding-med);
+  border-radius: var(--radius-small); background: var(--color-neutral-10); color: var(--color-surface); pointer-events: none; }
+.ig-companion__said { color: inherit; }
+.ig-companion__body { color: var(--color-neutral-02); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-companion .ig-dotgrid__dot, .ig-companion[data-phase='rest'] .ig-dotgrid__dot[data-lit='true'], .ig-companion[data-phase='enter'] .ig-dotgrid--settle .ig-dotgrid__dot[data-lit='true'],
+  .ig-companion[data-phase='collapse'] .ig-dotgrid__dot, .ig-companion[data-phase='return-gather'] .ig-dotgrid__dot, .ig-companion[data-phase='nod'] .ig-dotgrid__dot,
+  .ig-companion[data-phase='return-nod'] .ig-dotgrid__dot, .ig-companion__line { transition: none; animation: none; }
+}

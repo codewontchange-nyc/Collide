@@ -8,11 +8,12 @@
     "dev": "vite",
     "build": "tsc -p tsconfig.json --noEmit && vite build",
     "preview": "vite preview --port 4173 --strictPort",
+    "lint:dash": "LC_ALL=C.UTF-8 grep -rnP --include=*.ts --include=*.tsx --include=*.css --include=*.md \"[\\x{2013}\\x{2014}]\" src; test $? -eq 1",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "icons": "node scripts/make-icons.mjs",
-    "check": "npm run typecheck && npm test && npm run build"
+    "check": "npm run lint:dash && npm run typecheck && npm test && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.0",

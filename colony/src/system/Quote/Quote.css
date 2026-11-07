@@ -1,0 +1,9 @@
+/* Quote: prose read once beside a 1px ink rule. Never grey, never italic. */
+.ig-quote { display: grid; gap: var(--padding-small); margin: 0; max-width: 36ch; padding-left: var(--padding-med); border-left: var(--border-width) solid var(--color-neutral-10); color: var(--color-neutral-10); }
+.ig-quote__text { color: var(--color-neutral-10); }
+.ig-quote__cite { color: var(--color-neutral-06); }
+.ig-quote--ink .ig-quote__cite { color: var(--color-neutral-10); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-quote { transition: none; animation: none; }
+}

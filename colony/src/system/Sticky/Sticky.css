@@ -1,0 +1,7 @@
+/* Sticky: the kit's one sticky rule. Surface behind it, a 32px fade under it, no edge. Only the library's search uses it. */
+.ig-sticky { position: sticky; top: 0; z-index: 1; min-width: 0; padding: var(--padding-small) 0; background: var(--color-surface); }
+.ig-sticky::after { content: ''; position: absolute; inset: 100% 0 auto; height: var(--padding-large); background: linear-gradient(var(--color-surface), transparent); pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-sticky { transition: none; animation: none; }
+}

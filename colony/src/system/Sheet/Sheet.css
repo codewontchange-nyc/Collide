@@ -1,0 +1,41 @@
+/* Sheet: a native modal dialog that rises from the bottom, edgeless: no line, no shadow, the page fades into it through
+   the 64px gradient above the panel. Square top corners, the Dialog scrim, max-height min(76dvh, 680px). No drag, no handle. */
+.ig-sheet { position: fixed; inset: auto 0 0; z-index: var(--z-sheet); margin: 0 auto; padding: 0; border: 0; width: 100%; max-width: var(--page-max);
+  max-height: min(76dvh, 680px); overflow: visible; background: var(--color-surface); color: var(--color-neutral-10); border-radius: var(--radius-small) var(--radius-small) 0 0; box-shadow: none; }
+.ig-sheet[open] { display: grid; animation: ig-sheet-in calc(var(--motion-normal) * 3) var(--ease-feature-reveal); }
+.ig-sheet::backdrop { background: color-mix(in srgb, var(--color-neutral-10) 40%, transparent); }
+.ig-sheet[open]::backdrop { animation: ig-sheet-scrim-in var(--motion-normal) var(--ease-neutral); }
+.ig-sheet[data-closing] { animation: ig-sheet-out var(--motion-duration-exit) var(--ease-exit) forwards; }
+.ig-sheet[data-closing]::backdrop { animation: ig-sheet-scrim-out var(--motion-duration-exit) var(--ease-exit) forwards; }
+.ig-sheet:focus { outline: none; }
+
+/* The panel: head, body (the scroller), actions. The fade sits above it, in the page's own surface. */
+.ig-sheet__panel { position: relative; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; max-height: min(76dvh, 680px); min-width: 0; padding-bottom: var(--safe-bottom); }
+.ig-sheet__panel::before { content: ''; position: absolute; inset: auto 0 100%; height: var(--padding-x-large); background: linear-gradient(to bottom, transparent, var(--color-surface)); pointer-events: none; }
+.ig-sheet__head { display: grid; gap: var(--padding-small); min-width: 0; padding: var(--padding-large) var(--padding-med) 0; padding-right: calc(var(--size-touch) + var(--padding-small)); }
+.ig-sheet__head:empty { display: none; }
+.ig-sheet__eyebrow { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-neutral-06); }
+.ig-sheet__eyebrow > * { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ig-sheet__title { min-width: 0; text-wrap: balance; overflow-wrap: anywhere; }
+.ig-sheet__description { color: var(--color-neutral-08); }
+.ig-sheet__close { position: absolute; top: var(--padding-small); right: var(--padding-small); z-index: 1; }
+.ig-sheet__body { display: grid; gap: var(--padding-med); align-content: start; min-width: 0; padding: var(--padding-med); overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
+  --bleed: var(--padding-med); }   /* a row's wash inside a sheet bleeds to the body's edge */
+.ig-sheet__actions { display: flex; gap: var(--padding-small); min-width: 0; padding: 0 var(--padding-med) var(--padding-med); }
+.ig-sheet__actions:empty { display: none; }
+.ig-sheet__actions > * { flex: 1; min-width: 0; }
+/* The overlay slot: inside the top layer so toasts and the companion's bubble can portal here; it draws nothing. */
+.ig-sheet__overlay { position: absolute; inset: 0; pointer-events: none; }
+.ig-sheet__overlay > * { pointer-events: auto; }
+/* SheetContent outside a Sheet (a specimen) draws the same shape in place. */
+.ig-sheet__content { display: grid; min-width: 0; border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small) var(--radius-small) 0 0; background: var(--color-surface); color: var(--color-neutral-10); }
+.ig-sheet__content .ig-sheet__head { padding-right: var(--padding-med); }
+
+@keyframes ig-sheet-in { from { translate: 0 100%; } to { translate: 0 0; } }
+@keyframes ig-sheet-out { from { translate: 0 0; } to { translate: 0 100%; } }
+@keyframes ig-sheet-scrim-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ig-sheet-scrim-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-sheet[open], .ig-sheet[data-closing], .ig-sheet[open]::backdrop, .ig-sheet[data-closing]::backdrop { transition: none; animation: none; }
+}

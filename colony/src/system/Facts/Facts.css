@@ -1,0 +1,11 @@
+/* Facts: label over value, two columns, 4px between lines. */
+.ig-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--padding-med) var(--padding-large); min-width: 0; }
+.ig-facts--cols-1 { grid-template-columns: minmax(0, 1fr); }
+.ig-facts__item { display: grid; gap: var(--padding-x-small); align-content: start; min-width: 0; }
+.ig-facts__label { color: var(--color-neutral-08); }
+.ig-facts__value { color: var(--color-neutral-10); overflow-wrap: anywhere; }
+.ig-facts__meta { color: var(--color-neutral-06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-facts { transition: none; animation: none; }
+}

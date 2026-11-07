@@ -1,0 +1,10 @@
+/* Screen: the page column (.ig-page lives in base.css; this file holds only what the motion wrapper adds).
+   A Rise child is a plain block; its appear motion is scripted and reads useReducedMotion. */
+.ig-page { position: relative; min-width: 0; }
+.ig-page > * { min-width: 0; }
+/* Library only: a Screen shown in place keeps its grid and gutter without the viewport height and the bar clearance. */
+.ig-page--specimen { min-height: 0; padding: var(--padding-med) var(--page-gutter); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-page { transition: none; animation: none; }
+}

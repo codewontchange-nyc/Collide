@@ -1,0 +1,28 @@
+/* Tag: a 24px mono label on a neutral-01 ground, with an optional dot, link or remove button. A label, never a control. */
+.ig-tag { display: inline-flex; align-items: center; gap: var(--padding-x-small); padding: var(--padding-x-small) var(--padding-small);
+  border: var(--border-width) solid transparent; border-radius: var(--radius-small); background: var(--color-neutral-01); color: var(--color-neutral-08);
+  white-space: nowrap; text-decoration: none;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.ig-tag--ink { background: var(--color-neutral-10); color: var(--color-surface); }
+.ig-tag--outlined { background: var(--color-surface); border-color: var(--color-neutral-02); color: var(--color-neutral-10); }
+a.ig-tag { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer; }
+.ig-tag__link { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+/* The 20px dot pulls in so the tag stays 24px tall. */
+.ig-tag__dot { margin: -5px -4px -5px -6px; }
+
+/* The remove button: 14px around a 10px cross; the halo (Recipe C) makes it a 44px target. */
+.ig-tag__remove { position: relative; display: grid; place-items: center; width: 14px; height: 14px; margin: -2px -4px -2px 0; padding: 0; border: 0;
+  border-radius: var(--radius-small); background: none; color: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-standard); }
+.ig-tag__remove::before { content: ''; position: absolute; inset: -15px; }
+.ig-tag__remove svg { display: block; }
+@media (hover: hover) {
+  .ig-tag__remove:hover, a.ig-tag:hover .ig-tag__link, .ig-tag__link:hover { color: var(--color-neutral-10); }
+  .ig-tag--ink .ig-tag__remove:hover, .ig-tag--ink .ig-tag__link:hover { color: var(--color-neutral-02); }
+  a.ig-tag--muted:hover, a.ig-tag--outlined:hover { border-color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-tag, .ig-tag__remove { transition: none; animation: none; }
+}

@@ -1,0 +1,23 @@
+/* SystemLibrary: the /system page. The wrapper below takes data-mode from the Dark switch and bleeds to the gutters so the
+   mirrored surface reads edge to edge; the groups sit 64 apart (this one page keeps the kit's full catalog rhythm);
+   every entry is a Panel in the auto fill specimen grid the contract names (minmax 160px). */
+.ig-library { display: grid; gap: var(--padding-x-large); min-width: 0; margin: calc(var(--padding-med) * -1) calc(var(--page-gutter) * -1); padding: var(--padding-med) var(--page-gutter);
+  background: var(--color-surface); color: var(--color-neutral-10);
+  transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.ig-library__group { display: grid; gap: var(--padding-large); min-width: 0; scroll-margin-top: calc(var(--sticky-height, 0px) + var(--padding-med)); }
+.ig-library__entry { content-visibility: auto; contain-intrinsic-size: 0 400px; }   /* an estimate for the skipped height, not a size (SCREENS 4) */
+/* One column on a phone so a Button, a row or a field is seen at its size; the contract's auto fill grid from 480px. */
+.ig-library__specimens { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--padding-med); min-width: 0; align-items: start; }
+@media (min-width: 480px) {
+  .ig-library__specimens { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+}
+
+/* Under the sticky search: the count line with its Clear, then the scrolling row of group chips. Pulled up so the search sits 16 above them. */
+.ig-library__scope { display: grid; gap: var(--padding-small); min-width: 0; margin-top: calc(var(--padding-med) * -1); }
+.ig-library__scope > * { min-width: 0; }   /* the scrolling chip row never widens the column */
+.ig-library__count { display: flex; align-items: center; justify-content: space-between; gap: var(--padding-med); min-height: var(--size-touch); min-width: 0; }
+.ig-library__count .ig-meta { min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-library { transition: none; animation: none; }
+}

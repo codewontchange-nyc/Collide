@@ -1,0 +1,32 @@
+/* Switch: a square 36 by 20 track with a square 12px knob inset 3px; the knob travels 16px when checked.
+   The whole row is the target (Recipe B): a label at least 44px tall, text first, track at the right. */
+.ig-switch { --ig-switch-track-w: 36px; --ig-switch-track-h: 20px; --ig-switch-knob: 12px;   /* the track geometry, once */
+  display: flex; align-items: center; justify-content: space-between; gap: var(--padding-small); width: 100%; min-height: var(--size-touch);
+  color: var(--color-neutral-10); cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; }
+.ig-switch--disabled { cursor: not-allowed; }
+.ig-switch__text { display: grid; gap: 2px; min-width: 0; }   /* label to hint gap */
+.ig-switch__hint { color: var(--color-neutral-08); }
+.ig-switch--disabled .ig-switch__label { color: var(--color-neutral-06); }
+.ig-switch--disabled .ig-switch__hint { color: var(--color-neutral-06); }
+.ig-switch__track { position: relative; flex: none; width: var(--ig-switch-track-w); height: var(--ig-switch-track-h); padding: 0;
+  border: var(--border-width) solid var(--color-neutral-04); border-radius: var(--radius-small); background: var(--color-surface); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.ig-switch__knob { position: absolute; top: 3px; left: 3px; /* knob inset */ width: var(--ig-switch-knob); height: var(--ig-switch-knob);
+  border-radius: var(--radius-small); background: var(--color-neutral-04);
+  transition: translate var(--motion-fast) var(--ease-standard), background-color var(--motion-fast) var(--ease-standard); }
+.ig-switch__track[aria-checked='true'] { border-color: var(--color-neutral-10); background: var(--color-neutral-10); }
+.ig-switch__track[aria-checked='true'] .ig-switch__knob { translate: calc(var(--ig-switch-track-w) - var(--ig-switch-knob) - 3px * 2 - var(--border-width) * 2) 0; background: var(--color-surface); }
+.ig-switch__track:not(:disabled):active { border-color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
+.ig-switch__track:disabled { border-color: var(--color-neutral-02); cursor: not-allowed; }
+.ig-switch__track:disabled .ig-switch__knob { background: var(--color-neutral-02); }
+.ig-switch__track:disabled[aria-checked='true'] { background: var(--color-neutral-02); }
+.ig-switch__track:disabled[aria-checked='true'] .ig-switch__knob { background: var(--color-surface); }
+
+@media (hover: hover) {
+  .ig-switch:not(.ig-switch--disabled):hover .ig-switch__track { border-color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-switch__track, .ig-switch__knob { transition: none; animation: none; }
+}

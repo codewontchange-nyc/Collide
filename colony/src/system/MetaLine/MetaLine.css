@@ -1,0 +1,11 @@
+/* MetaLine: facts as inline blocks joined by middots. The line breaks between facts, never inside one. Type comes from label-small. */
+.ig-meta { margin: 0; color: var(--color-neutral-06); }
+.ig-meta--secondary { color: var(--color-neutral-08); }
+.ig-meta--meta { color: var(--color-neutral-06); }
+.ig-meta--ink { color: var(--color-neutral-10); }
+.ig-meta__fact { display: inline-block; white-space: nowrap; }
+.ig-meta__sep { white-space: pre; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-meta { transition: none; animation: none; }
+}

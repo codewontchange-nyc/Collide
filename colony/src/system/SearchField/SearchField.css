@@ -1,0 +1,30 @@
+/* SearchField: the 52px pill with the 12px radius, a hairline that shows on hover, focus and when filled.
+   The input is headline-small (16px, no iOS zoom); the clear button is a 44px square pulled to keep the pill at 52. */
+.ig-search { display: flex; align-items: center; gap: var(--padding-small); min-height: var(--size-control); min-width: 0; cursor: text;
+  padding: var(--padding-small) var(--padding-small) var(--padding-small) var(--padding-med);
+  border: var(--border-width) solid transparent; border-radius: var(--radius-large); background: var(--color-neutral-01); color: var(--color-neutral-10);
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.ig-search:focus-within, .ig-search[data-filled] { border-color: var(--color-neutral-02); }
+.ig-search__glyph { color: var(--color-neutral-08); transition: color var(--motion-fast) var(--ease-standard); }
+.ig-search:focus-within .ig-search__glyph, .ig-search[data-filled] .ig-search__glyph { color: var(--color-neutral-10); }
+.ig-search__input { flex: 1; min-width: 0; width: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; color: inherit;
+  appearance: none; -webkit-appearance: none; }
+.ig-search__input::placeholder { color: var(--color-neutral-04); opacity: 1; }
+.ig-search__input::-webkit-search-decoration, .ig-search__input::-webkit-search-cancel-button, .ig-search__input::-webkit-search-results-button { display: none; -webkit-appearance: none; }
+.ig-search__input:focus { outline: none; }
+.ig-search__input:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; border-radius: var(--radius-small); }
+/* The clear button follows the IconButton rules: a 44px square, radius-small, neutral-08 to ink. The negative pull keeps the pill at 52px. */
+.ig-search__clear { display: grid; place-items: center; flex: none; width: var(--size-touch); height: var(--size-touch); margin: calc(var(--padding-x-small) * -1) 0;
+  padding: 0; border: 0; border-radius: var(--radius-small); background: none; color: var(--color-neutral-08); cursor: pointer;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
+  transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.ig-search__clear:active { background: var(--color-neutral-02); transition-duration: var(--motion-duration-instant); }
+
+@media (hover: hover) {
+  .ig-search:hover { border-color: var(--color-neutral-02); }
+  .ig-search__clear:hover { color: var(--color-neutral-10); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-search, .ig-search__glyph, .ig-search__clear { transition: none; animation: none; }
+}
