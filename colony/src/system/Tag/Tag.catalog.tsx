@@ -24,7 +24,7 @@ export const entries: CatalogEntry[] = [
     name: "Tag",
     group: "Marks and status",
     tasks: ["label a kind of thing", "name a skill", "mark a category", "show a state beside a label", "remove an item from a set"],
-    variants: ["muted", "ink", "outlined", "state default", "state success", "state error", "state inactive", "href", "remove", "href and remove", "on a ground"],
+    variants: ["muted", "ink", "outlined", "state default", "state success", "state error", "state inactive", "href", "remove", "href and remove", "on a ground", "row (.ig-tags)"],
     render: () => (
       <>
         <Specimen label="muted">
@@ -74,6 +74,17 @@ export const entries: CatalogEntry[] = [
           <Tag state="inactive" tone="outlined">
             Off
           </Tag>
+        </Specimen>
+        <Specimen label="row (.ig-tags)">
+          <div className="ig-tags">
+            <Tag>Plumbing</Tag>
+            <Tag>Electrical</Tag>
+            <Tag>Childcare</Tag>
+            <Tag>Plants</Tag>
+            <Tag>Cooking</Tag>
+            <Tag>Cleaning</Tag>
+            <Tag tone="ink">Smart matched</Tag>
+          </div>
         </Specimen>
       </>
     ),

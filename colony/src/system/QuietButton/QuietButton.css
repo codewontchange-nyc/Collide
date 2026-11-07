@@ -2,12 +2,12 @@
 .ig-quiet { position: relative; display: inline-flex; align-items: center; gap: var(--padding-x-small); padding: var(--padding-x-small) 0; border: 0;
   border-bottom: var(--border-width) solid var(--color-neutral-02); background: none; color: var(--color-neutral-08); white-space: nowrap; text-decoration: none;
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer;
-  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard); }
+  transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
 .ig-quiet::before { content: ''; position: absolute; inset: -12px 0; }   /* the halo: 44px of vertical reach around a 20px drawing */
 .ig-quiet--ink { color: var(--color-neutral-10); border-bottom-color: var(--color-neutral-10); }
 
-/* States */
-.ig-quiet:not(:disabled):not([aria-disabled='true']):active { scale: 0.99; }
+/* States. Like Button and IconButton it does not scale: a press goes ink over the instant duration. */
+.ig-quiet:not(:disabled):not([aria-disabled='true']):active { color: var(--color-neutral-10); border-bottom-color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
 .ig-quiet:disabled, .ig-quiet[aria-disabled='true'] { color: var(--color-neutral-06); border-bottom-color: var(--color-neutral-01); cursor: not-allowed; }
 @media (hover: hover) {
   .ig-quiet:not(:disabled):not([aria-disabled='true']):hover { color: var(--color-neutral-10); border-bottom-color: var(--color-neutral-10); }

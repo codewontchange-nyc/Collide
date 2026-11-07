@@ -7,8 +7,10 @@
 .ig-tokens__name { color: var(--color-neutral-10); overflow-wrap: anywhere; }
 .ig-tokens__value { color: var(--color-neutral-06); overflow-wrap: anywhere; }
 
-/* Color: ten 44px squares with the hairline, five to a row */
-.ig-tokens__colors { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--padding-med) var(--padding-small); }
+/* Color: ten 44px squares with the hairline, five to a row at the column's full width (560), three or four on a phone,
+   each cell wide enough that a token name never breaks inside itself */
+.ig-tokens__colors { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--padding-med) var(--padding-small); }
+.ig-tokens__colors .ig-tokens__name { white-space: nowrap; overflow-wrap: normal; }
 .ig-tokens__swatch { display: grid; gap: var(--padding-x-small); min-width: 0; align-content: start; }
 .ig-tokens__chip { display: block; width: var(--size-touch); height: var(--size-touch); border: var(--border-width) solid var(--color-neutral-02); border-radius: var(--radius-small);
   transition: background-color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }

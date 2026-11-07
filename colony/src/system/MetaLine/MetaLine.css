@@ -1,4 +1,5 @@
-/* MetaLine: facts as inline blocks joined by middots. The line breaks between facts, never inside one. Type comes from label-small. */
+/* MetaLine: facts as inline blocks joined by middots. The separator sits inside the fact it follows, so the line breaks between facts,
+   never inside one and never before a dot. Type comes from label-small. */
 .ig-meta { margin: 0; color: var(--color-neutral-06); }
 .ig-meta--secondary { color: var(--color-neutral-08); }
 .ig-meta--meta { color: var(--color-neutral-06); }

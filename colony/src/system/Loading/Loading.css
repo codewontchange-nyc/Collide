@@ -8,8 +8,9 @@
 .ig-loading--once .ig-loading__sweep { width: 100%; animation-iteration-count: 1; animation-fill-mode: forwards; }
 @keyframes ig-loading-sweep { from { translate: -100% 0; } to { translate: var(--ig-loading-travel) 0; } }
 
-.ig-loading--sentence { display: flex; align-items: center; justify-content: center; gap: var(--padding-x-small); color: var(--color-neutral-08); text-align: center; }
-.ig-loading__dot { margin: -4px; }   /* pulled tight beside its word, as in rows */
+/* The sentence hangs from its dot: the dot leads line one and every further line starts under line one's first character. */
+.ig-loading--sentence { display: flex; align-items: flex-start; justify-content: flex-start; gap: var(--padding-x-small); color: var(--color-neutral-08); text-align: left; }
+.ig-loading__dot { margin: -4px; margin-top: calc((var(--type-label-small-line-height) * var(--type-label-small-size) - 20px) / 2); }   /* pulled tight, centered on the first line */
 .ig-loading__word { min-width: 0; }
 
 @media (prefers-reduced-motion: reduce) {

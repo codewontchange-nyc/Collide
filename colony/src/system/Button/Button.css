@@ -16,6 +16,9 @@
   backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); }   /* the one blur in the system: the kit's dark surface control */
 .ig-button--danger { --ig-button-bg: color-mix(in srgb, var(--color-accent-red) 72%, var(--color-neutral-10)); --ig-button-fg: var(--color-surface);
   --ig-button-bg-hover: color-mix(in srgb, var(--color-accent-red) 60%, var(--color-neutral-10)); }
+/* In dark mode neutral-10 is white, so the 72% mix would turn pastel. The one data-mode rule in this file (the toast's shadow swap is
+   the other in the system): red itself, surface (black) text at 6.5:1, hover a step toward the surface. */
+[data-mode="dark"] .ig-button--danger { --ig-button-bg: var(--color-accent-red); --ig-button-bg-hover: color-mix(in srgb, var(--color-accent-red) 85%, var(--color-surface)); }
 
 /* Parts */
 .ig-button__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }

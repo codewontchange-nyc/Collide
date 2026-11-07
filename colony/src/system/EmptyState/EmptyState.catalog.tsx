@@ -14,7 +14,7 @@ export const entries: CatalogEntry[] = [
     id: "empty-state",
     name: "EmptyState",
     group: "Feedback",
-    tasks: ["nothing here yet", "no results", "no provider selected", "offer the first action"],
+    tasks: ["nothing here yet", "no results", "no provider selected", "offer the first action", "clearLabel: the clear button's label (default Clear)"],
     variants: ["title and body", "body only (the mono sentence)", "action", "query and onClear (live)", "compact", "pattern", "action and onClear"],
     render: () => (
       <>

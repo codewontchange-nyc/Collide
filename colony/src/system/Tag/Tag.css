@@ -8,6 +8,9 @@
 a.ig-tag { -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; cursor: pointer; }
 .ig-tag__link { color: inherit; text-decoration: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
+/* A row of tags (the migration table's .chips): wraps, 4px apart. */
+.ig-tags { display: flex; flex-wrap: wrap; gap: var(--padding-x-small); min-width: 0; }
+
 /* The 20px dot pulls in so the tag stays 24px tall. */
 .ig-tag__dot { margin: -5px -4px -5px -6px; }
 

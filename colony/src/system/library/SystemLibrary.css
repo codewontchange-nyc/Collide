@@ -1,6 +1,12 @@
 /* SystemLibrary: the /system page. The wrapper below takes data-mode from the Dark switch and bleeds to the gutters so the
    mirrored surface reads edge to edge; the groups sit 64 apart (this one page keeps the kit's full catalog rhythm);
-   every entry is a Panel in the auto fill specimen grid the contract names (minmax 160px). */
+   every entry is a Panel in the auto fill specimen grid the contract names (minmax 160px).
+   Three recorded departures from the contract's section 9 (decided here, to be written into section 12):
+   entries are grouped by CatalogGroup in the group order, CATALOG order inside a group, and the index is the entry's place on the page
+   (the chip row scopes a 53 entry page by group; a flat CATALOG order has no handle on a phone); the specimen grid is one column
+   under 480px (two 163px cells at 343 would show a Button, a row or a field at a size no screen uses); and the Sticky search is a
+   sibling of the PageIntro, not its under slot, because a sticky element only sticks inside its parent's box and would scroll
+   away with the masthead. */
 .ig-library { display: grid; gap: var(--padding-x-large); min-width: 0; margin: calc(var(--padding-med) * -1) calc(var(--page-gutter) * -1); padding: var(--padding-med) var(--page-gutter);
   background: var(--color-surface); color: var(--color-neutral-10);
   transition: background-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }

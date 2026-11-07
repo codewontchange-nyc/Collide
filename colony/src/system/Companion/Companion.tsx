@@ -91,19 +91,14 @@ export function Companion({ mood, className }: { mood?: Mood; className?: string
     return () => timers.forEach((t) => clearTimeout(t));
   }, [current, reduced]);
 
-  /* the bubble: hold the toasts for the line's life, route the next 300ms of toasts into the second line (Toast.tsx owns the rules) */
+  /* the bubble's toast rules are armed by companion.say itself (companion.ts), so a toast fired right after say is merged even
+     before this component re renders; here only the unmount matters: a bubble that disappears with its Companion ends the hold */
   const storeDriven = mood === undefined;
   useEffect(() => {
     if (!storeDriven) return;
-    if (!s.line) {
-      toast.bubbleLeft();
-      return;
-    }
-    toast.bubble(s.line, s.lineMs + EXIT_MS, companion.annotate);
-  }, [storeDriven, s.line, s.lineMs, s.lineId]);
-  useEffect(() => {
-    if (!storeDriven) return;
-    return () => toast.bubbleLeft();
+    return () => {
+      if (companion.get().line) toast.bubbleLeft();
+    };
   }, [storeDriven]);
 
   const resting = phase === "rest";

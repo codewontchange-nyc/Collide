@@ -14,7 +14,8 @@
   50% { scale: 1.0625; opacity: 1; }
 }
 @media (prefers-reduced-motion: no-preference) {
-  .ig-dot--signal[data-pulse='true'] circle { animation: ig-status-pulse 2.7s var(--ease-signal) infinite; }
+  /* 2.7s per cycle, written on the tokens: entrance (1000) plus hero (1700) */
+  .ig-dot--signal[data-pulse='true'] circle { animation: ig-status-pulse calc(var(--motion-entrance) + var(--motion-duration-hero)) var(--ease-signal) infinite; }
 }
 
 /* StatusWord: the dot and its word. */

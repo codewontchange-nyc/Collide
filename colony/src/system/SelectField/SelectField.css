@@ -17,6 +17,7 @@
   transition: color var(--motion-fast) var(--ease-standard); }
 .ig-select__box:focus-within .ig-select__chevron { color: var(--color-neutral-10); }
 .ig-select__error { color: color-mix(in srgb, var(--color-accent-red) 72%, var(--color-neutral-10)); }
+[data-mode="dark"] .ig-select__error { color: var(--color-accent-red); }   /* the ink mix would go pastel on black; red is 6.5:1 there */
 
 /* Overlay: the kit's checkbox trick. The visible value is mono; the real select sits over it at opacity 0 so one tap opens the OS picker. */
 .ig-select--overlay .ig-select__value { flex: 1; min-width: 0; padding: 12px calc(20px + var(--padding-x-small)) 12px 0; /* touch row */

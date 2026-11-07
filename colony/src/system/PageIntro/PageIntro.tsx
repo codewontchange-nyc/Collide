@@ -3,7 +3,10 @@ import { IconButton } from "@/system/IconButton/IconButton";
 import { Kicker } from "@/system/Kicker/Kicker";
 
 /** The masthead, once: a trail (back, the mono eyebrow, an aside), the two tone title with its muted half on its own line,
- *  one intro sentence, a row of actions, and the under slot for the controls that scope the page. */
+ *  one intro sentence, a row of actions, and the under slot for the controls that scope the page.
+ *  Size, decided once (contract decision 11, the brief's phone step): the title is headline-medium (32px/1) on every page, the
+ *  library included; headline-large (56px) belongs to the hero figure and the welcome wordmark only. There is no size prop. A three
+ *  word muted half can still take two lines at 375 (32px Geist 600 holds about 19 characters in 343px); that is the copy's budget. */
 export function PageIntro({
   eyebrow,
   back,

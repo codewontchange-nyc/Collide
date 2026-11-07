@@ -2,7 +2,7 @@
    the index in mono digits (not uppercased), the label in headline-small and a hint under it. Done steps are links. */
 .ig-stepper { --ig-stepper-mark: 9px; color: var(--color-neutral-10); }
 .ig-stepper__list { display: grid; }
-.ig-stepper__step { position: relative; display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: var(--padding-med); align-items: baseline;
+.ig-stepper__step { position: relative; display: grid; grid-template-columns: 2ch minmax(0, 1fr); column-gap: var(--padding-med); align-items: baseline;   /* the 2ch mono index column, as List and PanelHead */
   margin-left: var(--padding-x-small); padding: 0 0 var(--padding-large) var(--padding-med); border-left: var(--border-width) solid var(--color-neutral-02);
   color: var(--color-neutral-06); }
 .ig-stepper__step:last-child { padding-bottom: 0; }

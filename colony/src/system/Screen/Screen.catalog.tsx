@@ -8,7 +8,7 @@ export const entries: CatalogEntry[] = [
     id: "screen",
     name: "Screen",
     group: "Shell",
-    tasks: ["the page column", "a route that rises in", "a dark welcome", "remember where the reader was"],
+    tasks: ["the page column", "a route that rises in", "a dark welcome", "remember where the reader was", "library only: restoreScroll false keeps a specimen from scrolling the page"],
     variants: ["default (in place)", "bare", "mode dark"],
     render: () => (
       <>

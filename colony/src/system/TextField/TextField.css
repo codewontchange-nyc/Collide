@@ -16,6 +16,7 @@ textarea.ig-text-field__input { resize: vertical; }
 /* The affix sits on the input's line: label-large at the paragraph line height so the baselines meet. */
 .ig-text-field__affix { flex: none; padding: 12px 0; /* touch row */ color: var(--color-neutral-08); line-height: var(--type-paragraph-small-line-height); white-space: nowrap; }
 .ig-text-field__error { color: color-mix(in srgb, var(--color-accent-red) 72%, var(--color-neutral-10)); }
+[data-mode="dark"] .ig-text-field__error { color: var(--color-accent-red); }   /* the ink mix would go pastel on black; red is 6.5:1 there */
 
 /* A read only value renders the same box in the secondary grey. */
 .ig-text-field--readonly .ig-text-field__input { color: var(--color-neutral-08); }

@@ -10,7 +10,7 @@
 .ig-metric-strip__label { color: var(--color-neutral-08); }
 .ig-metric-strip__figure { display: flex; align-items: flex-start; gap: var(--padding-small); padding-top: var(--padding-x-small); }
 .ig-metric-strip__value { min-width: 0; white-space: nowrap; }
-.ig-metric-strip__unit { flex: none; margin-block: 2px; padding: 2px var(--padding-x-small); border-radius: 2px; background: var(--color-neutral-02); color: var(--color-neutral-10); white-space: nowrap; }
+.ig-metric-strip__unit { flex: none; margin-block: 2px; padding: 2px var(--padding-x-small); border-radius: var(--radius-small); background: var(--color-neutral-02); color: var(--color-neutral-10); white-space: nowrap; }
 .ig-metric-strip__delta { display: flex; align-items: center; gap: var(--padding-x-small); color: var(--color-neutral-10); }
 .ig-metric-strip__delta .ig-caret { flex: none; }
 .ig-metric-strip__note { color: var(--color-neutral-08); }

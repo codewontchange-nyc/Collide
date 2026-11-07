@@ -59,7 +59,7 @@ export const entries: CatalogEntry[] = [
     id: "dotgrid",
     name: "DotGrid",
     group: "Marks and status",
-    tasks: ["mark a tab", "draw the companion", "draw the mark", "show a lit set", "ambient icon"],
+    tasks: ["mark a tab", "draw the companion", "draw the mark", "show a lit set", "ambient icon", "style: inline custom properties only (--ig-settle-step for a slower or faster settle)"],
     variants: [
       ...PATTERN_NAMES.map((p) => `sm ${p}`),
       ...PATTERN_NAMES.map((p) => `md ${p}`),

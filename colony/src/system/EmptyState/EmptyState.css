@@ -1,4 +1,5 @@
-/* EmptyState: a dashed hairline box, centered, a neutral-04 dot mark, a title and a body or one mono sentence, one action and a clear. */
+/* EmptyState: a dashed hairline box, centered, a neutral-04 dot mark, a title and a body or one mono sentence, one action and a clear.
+   The clear is a QuietButton (the one owner of the underlined mono idiom); nothing in this file animates. */
 .ig-empty { display: grid; justify-items: center; gap: var(--padding-small); width: 100%; padding: var(--padding-large) var(--padding-med);
   border: var(--border-width) dashed var(--color-neutral-02); border-radius: var(--radius-small); color: var(--color-neutral-10); text-align: center; }
 .ig-empty--compact { padding: var(--padding-med); }
@@ -9,18 +10,7 @@
 .ig-empty__body--mono { max-width: none; }
 .ig-empty__actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--padding-med); margin-top: var(--padding-med); }
 .ig-empty--compact .ig-empty__actions { margin-top: var(--padding-small); }
-/* The clear is the underlined mono idiom (the QuietButton's rules): a hairline under the word, a 44px halo (Recipe C). */
-.ig-empty__clear { position: relative; display: inline-flex; align-items: center; gap: var(--padding-x-small); padding: var(--padding-x-small) 0; border: 0;
-  border-bottom: var(--border-width) solid var(--color-neutral-02); background: none; color: var(--color-neutral-08); white-space: nowrap; cursor: pointer;
-  -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
-  transition: color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
-.ig-empty__clear::before { content: ''; position: absolute; inset: -12px 0; }   /* the halo: 44px tall around a 20px word */
-.ig-empty__clear:active { color: var(--color-neutral-10); border-color: var(--color-neutral-10); transition-duration: var(--motion-duration-instant); }
-
-@media (hover: hover) {
-  .ig-empty__clear:hover { color: var(--color-neutral-10); border-color: var(--color-neutral-10); }
-}
 
 @media (prefers-reduced-motion: reduce) {
-  .ig-empty__clear { transition: none; animation: none; }
+  .ig-empty { transition: none; animation: none; }
 }

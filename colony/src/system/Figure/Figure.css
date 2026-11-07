@@ -2,8 +2,8 @@
 .ig-figure { display: inline-flex; align-items: flex-start; gap: var(--padding-small); white-space: nowrap; color: var(--color-neutral-10); }
 .ig-figure--secondary { color: var(--color-neutral-08); }
 .ig-figure__value { min-width: 0; }
-/* The unit chip: the kit's raw grey has no token, so neutral-02. 2px is the chip's own inset. */
-.ig-figure__unit { flex: none; margin-block: 2px; padding: 2px var(--padding-x-small); border-radius: 2px; background: var(--color-neutral-02); color: var(--color-neutral-10); white-space: nowrap; }
+/* The unit chip: the kit's raw grey has no token, so neutral-02. 2px is the chip's own inset; the radius is the small token like every chip (rule 2). */
+.ig-figure__unit { flex: none; margin-block: 2px; padding: 2px var(--padding-x-small); border-radius: var(--radius-small); background: var(--color-neutral-02); color: var(--color-neutral-10); white-space: nowrap; }
 /* mono: the invite code and nothing else. The mono tokens are the label's family, weight and tracking at the size's px. */
 .ig-figure--mono .ig-figure__value { font-family: var(--type-label-small-family), monospace; font-weight: var(--type-label-small-weight); letter-spacing: var(--type-label-small-tracking); }
 

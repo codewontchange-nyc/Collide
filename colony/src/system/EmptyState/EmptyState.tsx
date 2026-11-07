@@ -1,5 +1,6 @@
 import { Button } from "@/system/Button/Button";
 import { DotGrid, type PatternName } from "@/system/DotGrid/DotGrid";
+import { QuietButton } from "@/system/QuietButton/QuietButton";
 
 type EmptyStateProps = {
   title?: string;
@@ -38,11 +39,7 @@ export function EmptyState({ title, body, pattern = "plus", action, query, onCle
               {action.label}
             </Button>
           )}
-          {showClear && (
-            <button type="button" className="ig-empty__clear label-small" onClick={onClear}>
-              {clearLabel}
-            </button>
-          )}
+          {showClear && <QuietButton onClick={onClear}>{clearLabel}</QuietButton>}
         </div>
       )}
     </div>

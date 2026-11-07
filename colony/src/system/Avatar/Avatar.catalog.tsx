@@ -17,7 +17,7 @@ export const entries: CatalogEntry[] = [
     id: "avatar",
     name: "Avatar",
     group: "People and time",
-    tasks: ["show a person", "show who is coming", "show the household", "the You page"],
+    tasks: ["show a person", "show who is coming", "show the household", "the You page", "style and the span's attributes pass through (the stack sets --ig-stack-z)"],
     variants: ["sm", "md", "lg", "image", "initials fallback", "broken image", "state success", "state default", "state error", "state inactive", "on an inverted card"],
     render: () => (
       <>

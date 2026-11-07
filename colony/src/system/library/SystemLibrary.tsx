@@ -254,6 +254,8 @@ export function SystemLibrary() {
           ) : (
             grouped.map(({ group, entries }) => {
               const visible = entries.filter((e) => shownIds.has(e.id));
+              /* while searching, a group with no hit is skipped (the chip counts already say 0), so the first result sits right under the search */
+              if (searching && visible.length === 0) return null;
               const headId = `library-${slug(group)}`;
               return (
                 <section key={group} className="ig-library__group" id={headId} aria-labelledby={`${headId}-head`} ref={register(group)} data-library-group={group}>

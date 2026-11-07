@@ -16,9 +16,10 @@
 .ig-avatar__state[data-state='error'] { background: var(--color-accent-red); }
 .ig-avatar__state[data-state='inactive'] { background: var(--color-neutral-01); box-shadow: 0 0 0 var(--border-width) var(--color-neutral-02), 0 0 0 2px var(--ig-avatar-ring, var(--color-surface)); }
 
-/* Stack: 6px of overlap, the +N as a rest avatar in neutral-08. */
+/* Stack: 6px of overlap, the +N as a rest avatar in neutral-08. Later avatars draw under earlier ones (--ig-stack-z counts down),
+   so each avatar's initials stay whole and the stack reads left to right. */
 .ig-avatar-stack { display: inline-flex; align-items: center; padding-left: 6px; }
-.ig-avatar-stack .ig-avatar { margin-left: -6px; }
+.ig-avatar-stack .ig-avatar { margin-left: -6px; z-index: var(--ig-stack-z, 0); }
 
 @media (prefers-reduced-motion: reduce) {
   .ig-avatar, .ig-avatar__state { transition: none; animation: none; }

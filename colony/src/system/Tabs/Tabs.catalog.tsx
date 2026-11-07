@@ -23,7 +23,8 @@ const NEEDS: TabSpec[] = [
   { label: "Needs you", count: 2, id: "needs-you" },
 ];
 
-const RANGES: TabSpec[] = [{ label: "This week" }, { label: "This month" }, { label: "All time" }];
+/* Words that fit a 375 column three up; the long form is the ellipsis specimen below. */
+const RANGES: TabSpec[] = [{ label: "Week" }, { label: "Month" }, { label: "All time" }];
 
 const MANY: TabSpec[] = [
   { label: "Upcoming", count: 6 },

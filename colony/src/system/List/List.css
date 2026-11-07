@@ -18,7 +18,9 @@
 .ig-row[data-cols='ilmt'] { grid-template-columns: var(--ig-index, 2ch) auto minmax(0, 1fr) auto; }
 .ig-row--ink { border-top: var(--border-width) solid var(--color-neutral-10); }
 .ig-list--dense .ig-row { padding: var(--padding-small) 0; min-height: 0; }
-.ig-list--reading .ig-row { padding: var(--padding-med) 0; }
+/* Reading rows hold a multi line body, so the cells sit on the title's baseline (the index lines up with its title, not the row's middle). */
+.ig-list--reading .ig-row { padding: var(--padding-med) 0; align-items: baseline; }
+.ig-list--reading .ig-row__leading { align-self: center; }
 
 /* Cells */
 .ig-row__index { color: var(--color-neutral-06); width: var(--ig-index, 2ch); white-space: nowrap; }

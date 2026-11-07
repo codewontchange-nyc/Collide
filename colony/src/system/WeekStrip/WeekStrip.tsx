@@ -11,7 +11,8 @@ export interface WeekDay {
 }
 
 /** Seven day cells: a mono day name over the date, a 3px mark when the day holds something. Today is the inverted cell.
- *  With onSelect each day is a 44px button. No counts: a quiet week is a row of bare dates. */
+ *  With onSelect each day is a 44px button named by label; without it the cell is a span, and the label is read from a visually
+ *  hidden span inside it (aria-label on a generic span is not exposed), with the visible name and number hidden from the reader. */
 export function WeekStrip({
   days,
   onSelect,
@@ -30,10 +31,16 @@ export function WeekStrip({
     <ol className={cls} aria-label={label}>
       {days.map((d) => {
         const isSelected = selected !== undefined && selected === d.date;
+        /* in the span form the visible parts are hidden from the reader when a label names the day */
+        const hideVisible = !onSelect && d.label !== undefined;
         const inner = (
           <>
-            <span className="ig-week__name label-small">{d.weekday}</span>
-            <span className="ig-week__num headline-small tnum">{d.number}</span>
+            <span className="ig-week__name label-small" aria-hidden={hideVisible || undefined}>
+              {d.weekday}
+            </span>
+            <span className="ig-week__num headline-small tnum" aria-hidden={hideVisible || undefined}>
+              {d.number}
+            </span>
             <span className="ig-week__mark" data-busy={d.busy ? "true" : "false"} />
           </>
         );
@@ -42,16 +49,18 @@ export function WeekStrip({
           "data-relation": d.relation,
           "data-selected": isSelected ? "true" : undefined,
           "aria-current": d.relation === "today" ? ("date" as const) : undefined,
-          "aria-label": d.label,
         };
         return (
           <li className="ig-week__item" key={d.date}>
             {onSelect ? (
-              <button type="button" {...shared} aria-pressed={isSelected} onClick={() => onSelect(d.date)}>
+              <button type="button" {...shared} aria-label={d.label} aria-pressed={isSelected} onClick={() => onSelect(d.date)}>
                 {inner}
               </button>
             ) : (
-              <span {...shared}>{inner}</span>
+              <span {...shared}>
+                {d.label !== undefined && <span className="ig-sr">{d.label}</span>}
+                {inner}
+              </span>
             )}
           </li>
         );

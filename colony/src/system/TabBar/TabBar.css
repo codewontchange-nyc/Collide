@@ -18,9 +18,12 @@
 /* Marks: unlit dots are surface in the bar, so a mark shows only its lit dots; the other tabs' marks sit at 0.3. */
 .ig-tabbar__mark { opacity: 0.3; transition: opacity var(--motion-fast) var(--ease-standard); }
 .ig-tabbar__link[aria-current='page'] .ig-tabbar__mark { opacity: 1; }
-/* The word: "Availability" is 97px in a 125px column, so it may never wrap. */
+/* The word: "Availability" is 97px in a 125px column, so it may never wrap. The word holds the name alone. */
 .ig-tabbar__word { max-width: 100%; min-width: 0; padding: 0 var(--padding-x-small); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ig-tabbar__count { color: var(--color-neutral-06); }
+/* The count sits on the mark row, hanging to the right of the 20px grid (the dashboard's "Brands 28" places it beside the mark),
+   so the mark stays centered in its column and a clamped word never eats the one number the variant exists to show. */
+.ig-tabbar__marks { position: relative; display: grid; place-items: center; }
+.ig-tabbar__count { position: absolute; left: 100%; top: 50%; translate: 0 -50%; margin-left: var(--padding-x-small); color: var(--color-neutral-06); white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {
   .ig-tabbar__link, .ig-tabbar__link::after, .ig-tabbar__mark { transition: none; animation: none; }
