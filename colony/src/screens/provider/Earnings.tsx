@@ -1,11 +1,8 @@
 import { useMemo } from "react";
 import { useColonyState } from "@/store/store";
 import { currentProvider } from "@/store/selectors";
-import { Screen, Rise } from "@/ui/Screen";
-import { PageHead, Kicker } from "@/ui/PageHead";
-import { Money } from "@/ui/Money";
-import { Empty } from "@/ui/Empty";
-import { ModeBar } from "./Today";
+import { Screen, Rise, PageIntro, MetaLine, StatTile, Figure, Panel, PanelHead, List, ListRow, Meter, EmptyState } from "@/system";
+import { BackToMember } from "./Today";
 import { addDays, compareDates, firstOfMonth, fmtDay, fmtMonth, lastOfMonth, monthOf, startOfWeek } from "@/domain/dates";
 import { fmt } from "@/domain/money";
 
@@ -47,53 +44,58 @@ export function Earnings() {
   }, [rows]);
   const max = Math.max(1, ...weeks.map(([, c]) => c));
 
-  if (!me) return <Screen><Empty line="No provider selected." /></Screen>;
+  if (!me) {
+    return (
+      <Screen title="Earnings">
+        <EmptyState body="No provider selected." />
+      </Screen>
+    );
+  }
 
   return (
-    <Screen>
-      <Rise>
-        <ModeBar />
-        <PageHead kicker={fmtMonth(month)} title="Earnings" companion={false} />
-        <div className="hero">
-          <Money cents={total} />
-          <span className="unit">this month</span>
-        </div>
-        <p className="sub" style={{ marginTop: 10 }}>
-          Paid in full by the colony, straight to you. Colony takes no cut.
-        </p>
+    <Screen title="Earnings">
+      <Rise index={0}>
+        <PageIntro
+          eyebrow={<MetaLine facts={["Provider view", fmtMonth(month)]} />}
+          aside={<BackToMember />}
+          title="Earnings"
+          titleMuted={fmtMonth(month)}
+          intro="Paid in full by the colony, straight to you. Colony takes no cut."
+          editorial
+        />
       </Rise>
-      <Rise className="section">
-        <Kicker>By week</Kicker>
-        <div className="stack" style={{ gap: 10 }}>
-          {weeks.map(([w, c]) => (
-            <div key={w} className="row">
-              <span className="small muted tnum" style={{ width: 72 }}>
-                {fmtDay(w)} to {fmtDay(addDays(w, 6)).split(" ")[1]}
-              </span>
-              <div className="meter grow">
-                <span className="pool" style={{ width: `${(c / max) * 100}%` }} />
-              </div>
-              <span className="money tnum" style={{ width: 70, textAlign: "right" }}>
-                {fmt(c)}
-              </span>
-            </div>
-          ))}
-          {weeks.length === 0 && <Empty line="Nothing booked this month yet." />}
-        </div>
+      <Rise index={1}>
+        <StatTile label="This month" value={<Figure value={total} format={fmt} size="lg" countUp />} unit="So far" />
       </Rise>
-      <Rise className="section off">
-        <Kicker>Visits, {fmtDay(firstOfMonth(month))} to {fmtDay(lastOfMonth(month))}</Kicker>
-        <div className="list">
-          {rows.map((r, i) => (
-            <div key={i} className="item">
-              <span className="small muted tnum" style={{ width: 52 }}>
-                {fmtDay(r.date)}
-              </span>
-              <div className="grow t">{r.label}</div>
-              <span className="money r">{fmt(r.cents)}</span>
-            </div>
-          ))}
-        </div>
+      <Rise index={2}>
+        <Panel>
+          <PanelHead title="By week" rule="ink" />
+          {weeks.length === 0 ? (
+            <EmptyState body="Nothing booked this month yet." />
+          ) : (
+            <List rule="none" density="dense">
+              {weeks.map(([w, c]) => (
+                <ListRow
+                  key={w}
+                  index={`${fmtDay(w)} to ${fmtDay(addDays(w, 6)).split(" ")[1]}`}
+                  indexWidth="9ch"
+                  title={<Meter parts={[{ key: "one", value: c }]} max={max} highlight={c === max} label={`${fmt(c)} of ${fmt(max)}`} />}
+                  trailing={<Figure value={c} format={fmt} size="sm" />}
+                />
+              ))}
+            </List>
+          )}
+        </Panel>
+      </Rise>
+      <Rise index={3}>
+        <Panel>
+          <PanelHead title="Visits" meta={`${fmtDay(firstOfMonth(month))} to ${fmtDay(lastOfMonth(month))}`} rule="ink" />
+          <List rule="none" density="dense">
+            {rows.map((r, i) => (
+              <ListRow key={i} index={fmtDay(r.date)} indexWidth="6ch" title={r.label} trailing={<Figure value={r.cents} format={fmt} size="sm" />} />
+            ))}
+          </List>
+        </Panel>
       </Rise>
     </Screen>
   );

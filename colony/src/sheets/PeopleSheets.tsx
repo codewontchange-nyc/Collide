@@ -1,99 +1,86 @@
 import { useColonyState } from "@/store/store";
 import { useMaps } from "@/store/selectors";
-import { Sheet } from "@/ui/Sheet";
-import { Avatar } from "@/ui/Avatar";
-import { Chip } from "@/ui/Chip";
-import { Btn } from "@/ui/Btn";
-import { Icon } from "@/ui/Icon";
-import { sheets } from "@/ui/sheetStore";
+import { SheetContent, Button, Avatar, Tag, StatusWord, MetaLine, Kicker, Figure, Panel, PanelHead, List, ListRow, sheets } from "@/system";
 import { fmt } from "@/domain/money";
 import { WEEKDAY_SHORT, fmtDate, fmtTime, compareDates } from "@/domain/dates";
-import { SKILL_LABEL } from "@/domain/types";
+import { SKILL_LABEL, type Weekday } from "@/domain/types";
+
+const WEEK: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
 
 export function ProviderSheet({ id }: { id: string }) {
   const state = useColonyState();
   const maps = useMaps();
   const p = maps.providers.get(id);
   if (!p) return null;
-  const upcoming = state.schedule.filter((s) => s.providerId === p.id && s.status === "planned" && compareDates(s.date, state.meta.simToday) >= 0).sort((a, b) => compareDates(a.date, b.date)).slice(0, 3);
+  const upcoming = state.schedule
+    .filter((s) => s.providerId === p.id && s.status === "planned" && compareDates(s.date, state.meta.simToday) >= 0)
+    .sort((a, b) => compareDates(a.date, b.date))
+    .slice(0, 3);
   const brought = p.broughtBy ? maps.people.get(p.broughtBy) : undefined;
-  const days = [...new Set(p.availability.map((a) => a.day))].sort();
+  const days = new Set(p.availability.map((a) => a.day));
+  const first = p.name.split(" ")[0];
   return (
-    <Sheet
-      kicker={p.kind === "direct" ? "Direct funds" : "Smart match, pool funded"}
+    <SheetContent
+      eyebrow={<MetaLine facts={p.kind === "direct" ? ["Direct funds"] : ["Smart match", "Pool funded"]} />}
       title={p.name}
-      foot={
+      actions={
         p.kind === "indirect" ? (
-          <Btn block onClick={() => sheets.swap({ kind: "request", category: p.primary })}>
-            Request {p.name.split(" ")[0]}
-          </Btn>
+          <Button block onClick={() => sheets.swap({ kind: "request", category: p.primary })}>
+            Request {first}
+          </Button>
         ) : undefined
       }
     >
-      <div className="row" style={{ alignItems: "flex-start" }}>
-        <Avatar name={p.name} src={p.avatar} size="lg" />
-        <div className="grow">
-          <p className="voice" style={{ fontSize: 17 }}>
-            {p.roleLine}
-          </p>
-          <div className="small muted" style={{ marginTop: 4 }}>
-            <Icon name="pin" size={13} /> {p.area}, serves {p.homesServed} homes
-          </div>
+      <div className="sheet-head-block">
+        <Avatar size="lg" name={p.name} src={p.avatar} />
+        <div className="sheet-head-block__main">
+          <p className="sheet-head-block__lede paragraph-medium">{p.roleLine}.</p>
+          <MetaLine tone="meta" facts={[p.area, `Serves ${p.homesServed} homes`, `Rated ${p.rating.toFixed(1)}`]} />
         </div>
       </div>
-      <p className="sub" style={{ marginTop: 16 }}>
-        {p.bio}
-      </p>
-      <div className="chips" style={{ marginTop: 14 }}>
+      <p className="sheet-text paragraph-small">{p.bio}</p>
+      <div className="ig-tags">
         {p.skills.map((s) => (
-          <Chip key={s} tone={s === p.primary ? "ink" : "paper"}>
+          <Tag key={s} tone={s === p.primary ? "ink" : "muted"}>
             {SKILL_LABEL[s]}
-          </Chip>
+          </Tag>
         ))}
-        <Chip tone="honey">
-          <Icon name="star" size={12} /> {p.rating.toFixed(1)}
-        </Chip>
-        <Chip tone="line">
-          {fmt(p.rateCents)} a {p.rateUnit === "hour" ? "hour" : "visit"}
-        </Chip>
+        <Tag tone="outlined">
+          {fmt(p.rateCents)} {p.rateUnit === "hour" ? "an hour" : "a visit"}
+        </Tag>
       </div>
-      {brought && (
-        <p className="small muted" style={{ marginTop: 14 }}>
-          Brought into the colony by {brought.name.split(" ")[0]}.
-        </p>
-      )}
-      <div className="kicker" style={{ marginTop: 22, marginBottom: 8, marginLeft: 0 }}>
-        Usually free
-      </div>
-      <div className="chips">
-        {days.map((d) => (
-          <Chip key={d} tone="line">
-            {WEEKDAY_SHORT[d]}
-          </Chip>
-        ))}
-        {days.length === 0 && <span className="small muted">By request</span>}
-      </div>
+      {brought && <p className="sheet-note paragraph-x-small">Brought into the colony by {brought.name.split(" ")[0]}.</p>}
+      <Panel>
+        <PanelHead title="Usually free" />
+        {days.size === 0 ? (
+          <StatusWord state="inactive">By request</StatusWord>
+        ) : (
+          <div className="ig-tags">
+            {WEEK.map((d) =>
+              days.has(d) ? (
+                <Tag key={d} tone="outlined">
+                  {WEEKDAY_SHORT[d]}
+                </Tag>
+              ) : (
+                <Tag key={d} tone="muted" state="inactive">
+                  {WEEKDAY_SHORT[d]}
+                </Tag>
+              ),
+            )}
+          </div>
+        )}
+      </Panel>
       {upcoming.length > 0 && (
-        <>
-          <div className="kicker" style={{ marginTop: 22, marginBottom: 6, marginLeft: 0 }}>
-            Coming up
-          </div>
-          <div className="list">
+        <Panel>
+          <PanelHead title="Coming up" />
+          <List rule="none">
             {upcoming.map((s) => (
-              <button key={s.id} type="button" className="item press" onClick={() => sheets.swap({ kind: "visit", id: s.id })}>
-                <div className="grow">
-                  <div className="t">{s.title}</div>
-                  <div className="m">
-                    {maps.homes.get(s.homeId)?.label}, {fmtDate(s.date)}, {fmtTime(s.start)}
-                  </div>
-                </div>
-                <Icon name="chev" size={16} />
-              </button>
+              <ListRow key={s.id} title={s.title} facts={[maps.homes.get(s.homeId)?.label, fmtDate(s.date), fmtTime(s.start)]} chevron onPress={() => sheets.swap({ kind: "visit", id: s.id })} />
             ))}
-          </div>
-        </>
+          </List>
+        </Panel>
       )}
-    </Sheet>
+    </SheetContent>
   );
 }
 
@@ -106,43 +93,35 @@ export function PersonSheet({ id }: { id: string }) {
   const home = hh ? maps.homes.get(hh.homeId) : undefined;
   const brought = state.providers.filter((x) => x.broughtBy === p.id);
   return (
-    <Sheet kicker={p.role === "steward" ? "Steward" : "Member"} title={p.name}>
-      <div className="row">
-        <Avatar name={p.name} src={p.avatar} size="lg" />
-        <div className="grow">
-          <div style={{ fontWeight: 400 }}>{home?.label}</div>
-          <div className="small muted">{home?.area}</div>
-        </div>
-        <div className="right">
-          <div className="money">{fmt(p.contributionCents)}</div>
-          <div className="tiny muted">a month</div>
-        </div>
-      </div>
-      {p.bio && (
-        <p className="sub" style={{ marginTop: 16 }}>
-          {p.bio}
-        </p>
-      )}
-      <p className="voice" style={{ marginTop: 18, fontSize: 17 }}>
-        {p.role === "steward" ? "Keeps the colony honest and the budget kind." : "Makes someone else's life easier, every month."}
-      </p>
+    <SheetContent eyebrow={<MetaLine facts={[p.role === "steward" ? "Steward" : "Member"]} />} title={p.name}>
+      <List rule="none">
+        <ListRow
+          leading={<Avatar size="md" name={p.name} src={p.avatar} />}
+          title={home?.label ?? ""}
+          facts={[home?.area]}
+          trailing={<Figure value={p.contributionCents} format={fmt} size="sm" />}
+          trailingMeta="A month"
+        />
+      </List>
+      {p.bio && <p className="sheet-text paragraph-small">{p.bio}</p>}
+      <p className="sheet-serif paragraph-medium">{p.role === "steward" ? "Keeps the colony honest and the budget kind." : "Makes someone else's life easier, every month."}</p>
       {brought.length > 0 && (
-        <>
-          <div className="kicker" style={{ marginTop: 22, marginBottom: 6, marginLeft: 0 }}>
-            Brought to the colony
-          </div>
-          <div className="list">
+        <Panel>
+          <PanelHead title="Brought to the colony" />
+          <List rule="none">
             {brought.map((x) => (
-              <button key={x.id} type="button" className="item press" onClick={() => sheets.swap({ kind: "provider", id: x.id })}>
-                <Avatar name={x.name} src={x.avatar} size="sm" />
-                <div className="grow t">{x.name}</div>
-                <Chip tone="line">{SKILL_LABEL[x.primary]}</Chip>
-              </button>
+              <ListRow
+                key={x.id}
+                leading={<Avatar size="md" name={x.name} src={x.avatar} />}
+                title={x.name}
+                trailing={<Tag tone="outlined">{SKILL_LABEL[x.primary]}</Tag>}
+                onPress={() => sheets.swap({ kind: "provider", id: x.id })}
+              />
             ))}
-          </div>
-        </>
+          </List>
+        </Panel>
       )}
-    </Sheet>
+    </SheetContent>
   );
 }
 
@@ -152,51 +131,49 @@ export function HouseholdSheet({ id }: { id: string }) {
   const hh = maps.households.get(id);
   if (!hh) return null;
   const home = maps.homes.get(hh.homeId);
-  const people = hh.personIds.map((pid) => maps.people.get(pid)).filter(Boolean);
-  const contribution = people.reduce((a, p) => a + (p?.contributionCents ?? 0), 0);
-  const visits = state.schedule.filter((s) => s.homeId === hh.homeId && s.status === "planned" && compareDates(s.date, state.meta.simToday) >= 0).sort((a, b) => compareDates(a.date, b.date)).slice(0, 4);
+  const people = hh.personIds.map((pid) => maps.people.get(pid)).filter((p): p is NonNullable<typeof p> => Boolean(p));
+  const contribution = people.reduce((a, p) => a + p.contributionCents, 0);
+  const visits = state.schedule
+    .filter((s) => s.homeId === hh.homeId && s.status === "planned" && compareDates(s.date, state.meta.simToday) >= 0)
+    .sort((a, b) => compareDates(a.date, b.date))
+    .slice(0, 4);
   return (
-    <Sheet kicker="Household" title={home?.label}>
-      <p className="sub">
-        {home?.address}, {home?.area}
-      </p>
-      <div className="row" style={{ marginTop: 14 }}>
+    <SheetContent eyebrow={<MetaLine facts={["Household", home?.area]} />} title={home?.label}>
+      {home && <MetaLine tone="meta" facts={[home.address]} />}
+      <List rule="none">
         {people.map((p) => (
-          <button key={p!.id} type="button" className="row" onClick={() => sheets.swap({ kind: "person", id: p!.id })}>
-            <Avatar name={p!.name} src={p!.avatar} size="sm" />
-            <span className="small">{p!.name.split(" ")[0]}</span>
-          </button>
+          <ListRow
+            key={p.id}
+            leading={<Avatar size="md" name={p.name} src={p.avatar} />}
+            title={p.name}
+            trailing={<Figure value={p.contributionCents} format={fmt} size="sm" />}
+            onPress={() => sheets.swap({ kind: "person", id: p.id })}
+          />
         ))}
-        <span className="money" style={{ marginLeft: "auto" }}>
-          {fmt(contribution)}
-        </span>
-      </div>
-      <div className="chips" style={{ marginTop: 14 }}>
-        <Chip tone="ok">
-          <Icon name="leaf" size={12} /> {home?.plantCount} plants
-        </Chip>
-      </div>
-      {home?.notes && (
-        <p className="small muted" style={{ marginTop: 14 }}>
-          {home.notes}
-        </p>
+        <ListRow rule="ink" title={<Kicker as="span">Together</Kicker>} trailing={<Figure value={contribution} format={fmt} size="sm" />} trailingMeta="A month" />
+      </List>
+      {home && <StatusWord state="success">{home.plantCount} plants</StatusWord>}
+      {home?.notes && <p className="sheet-note paragraph-x-small">{home.notes}</p>}
+      {visits.length > 0 && (
+        <Panel>
+          <PanelHead title="Coming up here" />
+          <List rule="none">
+            {visits.map((s) => {
+              const prov = maps.providers.get(s.providerId);
+              return (
+                <ListRow
+                  key={s.id}
+                  leading={<Avatar size="md" name={prov?.name ?? ""} src={prov?.avatar} />}
+                  title={s.title}
+                  facts={[fmtDate(s.date), fmtTime(s.start)]}
+                  chevron
+                  onPress={() => sheets.swap({ kind: "visit", id: s.id })}
+                />
+              );
+            })}
+          </List>
+        </Panel>
       )}
-      <div className="kicker" style={{ marginTop: 22, marginBottom: 6, marginLeft: 0 }}>
-        Coming up here
-      </div>
-      <div className="list">
-        {visits.map((s) => (
-          <button key={s.id} type="button" className="item press" onClick={() => sheets.swap({ kind: "visit", id: s.id })}>
-            <Avatar name={maps.providers.get(s.providerId)?.name ?? ""} src={maps.providers.get(s.providerId)?.avatar} size="sm" />
-            <div className="grow">
-              <div className="t">{s.title}</div>
-              <div className="m">
-                {fmtDate(s.date)}, {fmtTime(s.start)}
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </Sheet>
+    </SheetContent>
   );
 }

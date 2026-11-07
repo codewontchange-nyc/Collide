@@ -1,29 +1,16 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useColonyState } from "@/store/store";
 import { useMaps } from "@/store/selectors";
-import { Screen, Rise } from "@/ui/Screen";
-import { PageHead, Kicker } from "@/ui/PageHead";
-import { Card } from "@/ui/Card";
-import { Avatar } from "@/ui/Avatar";
-import { Chip } from "@/ui/Chip";
-import { Stamp } from "@/ui/Stamp";
-import { Empty } from "@/ui/Empty";
-import { sheets } from "@/ui/sheetStore";
+import { Screen, Rise, PageIntro, MetaLine, Companion, WeekStrip, MetricStrip, Figure, Panel, PanelHead, List, ListRow, Avatar, Tag, StatusWord, EmptyState, sheets, companion } from "@/system";
+import type { WeekDay } from "@/system";
 import { addDays, compareDates, fmtDate, fmtDay, fmtShort, fmtTime, startOfWeek, WEEKDAY_SHORT, weekdayOf, monthOf, isBetween } from "@/domain/dates";
 import { handledThisWeek, monthMeals, whoIsComing } from "@/domain/schedule";
 import { COPY } from "@/domain/copy";
-import type { ScheduleItem, Task } from "@/domain/types";
+import type { Task } from "@/domain/types";
+import { VERB, firstName, ledeForWeek, nextPlanned } from "@/screens/home/lede";
+import "./Home.css";
 
-const VERB: Record<ScheduleItem["kind"], string> = {
-  meal: "cooks at",
-  clean: "cleans",
-  laundry: "picks up laundry at",
-  plants: "tends the plants at",
-  maintenance: "handles maintenance at",
-  seasonal: "preps",
-  shopping: "stocks",
-  visit: "visits",
-};
+const MEAL28_KEY = "colony.meal28.";
 
 export function Home() {
   const state = useColonyState();
@@ -31,13 +18,16 @@ export function Home() {
   const today = state.meta.simToday;
   const weekStart = startOfWeek(today);
   const weekEnd = addDays(weekStart, 7);
+  const month = monthOf(today);
 
   const week = useMemo(() => whoIsComing(state, weekStart, 7), [state, weekStart]);
   const upcoming = useMemo(() => whoIsComing(state, today, 10).filter((i) => i.status === "planned"), [state, today]);
-  const next = upcoming[0];
+  const next = useMemo(() => nextPlanned(state), [state]);
+  const lede = useMemo(() => ledeForWeek(state), [state]);
   const meals = useMemo(() => state.meals.filter((m) => isBetween(m.date, weekStart, weekEnd)).sort((a, b) => compareDates(a.date, b.date)), [state.meals, weekStart, weekEnd]);
-  const monthMealCount = useMemo(() => monthMeals(state, monthOf(today)).length, [state, today]);
-  const servedThisMonth = useMemo(() => monthMeals(state, monthOf(today)).filter((m) => m.status === "served").length, [state, today]);
+  const mealsOfMonth = useMemo(() => state.meals.filter((m) => monthOf(m.date) === month).sort((a, b) => a.date.localeCompare(b.date)), [state.meals, month]);
+  const monthMealCount = useMemo(() => monthMeals(state, month).length, [state, month]);
+  const servedThisMonth = useMemo(() => monthMeals(state, month).filter((m) => m.status === "served").length, [state, month]);
   const cleans = useMemo(() => state.homes.map((h) => ({ home: h, item: upcoming.find((i) => i.kind === "clean" && i.homeId === h.id) })), [state.homes, upcoming]);
   const plants = useMemo(() => state.homes.map((h) => ({ home: h, item: upcoming.find((i) => i.kind === "plants" && i.homeId === h.id) })), [state.homes, upcoming]);
   const care = useMemo(
@@ -50,134 +40,170 @@ export function Home() {
   );
   const handled = useMemo(() => handledThisWeek(state, weekStart), [state, weekStart]);
 
-  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   const busy = new Set(week.map((i) => i.date));
+  const days: WeekDay[] = Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(weekStart, i);
+    const cmp = compareDates(d, today);
+    return { date: d, weekday: WEEKDAY_SHORT[weekdayOf(d)], number: Number(d.slice(8)), relation: cmp === 0 ? "today" : cmp < 0 ? "past" : "future", busy: busy.has(d) };
+  });
+
+  /* The 28th dinner: the companion says the line once per month. */
+  useEffect(() => {
+    if (servedThisMonth !== 28) return;
+    try {
+      if (sessionStorage.getItem(MEAL28_KEY + month)) return;
+      sessionStorage.setItem(MEAL28_KEY + month, "1");
+    } catch {
+      /* storage can be unavailable; the line is a delight, not a record */
+    }
+    companion.say(COPY.meal28);
+  }, [servedThisMonth, month]);
+
+  const nextProvider = next ? maps.providers.get(next.providerId) : undefined;
+  const nextHome = next ? maps.homes.get(next.homeId) : undefined;
 
   return (
-    <Screen>
-      <Rise>
-        <PageHead kicker={`${state.colony.name}, week of ${fmtShort(weekStart)}`} title="Your colony this week" />
-        <div className="week" aria-label="This week">
-          {days.map((d) => (
-            <div key={d} className={["d", d === today ? "today" : ""].join(" ")}>
-              <span>{WEEKDAY_SHORT[weekdayOf(d)]}</span>
-              <b>{Number(d.slice(8))}</b>
-              <span className={["dot", busy.has(d) ? "" : "none"].join(" ")} />
-            </div>
-          ))}
-        </div>
+    <Screen title="Home">
+      <Rise index={0}>
+        <PageIntro eyebrow={<MetaLine facts={[state.colony.name, `WEEK OF ${fmtShort(weekStart)}`]} />} aside={<Companion />} title="Your colony" titleMuted="this week" intro={lede} editorial>
+          <WeekStrip days={days} label="This week" />
+        </PageIntro>
       </Rise>
 
-      <Rise className="section">
-        <Kicker honey>Next up</Kicker>
-        {next ? (
-          <Card press onClick={() => sheets.open({ kind: "visit", id: next.id })} role="button" tabIndex={0}>
-            <div className="row">
-              <Avatar name={maps.providers.get(next.providerId)?.name ?? ""} src={maps.providers.get(next.providerId)?.avatar} size="lg" />
-              <div className="grow">
-                <h3>
-                  {maps.providers.get(next.providerId)?.name.split(" ")[0]} {VERB[next.kind]} {maps.homes.get(next.homeId)?.label}
-                </h3>
-                <p className="sub small" style={{ marginTop: 4 }}>
-                  {next.date === today ? "Today" : fmtDate(next.date)}, {fmtTime(next.start)}
-                </p>
-              </div>
-            </div>
-          </Card>
-        ) : (
-          <Empty line={COPY.empty.week} />
-        )}
+      <Rise index={1}>
+        <MetricStrip
+          columns={2}
+          items={[
+            { label: "HANDLED THIS WEEK", value: <Figure value={handled} size="md" countUp />, note: "things you never had to ask for" },
+            { label: "DINNERS", value: <Figure value={servedThisMonth} size="md" />, note: `of ${monthMealCount} this month` },
+          ]}
+        />
       </Rise>
 
-      <Rise className="section">
-        <div className="title-row">
-          <Kicker>Meals</Kicker>
-          <span className="small muted tnum">
-            {servedThisMonth} of {monthMealCount} this month
-          </span>
-        </div>
-        <div className="list" style={{ marginTop: 6 }}>
-          {meals.length === 0 && <Empty line="No dinners planned this week." />}
-          {meals.map((m) => (
-            <button key={m.id} type="button" className="item press" onClick={() => sheets.open({ kind: "meal", id: m.id })}>
-              <span className="small muted tnum" style={{ width: 44 }}>
-                {fmtDay(m.date).split(" ")[0]}
-              </span>
-              <div className="grow">
-                <div className="t ellipsis">{m.title}</div>
-                <div className="m">
-                  {m.cuisine}
-                  {m.status === "served" ? ", served" : ""}
-                </div>
-              </div>
-              <Avatar name={maps.providers.get(m.chefId)?.name ?? ""} src={maps.providers.get(m.chefId)?.avatar} size="xs" />
-            </button>
-          ))}
-        </div>
+      <Rise index={2}>
+        <Panel>
+          <PanelHead title="Next up" meta={next ? (next.date === today ? "TODAY" : fmtDate(next.date)) : undefined} />
+          {next ? (
+            <List>
+              <ListRow
+                leading={<Avatar size="md" name={nextProvider?.name ?? ""} src={nextProvider?.avatar} />}
+                title={`${firstName(nextProvider?.name)} ${VERB[next.kind]} ${nextHome?.label ?? ""}`}
+                facts={[next.date === today ? "TODAY" : fmtDate(next.date), fmtTime(next.start)]}
+                chevron
+                onPress={() => sheets.open({ kind: "visit", id: next.id })}
+              />
+            </List>
+          ) : (
+            <EmptyState compact title="A quiet week." body="Enjoy it." />
+          )}
+        </Panel>
       </Rise>
 
-      <Rise className="section off">
-        <Kicker>Cleaning</Kicker>
-        <div className="list">
-          {cleans.map(({ home, item }) => (
-            <button key={home.id} type="button" className="item press" onClick={() => item && sheets.open({ kind: "visit", id: item.id })} disabled={!item}>
-              <div className="grow">
-                <div className="t">{home.label}</div>
-                <div className="m">{item ? `${maps.providers.get(item.providerId)?.name.split(" ")[0]}, ${item.date === today ? "today" : fmtDate(item.date)}, ${fmtTime(item.start)}` : "Nothing scheduled"}</div>
-              </div>
-              {item && <Chip tone={item.date === today ? "honey" : "paper"}>{item.date === today ? "Today" : fmtDay(item.date)}</Chip>}
-            </button>
-          ))}
-        </div>
+      <Rise index={3}>
+        <Panel>
+          <PanelHead title="Dinners" meta={`${servedThisMonth} OF ${monthMealCount} THIS MONTH`} />
+          {meals.length === 0 ? (
+            <EmptyState body="No dinners planned this week." />
+          ) : (
+            <List>
+              {meals.map((m) => {
+                const idx = mealsOfMonth.findIndex((x) => x.id === m.id) + 1;
+                const chef = maps.providers.get(m.chefId);
+                return (
+                  <ListRow
+                    key={m.id}
+                    index={String(idx).padStart(2, "0")}
+                    indexWidth="2ch"
+                    className={idx === 28 ? "home-dinner--28" : undefined}
+                    title={m.title}
+                    ellipsis
+                    facts={[fmtDay(m.date).split(" ")[0], m.cuisine, m.status === "served" && "SERVED"]}
+                    trailing={<Avatar size="sm" name={chef?.name ?? ""} src={chef?.avatar} />}
+                    onPress={() => sheets.open({ kind: "meal", id: m.id })}
+                  />
+                );
+              })}
+            </List>
+          )}
+        </Panel>
       </Rise>
 
-      <Rise className="section">
-        <Kicker>Plants</Kicker>
-        <div className="list">
-          {plants.map(({ home, item }) => (
-            <button key={home.id} type="button" className="item press" onClick={() => item && sheets.open({ kind: "visit", id: item.id })} disabled={!item}>
-              <div className="grow">
-                <div className="t">
-                  {home.plantCount} plants at {home.label}
-                </div>
-                <div className="m">{item ? `${maps.providers.get(item.providerId)?.name.split(" ")[0]} comes ${fmtDate(item.date)}` : "Happy, as far as we know"}</div>
-              </div>
-              <Chip tone="ok">Happy</Chip>
-            </button>
-          ))}
-        </div>
+      <Rise index={4}>
+        <Panel>
+          <PanelHead title="Cleaning" />
+          <List>
+            {cleans.map(({ home, item }) => {
+              const who = item ? firstName(maps.providers.get(item.providerId)?.name) : "";
+              return (
+                <ListRow
+                  key={home.id}
+                  title={home.label}
+                  facts={item ? [who, item.date === today ? "TODAY" : fmtDate(item.date), fmtTime(item.start)] : <span className="home-quiet">Nothing scheduled</span>}
+                  trailing={item ? item.date === today ? <Tag tone="ink">TODAY</Tag> : <Tag tone="muted">{fmtDay(item.date)}</Tag> : undefined}
+                  disabled={!item}
+                  onPress={item ? () => sheets.open({ kind: "visit", id: item.id }) : undefined}
+                />
+              );
+            })}
+          </List>
+        </Panel>
       </Rise>
 
-      <Rise className="section off">
-        <Kicker>Maintenance and seasonal</Kicker>
-        <div className="list">
-          {care.length === 0 && <Empty line="Nothing due. Ahead of every season." />}
-          {care.map((t: Task) => (
-            <button key={t.id} type="button" className="item press" onClick={() => sheets.open({ kind: "task", id: t.id })}>
-              <div className="grow">
-                <div className="t">{t.title}</div>
-                <div className="m">
-                  {t.homeId ? `${maps.homes.get(t.homeId)?.label}, ` : ""}
-                  {fmtDate(t.dueOn)}
-                </div>
-              </div>
-              <Chip tone={t.status === "needs_you" ? "honey" : t.status === "scheduled" ? "ok" : "paper"}>{COPY.taskStatusLabel[t.status]}</Chip>
-            </button>
-          ))}
-        </div>
+      <Rise index={5}>
+        <Panel>
+          <PanelHead title="Plants" />
+          <List>
+            {plants.map(({ home, item }) => (
+              <ListRow
+                key={home.id}
+                title={`${home.plantCount} plants at ${home.label}`}
+                facts={item ? `${firstName(maps.providers.get(item.providerId)?.name)} comes ${fmtDate(item.date)}` : "Happy, as far as we know"}
+                trailing={<StatusWord state="success">HAPPY</StatusWord>}
+                onPress={item ? () => sheets.open({ kind: "visit", id: item.id }) : undefined}
+              />
+            ))}
+          </List>
+        </Panel>
       </Rise>
 
-      <Rise className="section">
-        <div className="row between">
-          <Stamp animate={false}>Handled this week</Stamp>
-          <span className="hero sm tnum" style={{ marginLeft: 0 }}>
-            {handled}
-          </span>
-        </div>
-        <p className="tiny muted" style={{ marginTop: 6 }}>
-          Things you never had to ask for.
-        </p>
+      <Rise index={6}>
+        <Panel>
+          <PanelHead title="Maintenance and seasonal" />
+          {care.length === 0 ? (
+            <EmptyState body="Nothing due. Ahead of every season." />
+          ) : (
+            <List>
+              {care.map((t: Task) => (
+                <ListRow
+                  key={t.id}
+                  title={t.title}
+                  facts={[t.homeId ? maps.homes.get(t.homeId)?.label : undefined, fmtDate(t.dueOn)]}
+                  trailing={<TaskStatus status={t.status} />}
+                  onPress={() => sheets.open({ kind: "task", id: t.id })}
+                />
+              ))}
+            </List>
+          )}
+        </Panel>
       </Rise>
     </Screen>
   );
+}
+
+/** The binding status map for tasks: a dot and a word. */
+export function TaskStatus({ status }: { status: Task["status"] }) {
+  switch (status) {
+    case "needs_you":
+      return (
+        <StatusWord state="default" pulse>
+          NEEDS YOU
+        </StatusWord>
+      );
+    case "scheduled":
+      return <StatusWord state="success">SCHEDULED</StatusWord>;
+    case "queued":
+      return <StatusWord state="default">QUEUED</StatusWord>;
+    case "handled":
+      return <StatusWord state="success">HANDLED</StatusWord>;
+  }
 }

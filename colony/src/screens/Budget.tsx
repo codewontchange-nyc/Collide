@@ -1,22 +1,13 @@
 import { useMemo } from "react";
 import { useColonyState } from "@/store/store";
 import { useMaps } from "@/store/selectors";
-import { Screen, Rise } from "@/ui/Screen";
-import { PageHead, Kicker } from "@/ui/PageHead";
-import { Card } from "@/ui/Card";
-import { Avatar } from "@/ui/Avatar";
-import { Chip } from "@/ui/Chip";
-import { Meter } from "@/ui/Meter";
-import { Money } from "@/ui/Money";
-import { Jar } from "@/ui/Jar";
-import { Icon } from "@/ui/Icon";
-import { sheets } from "@/ui/sheetStore";
+import { Screen, Rise, PageIntro, MetaLine, Companion, StatTile, Figure, Meter, Notice, MetricStrip, Panel, PanelHead, List, ListRow, Avatar, Tag, StatusWord, QuietButton, Jar, Glyph, sheets } from "@/system";
 import { fmt } from "@/domain/money";
 import { fmtMonth, fmtMonthShort, fmtShort, monthOf } from "@/domain/dates";
 import { cadenceLabel } from "@/domain/cadence";
-import { canFund, contributions, directAllocations, directTotal, householdTotals, leftover, poolBalance, poolHistory, projection } from "@/domain/budget";
+import { canFund, contributions, directAllocations, directTotal, householdTotals, leftover, periodFor, poolBalance, poolHistory, projection } from "@/domain/budget";
 import { CATALOG } from "@/seed/catalog";
-import { Companion } from "@/brand/Companion";
+import "./Budget.css";
 
 export function Budget() {
   const state = useColonyState();
@@ -27,12 +18,15 @@ export function Budget() {
   const allocs = useMemo(() => directAllocations(state, month), [state, month]);
   const direct = directTotal(state, month);
   const left = leftover(state, month);
+  const rolls = Math.max(0, left);
   const balance = poolBalance(state);
+  const period = periodFor(state, month);
   const history = useMemo(() => poolHistory(state).slice(0, 5), [state]);
-  const proj = useMemo(() => projection(balance, Math.max(0, left), 3, month), [balance, left, month]);
-  const fundable = useMemo(() => canFund(balance, CATALOG, Math.max(0, left)).slice(0, 6), [balance, left]);
+  const proj = useMemo(() => projection(balance, rolls, 3, month), [balance, rolls, month]);
+  const fundable = useMemo(() => canFund(balance, CATALOG, rolls).slice(0, 6), [balance, rolls]);
   const homes = useMemo(() => householdTotals(state), [state]);
   const jarMax = Math.max(balance, 300000);
+  const percent = Math.round((balance / jarMax) * 100);
 
   const byProvider = useMemo(() => {
     const m = new Map<string, { providerId: string; cents: number; rows: typeof allocs }>();
@@ -45,157 +39,162 @@ export function Budget() {
     return [...m.values()].sort((a, b) => b.cents - a.cents);
   }, [allocs]);
 
+  const rollNote = left > 0 ? `+${fmt(left)} on the 1st` : "Nothing rolls this month";
+
   return (
-    <Screen>
-      <Rise>
-        <PageHead
-          kicker={fmtMonth(month)}
-          title="One budget, well kept"
-          right={
-            <div className="row" style={{ gap: 4 }}>
-              <button type="button" className="iconbtn" aria-label="Advance a month" onClick={() => sheets.open({ kind: "advance" })}>
-                <Icon name="clock" />
-              </button>
-              <Companion />
-            </div>
-          }
+    <Screen title="Budget">
+      <Rise index={0}>
+        <PageIntro
+          eyebrow={<MetaLine facts={[fmtMonth(month).toUpperCase()]} />}
+          aside={<Companion />}
+          title="One budget,"
+          titleMuted="well kept"
+          intro={`${state.people.length} people put in ${fmt(state.colony.contributionCentsPerPerson)} each across ${state.homes.length} homes. The people who come every week are paid first, and what is left rolls into the pool.`}
+          editorial
         />
-        <div className="hero">
-          <Money cents={total} />
-          <span className="unit">a month</span>
-        </div>
-        <p className="sub" style={{ marginTop: 10 }}>
-          {state.people.length} people, {fmt(state.colony.contributionCentsPerPerson)} each. {state.homes.length} homes.
-        </p>
-        <div style={{ marginTop: 22 }}>
-          <Meter parts={[{ cls: "direct", value: direct }, { cls: "pool", value: Math.max(0, left) }]} />
-          <div className="legend">
-            <span>
-              <i style={{ background: "var(--ink)" }} />
-              Direct {fmt(direct)}
-            </span>
-            <span>
-              <i style={{ background: "var(--honey)" }} />
-              To the pool {fmt(Math.max(0, left))}
-            </span>
-          </div>
+      </Rise>
+
+      <Rise index={1}>
+        <div className="budget-hero">
+          <dl>
+            <StatTile label="A month, all together" value={<Figure value={total} format={fmt} size="lg" countUp />} unit="A MONTH" />
+          </dl>
+          <Meter
+            parts={[
+              { key: "direct", value: direct, label: `DIRECT ${fmt(direct)}` },
+              { key: "pool", value: rolls, label: `TO THE POOL ${fmt(rolls)}` },
+            ]}
+            label={`Direct ${fmt(direct)}, to the pool ${fmt(rolls)}`}
+          />
           {left < 0 && (
-            <p className="small" style={{ color: "var(--danger)", marginTop: 8 }}>
-              Direct funds run {fmt(-left)} over this month. Nothing rolls into the pool until that is settled.
-            </p>
+            <Notice kind="error" placement="inline" title={`Over by ${fmt(-left)}`}>
+              Direct funds run over this month. Nothing rolls into the pool until that is settled.
+            </Notice>
           )}
         </div>
       </Rise>
 
-      <Rise className="section">
-        <Kicker>Direct funds</Kicker>
-        <p className="small muted" style={{ marginBottom: 6 }}>
-          The people who come on a normal basis. Paid in full, no cut.
-        </p>
-        <div className="list">
-          {byProvider.map((g) => {
-            const p = maps.providers.get(g.providerId);
-            const first = g.rows[0];
-            const eng = first ? maps.engagements.get(first.engagementId) : undefined;
-            return (
-              <button key={g.providerId} type="button" className="item press" onClick={() => first && sheets.open({ kind: "allocation", engagementId: first.engagementId })}>
-                <Avatar name={p?.name ?? ""} src={p?.avatar} />
-                <div className="grow">
-                  <div className="t">{p?.name}</div>
-                  <div className="m">
-                    {eng ? cadenceLabel(eng.cadence) : ""}, {g.rows.reduce((a, r) => a + r.occurrences, 0)} visits
-                  </div>
-                </div>
-                <span className="money r">{fmt(g.cents)}</span>
-              </button>
-            );
-          })}
-        </div>
+      <Rise index={2}>
+        <MetricStrip
+          columns={2}
+          items={[
+            { label: "IN THE POOL", value: <Figure value={balance} format={fmt} size="md" countUp data-testid="pool-balance" />, note: left > 0 ? `+${fmt(left)} on the 1st` : "nothing rolls this month" },
+            { label: "FROM THE POOL", value: period ? <Figure value={period.indirectCents} format={fmt} size="md" /> : "-", note: "spent this month" },
+          ]}
+        />
       </Rise>
 
-      <Rise className="section off">
-        <Kicker>Households</Kicker>
-        <div className="stack">
-          {homes.map((h) => {
-            const hh = maps.households.get(h.householdId);
-            const home = hh ? maps.homes.get(hh.homeId) : undefined;
-            return (
-              <Card key={h.householdId} flat press onClick={() => hh && sheets.open({ kind: "household", id: hh.id })} role="button" tabIndex={0}>
-                <div className="row between">
-                  <div>
-                    <div style={{ fontWeight: 400 }}>{home?.label ?? hh?.name}</div>
-                    <div className="small muted">
-                      {hh?.personIds.map((id) => maps.people.get(id)?.name.split(" ")[0]).join(" and ")}
-                    </div>
-                  </div>
-                  <div className="right">
-                    <div className="money">{fmt(h.contributionCents)}</div>
-                    <div className="tiny muted">in, {fmt(h.spendCents)} at home</div>
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-          <p className="tiny muted">For your eyes only. Colony never settles between households.</p>
-        </div>
+      <Rise index={3}>
+        <Panel>
+          <PanelHead title="Direct funds" meta={fmt(direct)} rule="ink" description="The people who come on a normal basis. Paid in full, no cut." />
+          <List>
+            {byProvider.map((g, i) => {
+              const p = maps.providers.get(g.providerId);
+              const first = g.rows[0];
+              const eng = first ? maps.engagements.get(first.engagementId) : undefined;
+              return (
+                <ListRow
+                  key={g.providerId}
+                  leading={<Avatar size="md" name={p?.name ?? ""} src={p?.avatar} />}
+                  title={p?.name ?? ""}
+                  facts={[eng ? cadenceLabel(eng.cadence).toUpperCase() : undefined, `${g.rows.reduce((a, r) => a + r.occurrences, 0)} VISITS`]}
+                  trailing={<Figure value={g.cents} format={fmt} size="sm" tone={i === 0 ? "ink" : "secondary"} />}
+                  onPress={first ? () => sheets.open({ kind: "allocation", engagementId: first.engagementId }) : undefined}
+                />
+              );
+            })}
+          </List>
+        </Panel>
       </Rise>
 
-      <Rise className="section">
-        <Kicker honey>The pool</Kicker>
-        <Card press onClick={() => sheets.open({ kind: "pool" })} role="button" tabIndex={0}>
-          <div className="row" style={{ gap: 20, alignItems: "flex-start" }}>
-            <Jar cents={balance} maxCents={jarMax} />
-            <div className="grow">
-              <div className="hero sm" style={{ marginLeft: 0 }} data-testid="pool-balance">
-                <Money cents={balance} />
-              </div>
-              <p className="small sub" style={{ marginTop: 6 }}>
-                {left > 0 ? `+${fmt(left)} on the 1st` : "Nothing rolls this month"}
-              </p>
-              <p className="tiny muted" style={{ marginTop: 10 }}>
-                Leftover rolls here. It funds the specialists we match you with: plumber, handyman, exterminator, seamstress.
-              </p>
-              <div className="chips" style={{ marginTop: 12 }}>
+      <Rise index={4}>
+        <Panel>
+          <PanelHead title="Households" meta="FOR YOUR EYES ONLY" />
+          <List>
+            {homes.map((h) => {
+              const hh = maps.households.get(h.householdId);
+              const home = hh ? maps.homes.get(hh.homeId) : undefined;
+              const names = (hh?.personIds ?? []).map((id) => (maps.people.get(id)?.name ?? "").split(" ")[0]?.toUpperCase() ?? "");
+              return (
+                <ListRow
+                  key={h.householdId}
+                  title={home?.label ?? hh?.name ?? ""}
+                  facts={[names.join(" AND ")]}
+                  trailing={<Figure value={h.contributionCents} format={fmt} size="sm" />}
+                  trailingMeta={`${fmt(h.spendCents)} AT HOME`}
+                  onPress={hh ? () => sheets.open({ kind: "household", id: hh.id }) : undefined}
+                />
+              );
+            })}
+          </List>
+          <p className="paragraph-x-small budget-note">Colony never settles between households.</p>
+        </Panel>
+      </Rise>
+
+      <Rise index={5}>
+        <Panel>
+          <PanelHead title="The pool" meta="ROLLS ON THE 1ST" rule="ink" />
+          <button type="button" className="ig-pool" onClick={() => sheets.open({ kind: "pool" })}>
+            <Jar cents={balance} maxCents={jarMax} size="lg" label={`Pool at ${percent} percent of ${fmt(jarMax)}`} />
+            <span className="ig-pool__main">
+              <Figure value={balance} format={fmt} size="md" />
+              <span className="paragraph-x-small ig-pool__note">{rollNote}</span>
+              <span className="ig-tags">
                 {proj.map((p) => (
-                  <Chip key={p.month} tone="line">
-                    {fmtMonthShort(p.month)} {fmt(p.balanceCents)}
-                  </Chip>
+                  <Tag key={p.month} tone="outlined">
+                    {fmtMonthShort(p.month).toUpperCase()} {fmt(p.balanceCents)}
+                  </Tag>
                 ))}
-              </div>
-            </div>
-          </div>
-        </Card>
-        <div className="list" style={{ marginTop: 8 }}>
-          {history.map((e) => (
-            <div key={e.id} className="item">
-              <div className="grow">
-                <div className="t">{e.note}</div>
-                <div className="m">{fmtShort(e.date)}</div>
-              </div>
-              <span className={["money", "r", e.kind === "rollover_in" ? "" : "muted"].join(" ")}>
-                {e.kind === "rollover_in" ? "+" : "-"}
-                {fmt(e.cents)}
               </span>
-            </div>
-          ))}
-        </div>
+            </span>
+            <Glyph name="chevron-right" className="ig-pool__chevron" />
+          </button>
+          <p className="paragraph-x-small budget-note">Leftover rolls here. It funds the specialists we match you with: plumber, handyman, exterminator, seamstress.</p>
+          <div>
+            <QuietButton aria-label="Advance a month" onClick={() => sheets.open({ kind: "advance" })}>
+              CLOSE THE MONTH
+            </QuietButton>
+          </div>
+          {history.length > 0 && (
+            <List density="dense">
+              {history.map((e) => (
+                <ListRow
+                  key={e.id}
+                  title={e.note}
+                  facts={[fmtShort(e.date).toUpperCase()]}
+                  trailing={<Figure value={e.cents} format={fmt} size="sm" signed sign={e.kind === "rollover_in" ? "+" : "-"} tone={e.kind === "rollover_in" ? "ink" : "secondary"} />}
+                />
+              ))}
+            </List>
+          )}
+        </Panel>
       </Rise>
 
-      <Rise className="section off">
-        <Kicker>What the pool can fund next</Kicker>
-        <div className="list">
-          {fundable.map((f) => (
-            <button key={f.item.id} type="button" className="item press" onClick={() => sheets.open({ kind: "request", category: f.item.skill })}>
-              <div className="grow">
-                <div className="t">{f.item.title}</div>
-                <div className="m">
-                  {f.item.cadenceHint}, about {fmt(f.item.estCents)}
-                </div>
-              </div>
-              <Chip tone={f.coveredNow ? "ok" : "paper"}>{f.coveredNow ? "Covered now" : f.monthsUntil === null ? "Out of reach" : `In ${f.monthsUntil} month${f.monthsUntil === 1 ? "" : "s"}`}</Chip>
-            </button>
-          ))}
-        </div>
+      <Rise index={6}>
+        <Panel>
+          <PanelHead title="What the pool can fund next" />
+          <List>
+            {fundable.map((f) => (
+              <ListRow
+                key={f.item.id}
+                title={f.item.title}
+                facts={[f.item.cadenceHint.toUpperCase(), `ABOUT ${fmt(f.item.estCents)}`]}
+                trailing={
+                  f.coveredNow ? (
+                    <StatusWord state="success">COVERED NOW</StatusWord>
+                  ) : f.monthsUntil === null ? (
+                    <StatusWord state="inactive">OUT OF REACH</StatusWord>
+                  ) : (
+                    <StatusWord state="default">
+                      IN {f.monthsUntil} MONTH{f.monthsUntil === 1 ? "" : "S"}
+                    </StatusWord>
+                  )
+                }
+                onPress={() => sheets.open({ kind: "request", category: f.item.skill })}
+              />
+            ))}
+          </List>
+        </Panel>
       </Rise>
     </Screen>
   );

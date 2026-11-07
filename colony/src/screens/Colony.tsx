@@ -1,16 +1,15 @@
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { useColonyState } from "@/store/store";
 import { useMaps } from "@/store/selectors";
-import { Screen, Rise } from "@/ui/Screen";
-import { PageHead, Kicker } from "@/ui/PageHead";
-import { Avatar } from "@/ui/Avatar";
-import { Chip } from "@/ui/Chip";
-import { Btn } from "@/ui/Btn";
-import { Icon } from "@/ui/Icon";
-import { sheets } from "@/ui/sheetStore";
+import { Screen, Rise, PageIntro, MetaLine, Companion, QuietButton, MetricStrip, Panel, PanelHead, List, ListRow, Avatar, AvatarStack, Tag, EmptyState, sheets, companion } from "@/system";
 import { fmtMonth, monthOf } from "@/domain/dates";
 import { SKILL_LABEL } from "@/domain/types";
 import type { Provider } from "@/domain/types";
+import "./Colony.css";
+
+/* The manifesto long press: the one duration the kit has no token for, named once and handed to the CSS as a custom property. */
+const HOLD_MS = 550;
+const CANCEL_PX = 8;
 
 export function ColonyScreen() {
   const state = useColonyState();
@@ -18,105 +17,151 @@ export function ColonyScreen() {
   const tribe = useMemo(() => state.providers.filter((p) => p.broughtBy), [state.providers]);
   const matched = useMemo(() => state.providers.filter((p) => !p.broughtBy), [state.providers]);
   const hold = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const origin = useRef<{ x: number; y: number } | null>(null);
+  const [pressing, setPressing] = useState(false);
 
+  const cancel = () => {
+    clearTimeout(hold.current);
+    hold.current = undefined;
+    origin.current = null;
+    if (pressing) {
+      setPressing(false);
+      companion.rest();
+    }
+  };
   const press = {
-    onPointerDown: () => {
-      hold.current = setTimeout(() => sheets.open({ kind: "manifesto" }), 550);
+    onPointerDown: (e: PointerEvent<HTMLSpanElement>) => {
+      origin.current = { x: e.clientX, y: e.clientY };
+      setPressing(true);
+      companion.gather(HOLD_MS);
+      hold.current = setTimeout(() => {
+        hold.current = undefined;
+        setPressing(false);
+        sheets.open({ kind: "manifesto" });
+      }, HOLD_MS);
     },
-    onPointerUp: () => clearTimeout(hold.current),
-    onPointerLeave: () => clearTimeout(hold.current),
+    onPointerMove: (e: PointerEvent<HTMLSpanElement>) => {
+      const o = origin.current;
+      if (o && Math.hypot(e.clientX - o.x, e.clientY - o.y) > CANCEL_PX) cancel();
+    },
+    onPointerUp: cancel,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
   };
 
-  const ProviderRow = ({ p }: { p: Provider }) => (
-    <button type="button" className="item press" onClick={() => sheets.open({ kind: "provider", id: p.id })}>
-      <Avatar name={p.name} src={p.avatar} />
-      <div className="grow">
-        <div className="t">{p.name}</div>
-        <div className="m">
-          <em style={{ fontSize: 14 }}>{p.roleLine}</em>
-        </div>
-      </div>
-      <Chip tone={p.kind === "direct" ? "ink" : "honey"}>{SKILL_LABEL[p.primary]}</Chip>
-    </button>
+  const providers = state.providers.length;
+  const lede = tribe.length === 0 ? `${providers} people show up here, all matched by Colony.` : `${providers} people show up here, ${tribe.length} you brought, ${matched.length} matched by Colony.`;
+
+  const ProviderRow = ({ p, skill }: { p: Provider; skill: "muted" | "outlined" }) => (
+    <ListRow
+      leading={<Avatar size="md" name={p.name} src={p.avatar} />}
+      title={p.name}
+      facts={p.roleLine}
+      factsLine={[p.kind === "direct" ? "DIRECT FUNDS" : "POOL FUNDED"]}
+      trailing={<Tag tone={skill}>{SKILL_LABEL[p.primary]}</Tag>}
+      onPress={() => sheets.open({ kind: "provider", id: p.id })}
+    />
   );
 
   return (
-    <Screen>
-      <Rise>
-        <PageHead kicker={`Since ${fmtMonth(monthOf(state.colony.createdAt))}`} title={<span {...press} style={{ userSelect: "none", WebkitUserSelect: "none" }}>{state.colony.name}</span>} sub={`${state.people.length} members, ${state.homes.length} homes, ${state.providers.length} people who show up.`} />
-        <div className="row" style={{ gap: 8 }}>
-          <Btn size="sm" variant="ghost" onClick={() => sheets.open({ kind: "invite" })}>
-            <Icon name="share" size={16} /> Invite
-          </Btn>
-          <Btn size="sm" variant="ghost" onClick={() => sheets.open({ kind: "bring" })}>
-            <Icon name="plus" size={16} /> Bring someone
-          </Btn>
-        </div>
+    <Screen title="Colony">
+      <Rise index={0}>
+        <PageIntro
+          eyebrow={<MetaLine facts={[`SINCE ${fmtMonth(monthOf(state.colony.createdAt)).toUpperCase()}`]} />}
+          aside={<Companion />}
+          title={
+            <span className="colony-name" data-pressing={pressing ? "true" : "false"} style={{ "--colony-hold": `${HOLD_MS}ms` } as CSSProperties} {...press}>
+              {state.colony.name}
+            </span>
+          }
+          titleMuted={`${state.people.length} members, ${state.homes.length} homes`}
+          intro={lede}
+          editorial
+        >
+          <div className="colony-actions">
+            <QuietButton tone="ink" onClick={() => sheets.open({ kind: "invite" })}>
+              INVITE
+            </QuietButton>
+            <QuietButton tone="ink" onClick={() => sheets.open({ kind: "bring" })}>
+              BRING SOMEONE
+            </QuietButton>
+          </div>
+        </PageIntro>
       </Rise>
 
-      <Rise className="section">
-        <Kicker>Members</Kicker>
-        <div className="list">
-          {state.people.map((p) => (
-            <button key={p.id} type="button" className="item press" onClick={() => sheets.open({ kind: "person", id: p.id })}>
-              <Avatar name={p.name} src={p.avatar} />
-              <div className="grow">
-                <div className="t">{p.name}</div>
-                <div className="m">{maps.homes.get(maps.households.get(p.householdId)?.homeId ?? "")?.label}</div>
-              </div>
-              <Chip tone={p.role === "steward" ? "honey" : "paper"}>{p.role === "steward" ? "Steward" : "Member"}</Chip>
-            </button>
-          ))}
-        </div>
+      <Rise index={1}>
+        <MetricStrip
+          columns={2}
+          items={[
+            { label: "YOUR TRIBE", value: tribe.length, note: "they stay yours" },
+            { label: "MATCHED", value: matched.length, note: "for your streets" },
+          ]}
+        />
       </Rise>
 
-      <Rise className="section off">
-        <Kicker>Households</Kicker>
-        <div className="list">
-          {state.households.map((h) => {
-            const home = maps.homes.get(h.homeId);
-            return (
-              <button key={h.id} type="button" className="item press" onClick={() => sheets.open({ kind: "household", id: h.id })}>
-                <div className="grow">
-                  <div className="t">{home?.label}</div>
-                  <div className="m">
-                    {home?.area}, {home?.plantCount} plants
-                  </div>
-                </div>
-                <span className="faces">
-                  {h.personIds.map((id) => {
-                    const p = maps.people.get(id);
-                    return p ? <Avatar key={id} name={p.name} src={p.avatar} size="sm" /> : null;
-                  })}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+      <Rise index={2}>
+        <Panel>
+          <PanelHead title="Members" />
+          <List>
+            {state.people.map((p) => (
+              <ListRow
+                key={p.id}
+                leading={<Avatar size="md" name={p.name} src={p.avatar} />}
+                title={p.name}
+                facts={[maps.homes.get(maps.households.get(p.householdId)?.homeId ?? "")?.label]}
+                trailing={p.role === "steward" ? <Tag tone="ink">STEWARD</Tag> : undefined}
+                onPress={() => sheets.open({ kind: "person", id: p.id })}
+              />
+            ))}
+          </List>
+        </Panel>
       </Rise>
 
-      <Rise className="section">
-        <Kicker>Your tribe</Kicker>
-        <p className="small muted" style={{ marginBottom: 4 }}>
-          People you brought with you. They stay yours.
-        </p>
-        <div className="list">
-          {tribe.map((p) => (
-            <ProviderRow key={p.id} p={p} />
-          ))}
-        </div>
+      <Rise index={3}>
+        <Panel>
+          <PanelHead title="Households" />
+          <List>
+            {state.households.map((h) => {
+              const home = maps.homes.get(h.homeId);
+              const people = h.personIds.map((id) => maps.people.get(id)).filter((p): p is NonNullable<typeof p> => Boolean(p));
+              return (
+                <ListRow
+                  key={h.id}
+                  title={home?.label ?? h.name}
+                  facts={[home?.area?.toUpperCase(), `${home?.plantCount ?? 0} PLANTS`]}
+                  trailing={<AvatarStack people={people} size="sm" max={4} />}
+                  onPress={() => sheets.open({ kind: "household", id: h.id })}
+                />
+              );
+            })}
+          </List>
+        </Panel>
       </Rise>
 
-      <Rise className="section off">
-        <Kicker honey>Smart matched</Kicker>
-        <p className="small muted" style={{ marginBottom: 4 }}>
-          Curated by Colony for your lifestyle and your streets.
-        </p>
-        <div className="list">
-          {matched.map((p) => (
-            <ProviderRow key={p.id} p={p} />
-          ))}
-        </div>
+      <Rise index={4}>
+        <Panel>
+          <PanelHead title="Your tribe" meta="THEY STAY YOURS" description="People you brought with you." />
+          {tribe.length === 0 ? (
+            <EmptyState body="No one brought in yet." />
+          ) : (
+            <List>
+              {tribe.map((p) => (
+                <ProviderRow key={p.id} p={p} skill="muted" />
+              ))}
+            </List>
+          )}
+        </Panel>
+      </Rise>
+
+      <Rise index={5}>
+        <Panel>
+          <PanelHead title="Smart matched" meta={String(matched.length)} description="Matched by Colony for your streets and your lifestyle." />
+          <List>
+            {matched.map((p) => (
+              <ProviderRow key={p.id} p={p} skill="outlined" />
+            ))}
+          </List>
+        </Panel>
       </Rise>
     </Screen>
   );

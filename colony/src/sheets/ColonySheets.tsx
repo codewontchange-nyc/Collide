@@ -1,13 +1,7 @@
-import { useState } from "react";
+import { useState, type KeyboardEvent } from "react";
 import { motion } from "motion/react";
 import { useColonyState } from "@/store/store";
-import { Sheet } from "@/ui/Sheet";
-import { Btn } from "@/ui/Btn";
-import { Chip } from "@/ui/Chip";
-import { Mark } from "@/brand/Mark";
-import { toast } from "@/ui/Toast";
-import { sheets } from "@/ui/sheetStore";
-import { companion } from "@/brand/companion";
+import { SheetContent, Button, Figure, Kicker, MetaLine, Mark, TextField, FilterChip, ChipRow, Panel, PanelHead, List, ListRow, toast, sheets, companion, appear, stag, useReducedMotion } from "@/system";
 import { COPY } from "@/domain/copy";
 import { WEEKDAY_SHORT } from "@/domain/dates";
 import { DIRECT_SKILLS, INDIRECT_SKILLS, SKILL_LABEL, type Skill, type Weekday } from "@/domain/types";
@@ -36,135 +30,138 @@ export function InviteSheet() {
     }
     await copy();
   };
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      void copy();
+    }
+  };
   return (
-    <Sheet
-      kicker="Invite"
+    <SheetContent
+      eyebrow={<Kicker tone="meta">Invite</Kicker>}
       title="Grow the colony"
-      foot={
+      description="Each new person adds their contribution. We match people who fit as the colony grows."
+      actions={
         <>
-          <Btn variant="ghost" onClick={copy}>
+          <Button variant="grey" hideIcon onClick={copy}>
             Copy code
-          </Btn>
-          <Btn variant="honey" onClick={share}>
-            Share
-          </Btn>
+          </Button>
+          <Button onClick={share}>Share</Button>
         </>
       }
     >
-      <p className="sub">Adding members is easy. We curate and match people who fit your lifestyle as the colony grows.</p>
-      <div className="card flat" style={{ marginTop: 18, textAlign: "center", padding: 28 }}>
-        <div className="kicker" style={{ justifyContent: "center", marginLeft: 0 }}>
-          Invite code
-        </div>
-        <div className="hero sm" style={{ marginLeft: 0, marginTop: 10, letterSpacing: "0.08em" }}>
-          {code}
-        </div>
+      <div className="invite-band" role="button" tabIndex={0} aria-label="Copy invite code" onClick={copy} onKeyDown={onKey}>
+        <Kicker>Invite code</Kicker>
+        <Figure family="mono" size="md" value={code} />
       </div>
-      <p className="tiny muted" style={{ marginTop: 16 }}>
-        Each new person adds their contribution. More people, more homes, a deeper pool.
-      </p>
-    </Sheet>
+      <p className="sheet-note paragraph-x-small">More people, more homes, a deeper pool.</p>
+    </SheetContent>
   );
 }
+
+const NAME_MAX = 12;
+const DAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
 
 export function BringSheet() {
   const [name, setName] = useState("");
   const [skill, setSkill] = useState<Skill>("cleaning");
-  const [rate, setRate] = useState(140);
+  const [rate, setRate] = useState("140");
   const [days, setDays] = useState<Weekday[]>([2]);
   const direct = DIRECT_SKILLS.includes(skill);
+  const trimmed = name.trim();
+  const shown = trimmed.length > NAME_MAX ? `${trimmed.slice(0, NAME_MAX)}…` : trimmed || "them";
   return (
-    <Sheet
-      kicker="Bring someone"
+    <SheetContent
+      eyebrow={<Kicker tone="meta">Bring someone</Kicker>}
       title="Bring your current team"
-      foot={
-        <Btn
-          variant="honey"
+      description="Already love someone? They stay yours. We just make it easier to pay and plan together."
+      actions={
+        <Button
           block
-          disabled={!name.trim()}
+          hideIcon
+          disabled={!trimmed}
           onClick={() => {
-            bringProvider({ name: name.trim(), skill, rateCents: Math.round(rate * 100), days });
+            bringProvider({ name: trimmed, skill, rateCents: Math.round((Number(rate) || 0) * 100), days });
             companion.say(COPY.toast.broughtIn);
             sheets.close();
           }}
         >
-          Add {name.trim() || "them"} to the colony
-        </Btn>
+          Add {shown} to the colony
+        </Button>
       }
     >
-      <p className="sub">Already love someone? They stay yours. We just make it easier to pay and plan together.</p>
-      <label className="label" style={{ marginTop: 18 }}>
-        Name
-      </label>
-      <input className="field" placeholder="Their name" value={name} onChange={(e) => setName(e.target.value)} />
-      <label className="label" style={{ marginTop: 16 }}>
-        What they do
-      </label>
-      <div className="chips">
-        {[...DIRECT_SKILLS, ...INDIRECT_SKILLS].map((s) => (
-          <Chip key={s} on={skill === s} onClick={() => setSkill(s)}>
-            {SKILL_LABEL[s]}
-          </Chip>
-        ))}
+      <TextField label="Name" placeholder="Their name" autoCapitalize="words" value={name} onChange={setName} />
+      <div className="sheet-form__group">
+        <Kicker>What they do</Kicker>
+        <ChipRow label="What they do">
+          {[...DIRECT_SKILLS, ...INDIRECT_SKILLS].map((s) => (
+            <FilterChip key={s} pressed={skill === s} onPress={() => setSkill(s)}>
+              {SKILL_LABEL[s]}
+            </FilterChip>
+          ))}
+        </ChipRow>
       </div>
       {direct && (
-        <>
-          <label className="label" style={{ marginTop: 16 }}>
-            Which days
-          </label>
-          <div className="chips">
-            {WEEKDAY_SHORT.map((d, i) => (
-              <Chip key={d} on={days.includes(i as Weekday)} onClick={() => setDays(days.includes(i as Weekday) ? days.filter((x) => x !== i) : [...days, i as Weekday])}>
-                {d}
-              </Chip>
+        <div className="sheet-form__group">
+          <Kicker>Which days</Kicker>
+          <ChipRow label="Which days">
+            {DAYS.map((d) => (
+              <FilterChip key={d} pressed={days.includes(d)} onPress={() => setDays(days.includes(d) ? days.filter((x) => x !== d) : [...days, d])}>
+                {WEEKDAY_SHORT[d]}
+              </FilterChip>
             ))}
-          </div>
-        </>
+          </ChipRow>
+        </div>
       )}
-      <label className="label" style={{ marginTop: 16 }}>
-        {direct ? "Per visit, both homes" : "Per hour"}
-      </label>
-      <input className="field" type="number" min={0} step={5} value={rate} onChange={(e) => setRate(Number(e.target.value))} style={{ width: 140 }} />
-      <p className="tiny muted" style={{ marginTop: 16 }}>
-        {direct ? "Direct funds, paid in full every month." : "Pool funded when you request them."}
-      </p>
-    </Sheet>
+      <TextField
+        label={direct ? "Per visit, both homes" : "Per hour"}
+        prefix="$"
+        type="number"
+        inputMode="decimal"
+        min={0}
+        step={5}
+        value={rate}
+        onChange={setRate}
+        hint={direct ? "Direct funds, paid in full every month." : "Pool funded when you request them."}
+      />
+    </SheetContent>
   );
 }
 
 export function ManifestoSheet() {
   const state = useColonyState();
+  const reduced = useReducedMotion();
+  const members = state.people.length;
+  const providers = state.providers.length;
   return (
-    <Sheet kicker={state.colony.name} title="Everyone has a role">
-      <div style={{ color: "var(--ink)", marginBottom: 8 }}>
-        <Mark size={36} drawIn />
-      </div>
-      <div className="stack" style={{ gap: 18, marginTop: 8 }}>
+    <SheetContent mode="dark" eyebrow={<MetaLine facts={[state.colony.name]} />} title="Everyone has a role">
+      <Mark size="md" drawIn />
+      <div className="manifesto-lines">
         {COPY.manifesto.map((line, i) => (
-          <motion.p key={line} className="voice" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.18, duration: 0.5 }}>
+          <motion.p
+            key={line}
+            className="paragraph-large"
+            variants={appear()}
+            initial={reduced ? false : "hidden"}
+            animate="show"
+            custom={0}
+            transition={reduced ? { duration: 0 } : { delay: i * stag.lg }}
+          >
             {line}
           </motion.p>
         ))}
       </div>
-      <div className="kicker" style={{ marginTop: 28, marginBottom: 8, marginLeft: 0 }}>
-        Each one vital
-      </div>
-      <div className="list">
-        {state.people.map((p) => (
-          <div key={p.id} className="item">
-            <div className="grow t">{p.name}</div>
-            <span className="small muted">{p.role === "steward" ? "Keeps the colony honest" : "Makes it possible"}</span>
-          </div>
-        ))}
-        {state.providers.map((p) => (
-          <div key={p.id} className="item">
-            <div className="grow t">{p.name}</div>
-            <span className="small muted">
-              <em>{p.roleLine}</em>
-            </span>
-          </div>
-        ))}
-      </div>
-    </Sheet>
+      <Panel>
+        <PanelHead title="Each one vital" meta={<MetaLine as="span" facts={[`${members} members`, `${providers} who show up`]} />} />
+        <List rule="none" density="reading">
+          {state.people.map((p) => (
+            <ListRow key={p.id} title={p.name} trailing={<span className="manifesto-part label-small">{p.role === "steward" ? "Keeps the colony honest" : "Makes it possible"}</span>} />
+          ))}
+          {state.providers.map((p) => (
+            <ListRow key={p.id} title={p.name} trailing={<span className="manifesto-role paragraph-x-small">{p.roleLine}.</span>} />
+          ))}
+        </List>
+      </Panel>
+    </SheetContent>
   );
 }

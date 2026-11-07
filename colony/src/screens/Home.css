@@ -1,0 +1,11 @@
+/* Home: the one off pieces the kit's rows do not carry. */
+
+/* The 28th dinner's index is the one index set in ink; the ledger just stops at 28. */
+.home-dinner--28 .ig-row__index { color: var(--color-neutral-10); }
+
+/* "Nothing scheduled" on a disabled cleaning row. */
+.home-quiet { color: var(--color-neutral-06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .home-dinner--28 .ig-row__index, .home-quiet { transition: none; animation: none; }
+}

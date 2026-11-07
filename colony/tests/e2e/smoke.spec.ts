@@ -4,8 +4,18 @@ import { mkdirSync } from "node:fs";
 const OUT = "e2e-out";
 mkdirSync(OUT, { recursive: true });
 
+async function noOverflow(page: Page) {
+  const width = page.viewportSize()?.width ?? 375;
+  const widths = await page.evaluate(() => [
+    document.scrollingElement?.scrollWidth ?? 0,
+    document.querySelector("main")?.scrollWidth ?? 0,
+  ]);
+  for (const w of widths) expect(w).toBeLessThanOrEqual(width);
+}
+
 async function shot(page: Page, name: string) {
   await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: false });
+  await noOverflow(page);
 }
 
 async function poolBalance(page: Page): Promise<number> {
@@ -46,7 +56,7 @@ test("tour, tabs, request and match, advance month, pwa", async ({ page }) => {
   await page.getByRole("button", { name: "Find someone" }).click();
   await expect(page.getByRole("heading", { name: "A few people who fit" })).toBeVisible({ timeout: 5000 });
   await page.waitForTimeout(600);
-  const cards = page.locator(".sheet-body .card");
+  const cards = page.locator(".ig-sheet__body .ig-card[aria-pressed]");
   await expect(cards).toHaveCount(3);
   await shot(page, "05-match");
   await page.getByRole("button", { name: /^Book / }).click();

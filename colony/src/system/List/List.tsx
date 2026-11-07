@@ -65,7 +65,7 @@ type RowProps = {
   ellipsis?: boolean;
   titleAs?: "h3" | "p" | "span";
   className?: string;
-} & HTMLAttributes<HTMLElement>;
+} & Omit<HTMLAttributes<HTMLElement>, "title">;
 
 /** One row: index, leading, main, trailing, with the grid built from the cells present. */
 export function ListRow({

@@ -1,0 +1,11 @@
+/* Provider Today: the one inverted block, the next visit. The time sits where a face would be; the glassy button spans the card. */
+.today-next { grid-template-columns: var(--size-touch) minmax(0, 1fr); }
+.today-next__time { color: var(--color-neutral-02); padding-top: 2px; }
+.today-next__main { display: grid; gap: var(--padding-x-small); min-width: 0; }
+.today-next__title { color: var(--color-surface); }
+.today-next .ig-kicker, .today-next .ig-meta { color: var(--color-neutral-02); }
+.today-next__action { grid-column: 1 / -1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .today-next { transition: none; animation: none; }
+}

@@ -1,0 +1,44 @@
+/* Budget: the hero stack and the pressable pool block. */
+
+.budget-hero { display: grid; gap: var(--padding-med); min-width: 0; }
+.budget-hero dl { margin: 0; }
+.budget-hero .ig-stat-tile__label { color: var(--color-neutral-06); }
+
+.budget-note { color: var(--color-neutral-08); margin: 0; }
+
+/* The pool block: jar, figure and projections, chevron. A door, not a card. */
+.ig-pool {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 20px;
+  gap: var(--padding-med);
+  align-items: start;
+  padding: var(--padding-med) 0;
+  margin: 0 calc(-1 * var(--page-gutter));
+  padding-inline: var(--page-gutter);
+  width: calc(100% + 2 * var(--page-gutter));
+  border: 0;
+  border-bottom: var(--border-width) solid var(--color-neutral-02);
+  border-radius: var(--radius-small);
+  background: transparent;
+  color: var(--color-neutral-10);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  transition: background-color var(--motion-fast) var(--ease-standard), scale var(--motion-duration-instant) var(--ease-standard);
+}
+.ig-pool:active { scale: 0.99; }
+.ig-pool:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+@media (hover: hover) {
+  .ig-pool:hover { background-color: var(--color-neutral-01); }
+}
+.ig-pool__main { display: grid; gap: var(--padding-x-small); min-width: 0; }
+.ig-pool__note { color: var(--color-neutral-08); }
+.ig-pool__main .ig-tags { padding-top: var(--padding-x-small); }
+.ig-pool__chevron { color: var(--color-neutral-04); align-self: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ig-pool { transition: none; animation: none; }
+}

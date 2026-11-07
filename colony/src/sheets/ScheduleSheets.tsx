@@ -1,14 +1,7 @@
 import { useColonyState } from "@/store/store";
 import { useMaps } from "@/store/selectors";
-import { Sheet } from "@/ui/Sheet";
-import { Btn } from "@/ui/Btn";
-import { Avatar } from "@/ui/Avatar";
-import { Chip } from "@/ui/Chip";
-import { Stamp } from "@/ui/Stamp";
-import { toast } from "@/ui/Toast";
-import { sheets } from "@/ui/sheetStore";
-import { companion } from "@/brand/companion";
-import { fmtDate, fmtTime, monthOf } from "@/domain/dates";
+import { SheetContent, Button, Avatar, Tag, StatusWord, MetaLine, Facts, Figure, Panel, PanelHead, List, ListRow, toast, sheets, companion } from "@/system";
+import { fmtDate, fmtMonth, fmtTime, monthOf } from "@/domain/dates";
 import { fmt } from "@/domain/money";
 import { cadenceLabel, occurrences } from "@/domain/cadence";
 import { COPY } from "@/domain/copy";
@@ -22,35 +15,32 @@ export function MealSheet({ id }: { id: string }) {
   if (!meal) return null;
   const chef = maps.providers.get(meal.chefId);
   const idx = state.meals.filter((m) => monthOf(m.date) === monthOf(meal.date)).sort((a, b) => a.date.localeCompare(b.date)).findIndex((m) => m.id === meal.id) + 1;
+  const cooked = state.schedule.find((s) => s.id === meal.scheduleItemId)?.date ?? meal.date;
   return (
-    <Sheet kicker={`Dinner ${idx} of 28, ${fmtDate(meal.date)}`} title={meal.title}>
-      <div className="row" style={{ marginTop: 6 }}>
-        <Avatar name={chef?.name ?? ""} src={chef?.avatar} />
-        <div className="grow">
-          <div style={{ fontWeight: 400 }}>{chef?.name}</div>
-          <div className="small muted">{meal.cuisine}</div>
-        </div>
-        {meal.status === "served" && <Stamp animate={false}>Served</Stamp>}
-      </div>
-      <div className="chips" style={{ marginTop: 16 }}>
+    <SheetContent eyebrow={<MetaLine facts={[`Dinner ${idx} of 28`, fmtDate(meal.date)]} />} title={meal.title}>
+      <List rule="none">
+        <ListRow
+          leading={<Avatar size="md" name={chef?.name ?? ""} src={chef?.avatar} />}
+          title={chef?.name ?? ""}
+          facts={[meal.cuisine]}
+          trailing={meal.status === "served" ? <StatusWord state="success">Served</StatusWord> : undefined}
+        />
+      </List>
+      <div className="ig-tags">
         {meal.tags.map((t) => (
-          <Chip key={t}>{t}</Chip>
+          <Tag key={t} tone="muted">
+            {t}
+          </Tag>
         ))}
         {meal.homeIds.map((h) => (
-          <Chip key={h} tone="line">
+          <Tag key={h} tone="outlined">
             {maps.homes.get(h)?.label}
-          </Chip>
+          </Tag>
         ))}
       </div>
-      {idx === 28 && (
-        <p className="voice" style={{ marginTop: 22 }}>
-          {COPY.meal28}
-        </p>
-      )}
-      <p className="small muted" style={{ marginTop: 20 }}>
-        Cooked on {fmtDate(state.schedule.find((s) => s.id === meal.scheduleItemId)?.date ?? meal.date)}. Kept in the fridge, labeled, ready to warm.
-      </p>
-    </Sheet>
+      {idx === 28 && <p className="sheet-serif paragraph-medium">{COPY.meal28}</p>}
+      <p className="sheet-note paragraph-x-small">Cooked on {fmtDate(cooked)}. Kept in the fridge, labeled, ready to warm.</p>
+    </SheetContent>
   );
 }
 
@@ -63,14 +53,16 @@ export function VisitSheet({ id }: { id: string }) {
   const home = maps.homes.get(item.homeId);
   const eng = item.engagementId ? maps.engagements.get(item.engagementId) : undefined;
   const meals = state.meals.filter((m) => m.scheduleItemId === item.id);
+  const when = item.date === state.meta.simToday ? "Today" : fmtDate(item.date);
   return (
-    <Sheet
-      kicker={`${item.date === state.meta.simToday ? "Today" : fmtDate(item.date)}, ${fmtTime(item.start)} to ${fmtTime(item.end)}`}
+    <SheetContent
+      eyebrow={<MetaLine facts={[when, `${fmtTime(item.start)} to ${fmtTime(item.end)}`]} />}
       title={item.title}
-      foot={
+      actions={
         item.status === "planned" ? (
-          <Btn
+          <Button
             block
+            hideIcon
             onClick={() => {
               markVisitDone(item.id);
               companion.nod();
@@ -79,58 +71,41 @@ export function VisitSheet({ id }: { id: string }) {
             }}
           >
             Mark done
-          </Btn>
+          </Button>
         ) : undefined
       }
     >
-      <button type="button" className="row" style={{ marginTop: 6, textAlign: "left" }} onClick={() => p && sheets.swap({ kind: "provider", id: p.id })}>
-        <Avatar name={p?.name ?? ""} src={p?.avatar} size="lg" />
-        <div className="grow">
-          <div style={{ fontWeight: 400 }}>{p?.name}</div>
-          <div className="small muted">
-            <em>{p?.roleLine}</em>
-          </div>
-        </div>
-        {item.status === "done" && <Stamp animate={false}>Done</Stamp>}
-      </button>
-      <div className="list" style={{ marginTop: 16 }}>
-        <div className="item">
-          <div className="grow">
-            <div className="t">{home?.label}</div>
-            <div className="m">{home?.address}</div>
-          </div>
-        </div>
-        {eng && (
-          <div className="item">
-            <div className="grow">
-              <div className="t">{eng.label}</div>
-              <div className="m">
-                {cadenceLabel(eng.cadence)}, {fmt(eng.costCents)} a visit
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      <List rule="none">
+        <ListRow
+          leading={<Avatar size="md" name={p?.name ?? ""} src={p?.avatar} />}
+          title={p?.name ?? ""}
+          facts={p ? `${p.roleLine}.` : undefined}
+          trailing={item.status === "done" ? <StatusWord state="success">Done</StatusWord> : undefined}
+          chevron={item.status !== "done"}
+          onPress={() => p && sheets.swap({ kind: "provider", id: p.id })}
+        />
+      </List>
+      <Facts
+        items={[
+          home && { label: home.label, value: home.address },
+          eng && { label: eng.label, value: `${cadenceLabel(eng.cadence)}, ${fmt(eng.costCents)} a visit` },
+        ]}
+      />
       {meals.length > 0 && (
-        <>
-          <div className="kicker" style={{ marginTop: 22, marginBottom: 10, marginLeft: 0 }}>
-            Dinners from this visit
-          </div>
-          <div className="list">
+        <Panel>
+          <PanelHead title="Dinners from this visit" />
+          <List rule="none">
             {meals.map((m) => (
-              <button key={m.id} type="button" className="item press" onClick={() => sheets.swap({ kind: "meal", id: m.id })}>
-                <span className="small muted tnum" style={{ width: 44 }}>
-                  {fmtDate(m.date).split(",")[0]}
-                </span>
-                <div className="grow t ellipsis">{m.title}</div>
-              </button>
+              <ListRow key={m.id} index={fmtDate(m.date).split(",")[0]} indexWidth="3ch" title={m.title} ellipsis chevron onPress={() => sheets.swap({ kind: "meal", id: m.id })} />
             ))}
-          </div>
-        </>
+          </List>
+        </Panel>
       )}
-    </Sheet>
+    </SheetContent>
   );
 }
+
+const SOURCE_LABEL = { seasonal: "Seasonal", maintenance: "Preventative", match: "Smart matched" } as const;
 
 export function TaskSheet({ id }: { id: string }) {
   const state = useColonyState();
@@ -140,11 +115,14 @@ export function TaskSheet({ id }: { id: string }) {
   const p = task.handledBy ? maps.providers.get(task.handledBy) : undefined;
   const home = task.homeId ? maps.homes.get(task.homeId) : undefined;
   const need = task.needId ? maps.needs.get(task.needId) : undefined;
-  const foot =
+  const source = task.source in SOURCE_LABEL ? SOURCE_LABEL[task.source as keyof typeof SOURCE_LABEL] : "Added by a member";
+  const dotState = task.status === "handled" || task.status === "scheduled" ? "success" : "default";
+  const actions =
     task.status === "needs_you" ? (
       <>
-        <Btn
-          variant="ghost"
+        <Button
+          variant="grey"
+          hideIcon
           onClick={() => {
             setTaskStatus(task.id, "queued");
             toast.show("No rush. We will keep it in the queue.");
@@ -152,9 +130,9 @@ export function TaskSheet({ id }: { id: string }) {
           }}
         >
           Later
-        </Btn>
-        <Btn
-          variant="honey"
+        </Button>
+        <Button
+          hideIcon
           onClick={() => {
             setTaskStatus(task.id, "scheduled");
             companion.say(COPY.handled);
@@ -162,20 +140,16 @@ export function TaskSheet({ id }: { id: string }) {
           }}
         >
           Approve {fmtDate(task.dueOn).split(",")[0]}
-        </Btn>
+        </Button>
       </>
     ) : task.status === "queued" ? (
-      <Btn
-        block
-        onClick={() => {
-          sheets.swap({ kind: "request", homeId: task.homeId, category: task.category });
-        }}
-      >
+      <Button block onClick={() => sheets.swap({ kind: "request", homeId: task.homeId, category: task.category })}>
         Find someone now
-      </Btn>
+      </Button>
     ) : task.status === "scheduled" ? (
-      <Btn
+      <Button
         block
+        hideIcon
         onClick={() => {
           setTaskStatus(task.id, "handled");
           companion.nod();
@@ -184,48 +158,38 @@ export function TaskSheet({ id }: { id: string }) {
         }}
       >
         Mark handled
-      </Btn>
+      </Button>
     ) : undefined;
   return (
-    <Sheet kicker={`${COPY.taskStatusLabel[task.status]}, ${fmtDate(task.dueOn)}`} title={task.title} foot={foot}>
-      <div className="chips" style={{ marginTop: 4 }}>
-        <Chip tone="line">{SKILL_LABEL[task.category]}</Chip>
-        {home && <Chip tone="line">{home.label}</Chip>}
-        <Chip>{task.source === "seasonal" ? "Seasonal" : task.source === "maintenance" ? "Preventative" : task.source === "match" ? "Smart matched" : "Added by a member"}</Chip>
+    <SheetContent
+      eyebrow={
+        <MetaLine
+          facts={[
+            <StatusWord key="status" state={dotState} pulse={task.status === "needs_you"}>
+              {COPY.taskStatusLabel[task.status]}
+            </StatusWord>,
+            fmtDate(task.dueOn),
+          ]}
+        />
+      }
+      title={task.title}
+      actions={actions}
+    >
+      <div className="ig-tags">
+        <Tag tone="outlined">{SKILL_LABEL[task.category]}</Tag>
+        {home && <Tag tone="outlined">{home.label}</Tag>}
+        <Tag tone="muted">{source}</Tag>
       </div>
-      {task.note && (
-        <p className="sub" style={{ marginTop: 16 }}>
-          {task.note}
-        </p>
-      )}
-      {need && (
-        <p className="small muted" style={{ marginTop: 12 }}>
-          From your request: {need.title}
-        </p>
-      )}
-      <div className="list" style={{ marginTop: 16 }}>
+      {task.note && <p className="sheet-text paragraph-small">{task.note}</p>}
+      {need && <p className="sheet-note paragraph-x-small">From your request: {need.title}</p>}
+      <List rule="none">
         {p ? (
-          <button type="button" className="item press" onClick={() => sheets.swap({ kind: "provider", id: p.id })}>
-            <Avatar name={p.name} src={p.avatar} />
-            <div className="grow">
-              <div className="t">{p.name}</div>
-              <div className="m">
-                <em>{p.roleLine}</em>
-              </div>
-            </div>
-          </button>
+          <ListRow leading={<Avatar size="md" name={p.name} src={p.avatar} />} title={p.name} facts={`${p.roleLine}.`} chevron onPress={() => sheets.swap({ kind: "provider", id: p.id })} />
         ) : (
-          <div className="item">
-            <div className="m">{task.status === "queued" ? "Waiting for the right person and the right month." : "Colony will assign someone."}</div>
-          </div>
+          <ListRow title="" facts={task.status === "queued" ? "Waiting for the right person and the right month." : "Colony will assign someone."} />
         )}
-      </div>
-      {task.status === "handled" && (
-        <div style={{ marginTop: 20 }}>
-          <Stamp animate={false} />
-        </div>
-      )}
-    </Sheet>
+      </List>
+    </SheetContent>
   );
 }
 
@@ -238,47 +202,44 @@ export function AllocationSheet({ engagementId }: { engagementId: string }) {
   const month = monthOf(state.meta.simToday);
   const dates = occurrences(eng.cadence, month, eng.startsOn);
   const siblings = state.engagements.filter((e) => e.providerId === eng.providerId && e.id !== eng.id);
+  const all = [eng, ...siblings];
+  const visits = all.reduce((a, e) => a + occurrences(e.cadence, month, e.startsOn).length, 0);
+  const first = p?.name.split(" ")[0];
   return (
-    <Sheet kicker="Direct funds" title={p?.name}>
-      <button type="button" className="row" style={{ textAlign: "left", marginTop: 4 }} onClick={() => p && sheets.swap({ kind: "provider", id: p.id })}>
-        <Avatar name={p?.name ?? ""} src={p?.avatar} size="lg" />
-        <div className="grow">
-          <div className="small muted">
-            <em>{p?.roleLine}</em>
-          </div>
+    <SheetContent eyebrow={<MetaLine facts={["Direct funds", fmtMonth(month)]} />} title={p?.name}>
+      <List rule="none">
+        <ListRow leading={<Avatar size="md" name={p?.name ?? ""} src={p?.avatar} />} title={p ? `${p.roleLine}.` : ""} chevron onPress={() => p && sheets.swap({ kind: "provider", id: p.id })} />
+      </List>
+      <Panel>
+        <PanelHead title="This month" meta={`${visits} visits`} rule="ink" />
+        <List rule="none">
+          {all.map((e) => {
+            const d = occurrences(e.cadence, month, e.startsOn);
+            return (
+              <ListRow
+                key={e.id}
+                title={e.label}
+                facts={[cadenceLabel(e.cadence), e.homeIds.map((h) => maps.homes.get(h)?.label).join(" and ")]}
+                trailing={<Figure value={e.costCents * d.length} format={fmt} size="sm" />}
+                trailingMeta={`${d.length} × ${fmt(e.costCents)}`}
+              />
+            );
+          })}
+        </List>
+      </Panel>
+      <Panel>
+        <PanelHead title="Dates" />
+        <div className="ig-tags">
+          {dates.map((d) => (
+            <Tag key={d} tone="outlined">
+              {fmtDate(d).replace(", ", " ")}
+            </Tag>
+          ))}
         </div>
-      </button>
-      {[eng, ...siblings].map((e) => {
-        const d = occurrences(e.cadence, month, e.startsOn);
-        return (
-          <div key={e.id} className="card flat" style={{ marginTop: 14 }}>
-            <div className="row between">
-              <div>
-                <div style={{ fontWeight: 400 }}>{e.label}</div>
-                <div className="small muted">
-                  {cadenceLabel(e.cadence)}, {e.homeIds.map((h) => maps.homes.get(h)?.label).join(" and ")}
-                </div>
-              </div>
-              <div className="right">
-                <div className="money">{fmt(e.costCents * d.length)}</div>
-                <div className="tiny muted">
-                  {d.length} x {fmt(e.costCents)}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-      <div className="chips" style={{ marginTop: 16 }}>
-        {dates.map((d) => (
-          <Chip key={d} tone="line">
-            {fmtDate(d).replace(", ", " ")}
-          </Chip>
-        ))}
-      </div>
-      <p className="small muted" style={{ marginTop: 18 }}>
-        {COPY.noCut} Bonuses and tips go straight to {p?.name.split(" ")[0]}.
+      </Panel>
+      <p className="sheet-note paragraph-x-small">
+        {COPY.noCut} Bonuses and tips go straight to {first}.
       </p>
-    </Sheet>
+    </SheetContent>
   );
 }

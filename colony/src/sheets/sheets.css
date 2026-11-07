@@ -1,0 +1,55 @@
+/* The sheets' one off layout: the swap wrapper keeps the body's grid, the head block puts an 84px face or jar beside a lede,
+   the request form groups, the curating body, the match card's cover line, the invite band and the manifesto's lines. Tokens only. */
+.sheet-swap { display: grid; gap: var(--padding-med); min-width: 0; }
+
+/* Provider, pool and advance: 84px left, the words right. */
+.sheet-head-block { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: var(--padding-med); align-items: start; min-width: 0; }
+.sheet-head-block__main { display: grid; gap: var(--padding-x-small); min-width: 0; }
+.sheet-head-block__lede { color: var(--color-neutral-10); }
+
+/* Running text inside a sheet body. */
+.sheet-note { color: var(--color-neutral-08); }
+.sheet-text { color: var(--color-neutral-10); }
+.sheet-serif { color: var(--color-neutral-10); max-width: 36ch; }
+
+/* Request: 32 between groups, 16 inside. */
+.sheet-form { display: grid; gap: var(--padding-large); min-width: 0; }
+.sheet-form__group { display: grid; gap: var(--padding-med); min-width: 0; }
+.sheet-form__hint { color: var(--color-neutral-08); }
+
+/* Curating: the panel holds its height while the companion gathers. */
+.sheet-curating { display: grid; justify-items: center; align-content: center; gap: var(--padding-med); min-height: 240px; text-align: center; }
+.sheet-curating .ig-loading--sentence { justify-content: center; max-width: 28ch; text-align: center; }
+.sheet-curating .ig-loading--bar { max-width: 240px; }
+
+/* Match: a candidate's parts and the picked card's cover line (a dot and a sentence). */
+.match-card__who { display: grid; gap: var(--padding-x-small); min-width: 0; }
+.match-card__lead { display: flex; align-items: flex-start; gap: var(--padding-med); min-width: 0; }
+.match-card__role { color: var(--color-neutral-08); }
+.match-card__quote { display: grid; justify-items: end; gap: var(--padding-x-small); text-align: right; flex: none; }
+.match-card__when { color: var(--color-neutral-06); white-space: nowrap; }
+.match-cover { display: flex; align-items: flex-start; gap: var(--padding-x-small); margin: 0; color: var(--color-neutral-10); }
+.match-cover .ig-dot { flex: none; margin: -4px; margin-top: calc((var(--type-paragraph-x-small-line-height) * var(--type-paragraph-x-small-size) - 20px) / 2); }
+
+/* Invite: the code on a grey band; tap anywhere to copy. */
+.invite-band { display: grid; gap: var(--padding-small); justify-items: center; padding: var(--padding-large) var(--padding-med); border-radius: var(--radius-small);
+  background: var(--color-neutral-01); color: var(--color-neutral-10); text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none;
+  transition: background-color var(--motion-duration-instant) var(--ease-standard); }
+.invite-band:active { background: var(--color-neutral-02); }
+.invite-band:focus-visible { outline: calc(var(--border-width) * 2) solid var(--color-neutral-10); outline-offset: 2px; }
+
+/* Manifesto: the lines are read one at a time. */
+.manifesto-lines { display: grid; gap: var(--padding-large); max-width: 32ch; color: var(--color-neutral-10); }
+.manifesto-lines p { margin: 0; }
+.manifesto-role { display: block; max-width: 50%; margin-left: auto; color: var(--color-neutral-08); text-align: right; }
+.manifesto-part { color: var(--color-neutral-08); }
+
+/* Task: a waiting line where the provider row would be. */
+.sheet-wait { color: var(--color-neutral-08); }
+
+/* Advance: the figure the short month shows beside its word. */
+.advance-short { display: flex; align-items: center; gap: var(--padding-small); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet-swap, .invite-band, .manifesto-lines p { transition: none; animation: none; }
+}

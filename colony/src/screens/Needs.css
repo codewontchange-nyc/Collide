@@ -1,0 +1,15 @@
+/* Needs: the category tile that stands in for a face on a handled row. */
+
+.needs-tile {
+  display: inline-grid;
+  place-items: center;
+  width: var(--size-touch);
+  height: var(--size-touch);
+  border-radius: var(--radius-small);
+  background: var(--color-neutral-01);
+  color: var(--color-neutral-04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .needs-tile { transition: none; animation: none; }
+}
