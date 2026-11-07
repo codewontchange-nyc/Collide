@@ -150,3 +150,19 @@
   --color-accent-green: #c1fd50;
   color-scheme: dark;
 }
+
+/* Light inside dark: a subtree that stays light on a dark screen (the welcome card) carries data-mode="light" and gets the
+   light ladder back. The values are the :root block's, restated so a nested mode can win over an ancestor's dark block. */
+[data-mode="light"] {
+  --color-surface: #ffffff;
+  --color-neutral-10: #000000;
+  --color-neutral-09: #232323;
+  --color-neutral-08: #5a5a5a;
+  --color-neutral-06: #696969;
+  --color-neutral-04: #8b8b8b;
+  --color-neutral-02: #d9d9d9;
+  --color-neutral-01: #f2f2f2;
+  --color-accent-red: #ff5500;
+  --color-accent-green: #6ba300;
+  color-scheme: light;
+}

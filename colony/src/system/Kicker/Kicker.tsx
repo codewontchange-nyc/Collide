@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from "react";
 
 /** The mono eyebrow. secondary (default) above a title, meta in a trail or a meta line, ink when it is the control label.
- *  No dot before it, no negative margin, no honey. */
+ *  No dot before it, no negative margin, no accent color. */
 export function Kicker({
   tone = "secondary",
   as: Tag = "p",

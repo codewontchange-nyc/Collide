@@ -1,0 +1,19 @@
+/* Start: the wizard's frame. The column is a flex stack so the footer sits at the bottom of a short step. */
+.start { display: flex; flex-direction: column; gap: var(--padding-large); min-height: 100dvh; }
+.start__head { display: grid; gap: var(--padding-small); }
+.start__trail { display: flex; align-items: center; gap: var(--padding-small); min-height: var(--size-touch); }
+.start__trail .ig-iconbtn { margin-left: calc(-1 * var(--padding-small)); }   /* the glyph sits on the column's edge */
+.start__mark { margin-left: auto; color: var(--color-neutral-08); }
+.start__step { display: grid; gap: var(--padding-large); flex: 1 0 auto; align-content: start; min-width: 0; }
+.start__groups { display: grid; gap: var(--padding-large); min-width: 0; }
+.start__group { display: grid; gap: var(--padding-med); min-width: 0; }
+.start__group--tight { gap: var(--padding-small); }
+.start__cards { display: grid; gap: var(--padding-med); min-width: 0; }
+.start__card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--padding-med); min-height: var(--size-touch); }
+.start__code .ig-text-field__input { font-family: var(--font-mono), monospace; text-transform: uppercase; }
+.start__amount { display: flex; align-items: center; justify-content: space-between; gap: var(--padding-med); min-height: var(--size-touch); }
+.start__foot { margin-top: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .start, .start__step { transition: none; animation: none; }
+}

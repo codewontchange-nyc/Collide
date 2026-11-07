@@ -1,28 +1,42 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { AnimatePresence, motion } from "motion/react";
-import { Btn } from "@/ui/Btn";
-import { Chip } from "@/ui/Chip";
-import { Icon } from "@/ui/Icon";
-import { Kicker } from "@/ui/PageHead";
-import { Toggle } from "@/ui/Toggle";
-import { Mark } from "@/brand/Mark";
-import { toast } from "@/ui/Toast";
+import type { Variants } from "motion/react";
+import { Screen, PageIntro, IconButton, MetaLine, Mark, Steps, TextField, Kicker, QuietButton, Button, Card, Switch, ChipRow, FilterChip, NumberStepper, StatTile, Figure, Quote, toast, appear, dist, useReducedMotion } from "@/system";
 import { fmt } from "@/domain/money";
 import { COPY } from "@/domain/copy";
 import { DIRECT_SKILLS, SKILL_LABEL, type Skill, type Weekday } from "@/domain/types";
 import { WEEKDAY_SHORT } from "@/domain/dates";
 import { createColony, tourDemo } from "@/store/actions";
+import "./Start.css";
 
 interface HouseholdDraft { name: string; address: string; area: string; people: string[] }
 interface ProviderDraft { name: string; skill: Skill; rateCents: number; days: Weekday[] }
 
-const STEPS = ["Create or join", "Invite your tribe", "Bring your team", "Set the budget"];
+const STEPS = ["CREATE OR JOIN", "INVITE YOUR TRIBE", "BRING YOUR TEAM", "SET THE BUDGET"];
+const TITLES = ["Name your colony", "Invite your tribe", "Bring your current team", "Set the budget"];
+const LEDES = [
+  "Build it however you want, with whatever tribe you bring.",
+  "Colonies start at 4 people, usually 2 households.",
+  "Already love your cleaner or your chef? Bring them. They stay yours, we just make it easier to pay and plan together.",
+  "We suggest $1,000 a person. That is $2,000 a couple and a long way for two homes.",
+];
+/* Monday first, as a week reads on a calendar; the index is the engine's weekday (0 is Sunday). */
+const DAYS: Weekday[] = [1, 2, 3, 4, 5, 6, 0];
+const pad = (n: number) => String(n).padStart(2, "0");
 
+const still: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0 } },
+  exit: { opacity: 0, transition: { duration: 0 } },
+};
+
+/** Start: four steps in one frame. The trail, the 4px track, a one tone title (an instruction), the step's groups, then the footer. */
 export function Start() {
   const nav = useNavigate();
   const { step: stepParam } = useParams();
   const step = Math.min(4, Math.max(1, Number(stepParam ?? 1)));
+  const reduced = useReducedMotion();
 
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -36,9 +50,11 @@ export function Start() {
 
   const peopleCount = households.reduce((a, h) => a + h.people.filter((p) => p.trim()).length, 0);
   const homesCount = households.filter((h) => h.people.some((p) => p.trim())).length;
-  const total = peopleCount * perPerson;
+  const total = (peopleCount || 4) * perPerson;   /* the hero reads with its caption: four people until names are in */
 
   const go = (n: number) => nav(`/start/${n}`);
+  const patchHousehold = (i: number, patch: Partial<HouseholdDraft>) => setHouseholds(households.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+  const patchProvider = (i: number, patch: Partial<ProviderDraft>) => setProviders(providers.map((x, j) => (j === i ? { ...x, ...patch } : x)));
 
   const finish = () => {
     createColony({
@@ -67,174 +83,159 @@ export function Start() {
   };
 
   return (
-    <main className="screen bare" style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}>
-      <div className="row between" style={{ marginBottom: 28 }}>
-        <button type="button" className="iconbtn" style={{ marginLeft: -10 }} onClick={() => (step === 1 ? nav("/welcome") : go(step - 1))} aria-label="Back">
-          <Icon name="back" />
-        </button>
-        <div className="dots" aria-label={`Step ${step} of 4`}>
-          {STEPS.map((_, i) => (
-            <i key={i} className={i + 1 === step ? "on" : ""} />
-          ))}
+    <Screen bare title="Start" className="start" restoreScroll={false}>
+      <div className="start__head">
+        <div className="start__trail">
+          <IconButton icon="chevron-left" label="Back" onClick={() => (step === 1 ? nav("/welcome") : go(step - 1))} />
+          <MetaLine facts={[`STEP ${step} OF 4`, STEPS[step - 1]]} />
+          <Mark size="sm" className="start__mark" />
         </div>
-        <Mark size={28} />
+        <Steps count={4} current={step} variant="track" />
       </div>
 
-      <AnimatePresence mode="wait">
-        <motion.div key={step} className="grow" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}>
-          <Kicker>
-            Step {step} of 4, {STEPS[step - 1]}
-          </Kicker>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={step} className="start__step" variants={reduced ? still : appear(undefined, dist.md)} initial="hidden" animate="show" exit="exit">
+          <PageIntro title={TITLES[step - 1]} intro={LEDES[step - 1]} />
 
           {step === 1 && (
-            <div style={{ marginTop: 14 }}>
-              <h1>Name your colony</h1>
-              <p className="sub" style={{ marginTop: 10 }}>
-                Build it however you want, with whatever tribe you bring.
-              </p>
-              <label className="label" style={{ marginTop: 28 }}>
-                Colony name
-              </label>
-              <input className="field" placeholder="Dekalb & Bergen" value={name} onChange={(e) => setName(e.target.value)} />
-              <hr className="hr" />
-              <label className="label">I have an invite code</label>
-              <div className="row">
-                <input className="field grow" placeholder="HIVE-4821" value={code} onChange={(e) => setCode(e.target.value)} style={{ textTransform: "uppercase" }} />
-                <Btn variant="ghost" onClick={join}>
-                  Join
-                </Btn>
+            <div className="start__groups">
+              <TextField label="Colony name" placeholder="Dekalb & Bergen" autoCapitalize="words" value={name} onChange={setName} />
+              <div className="start__group">
+                <Kicker>I HAVE AN INVITE CODE</Kicker>
+                <TextField
+                  label="Code"
+                  placeholder="HIVE-4821"
+                  autoCapitalize="characters"
+                  className="start__code"
+                  value={code}
+                  onChange={setCode}
+                  suffix={
+                    <QuietButton tone="ink" onClick={join}>
+                      JOIN
+                    </QuietButton>
+                  }
+                />
               </div>
             </div>
           )}
 
           {step === 2 && (
-            <div style={{ marginTop: 14 }}>
-              <h1>Invite your tribe</h1>
-              <p className="sub" style={{ marginTop: 10 }}>
-                Colonies start at 4 people, usually 2 households.
-              </p>
-              <div className="stack" style={{ marginTop: 24 }}>
+            <div className="start__groups">
+              <div className="start__cards">
                 {households.map((h, i) => (
-                  <div key={i} className="card flat">
-                    <div className="row between" style={{ marginBottom: 10 }}>
-                      <strong>Household {i + 1}</strong>
-                      {households.length > 1 && (
-                        <button type="button" className="btn text sm" onClick={() => setHouseholds(households.filter((_, j) => j !== i))}>
-                          Remove
-                        </button>
-                      )}
+                  <Card key={i} ground="ground">
+                    <div className="start__card-head">
+                      <Kicker>HOUSEHOLD {pad(i + 1)}</Kicker>
+                      {households.length > 1 && <QuietButton onClick={() => setHouseholds(households.filter((_, j) => j !== i))}>REMOVE</QuietButton>}
                     </div>
-                    <div className="stack" style={{ gap: 8 }}>
-                      <input className="field" placeholder="Street, like Dekalb Ave" value={h.address} onChange={(e) => setHouseholds(households.map((x, j) => (j === i ? { ...x, address: e.target.value } : x)))} />
-                      <input className="field" placeholder="Neighborhood" value={h.area} onChange={(e) => setHouseholds(households.map((x, j) => (j === i ? { ...x, area: e.target.value } : x)))} />
-                      {h.people.map((p, k) => (
-                        <input key={k} className="field" placeholder={k === 0 ? "You, or the first person" : "Second person"} value={p} onChange={(e) => setHouseholds(households.map((x, j) => (j === i ? { ...x, people: x.people.map((y, l) => (l === k ? e.target.value : y)) } : x)))} />
-                      ))}
-                      <button type="button" className="btn text sm" style={{ alignSelf: "flex-start", marginLeft: -10 }} onClick={() => setHouseholds(households.map((x, j) => (j === i ? { ...x, people: [...x.people, ""] } : x)))}>
-                        Add a person
-                      </button>
+                    <TextField label="Street" placeholder="Street, like Dekalb Ave" value={h.address} onChange={(v) => patchHousehold(i, { address: v })} />
+                    <TextField label="Neighborhood" placeholder="Clinton Hill" value={h.area} onChange={(v) => patchHousehold(i, { area: v })} />
+                    {h.people.map((p, k) => (
+                      <TextField
+                        key={k}
+                        label={`Person ${pad(k + 1)}`}
+                        placeholder={k === 0 ? "You, or the first person" : "Second person"}
+                        value={p}
+                        onChange={(v) => patchHousehold(i, { people: h.people.map((y, l) => (l === k ? v : y)) })}
+                      />
+                    ))}
+                    <div>
+                      <QuietButton onClick={() => patchHousehold(i, { people: [...h.people, ""] })}>ADD A PERSON</QuietButton>
                     </div>
-                  </div>
+                  </Card>
                 ))}
-                <Btn variant="ghost" onClick={() => setHouseholds([...households, { name: "", address: "", area: "", people: ["", ""] }])}>
-                  Add a household
-                </Btn>
               </div>
+              <Button variant="outlined" hideIcon block onClick={() => setHouseholds([...households, { name: "", address: "", area: "", people: ["", ""] }])}>
+                Add a household
+              </Button>
             </div>
           )}
 
           {step === 3 && (
-            <div style={{ marginTop: 14 }}>
-              <h1>Bring your current team</h1>
-              <p className="sub" style={{ marginTop: 10 }}>
-                Already love your cleaner or your chef? Bring them. They stay yours, we just make it easier to pay and plan together.
-              </p>
-              <div className="item" style={{ marginTop: 16 }}>
-                <div className="grow">
-                  <div className="t">Colony will match us</div>
-                  <div className="m">We curate people who fit your lifestyle as the colony grows.</div>
-                </div>
-                <Toggle on={matchUs} onChange={setMatchUs} label="Colony will match us" />
-              </div>
+            <div className="start__groups">
+              <Switch label="Colony will match us" hint="We curate people who fit your lifestyle as the colony grows." checked={matchUs} onChange={setMatchUs} />
               {!matchUs && (
-                <div className="stack" style={{ marginTop: 16 }}>
-                  {providers.map((p, i) => (
-                    <div key={i} className="card flat stack" style={{ gap: 8 }}>
-                      <input className="field" placeholder="Name" value={p.name} onChange={(e) => setProviders(providers.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} />
-                      <div className="chips">
-                        {DIRECT_SKILLS.map((s) => (
-                          <Chip key={s} on={p.skill === s} onClick={() => setProviders(providers.map((x, j) => (j === i ? { ...x, skill: s } : x)))}>
-                            {SKILL_LABEL[s]}
-                          </Chip>
-                        ))}
-                      </div>
-                      <div className="chips">
-                        {WEEKDAY_SHORT.map((d, di) => (
-                          <Chip key={d} on={p.days.includes(di as Weekday)} onClick={() => setProviders(providers.map((x, j) => (j === i ? { ...x, days: x.days.includes(di as Weekday) ? x.days.filter((y) => y !== di) : [...x.days, di as Weekday] } : x)))}>
-                            {d}
-                          </Chip>
-                        ))}
-                      </div>
-                      <div className="row">
-                        <span className="small muted">Per visit</span>
-                        <input className="field" type="number" min={0} step={5} value={p.rateCents / 100} onChange={(e) => setProviders(providers.map((x, j) => (j === i ? { ...x, rateCents: Math.round(Number(e.target.value) * 100) } : x)))} style={{ width: 120 }} />
-                      </div>
-                    </div>
-                  ))}
-                  <Btn variant="ghost" onClick={() => setProviders([...providers, { name: "", skill: "cleaning", rateCents: 14000, days: [2] }])}>
+                <>
+                  <div className="start__cards">
+                    {providers.map((p, i) => (
+                      <Card key={i} ground="ground">
+                        <TextField label="Name" placeholder="Their name" value={p.name} onChange={(v) => patchProvider(i, { name: v })} />
+                        <div className="start__group start__group--tight">
+                          <Kicker>WHAT THEY DO</Kicker>
+                          <ChipRow label="What they do">
+                            {DIRECT_SKILLS.map((s) => (
+                              <FilterChip key={s} pressed={p.skill === s} onPress={() => patchProvider(i, { skill: s })}>
+                                {SKILL_LABEL[s]}
+                              </FilterChip>
+                            ))}
+                          </ChipRow>
+                        </div>
+                        <div className="start__group start__group--tight">
+                          <Kicker>WHICH DAYS</Kicker>
+                          <ChipRow label="Which days">
+                            {DAYS.map((d) => (
+                              <FilterChip
+                                key={d}
+                                pressed={p.days.includes(d)}
+                                onPress={() => patchProvider(i, { days: p.days.includes(d) ? p.days.filter((y) => y !== d) : [...p.days, d] })}
+                              >
+                                {WEEKDAY_SHORT[d]}
+                              </FilterChip>
+                            ))}
+                          </ChipRow>
+                        </div>
+                        <TextField
+                          label="Per visit"
+                          prefix="$"
+                          type="number"
+                          inputMode="decimal"
+                          step={5}
+                          min={0}
+                          value={String(p.rateCents / 100)}
+                          onChange={(v) => patchProvider(i, { rateCents: Math.round(Number(v) * 100) })}
+                        />
+                      </Card>
+                    ))}
+                  </div>
+                  <Button variant="outlined" hideIcon block onClick={() => setProviders([...providers, { name: "", skill: "cleaning", rateCents: 14000, days: [2] }])}>
                     Add someone you already use
-                  </Btn>
-                </div>
+                  </Button>
+                </>
               )}
             </div>
           )}
 
           {step === 4 && (
-            <div style={{ marginTop: 14 }}>
-              <h1>Set the budget</h1>
-              <p className="sub" style={{ marginTop: 10 }}>
-                We suggest $1,000 a person. That is $2,000 a couple and a long way for two homes.
-              </p>
-              <div className="row between" style={{ marginTop: 28 }}>
-                <span className="label" style={{ margin: 0 }}>
-                  Per person, a month
-                </span>
-                <div className="stepper">
-                  <button type="button" onClick={() => setPerPerson(Math.max(25000, perPerson - 25000))} aria-label="Less">
-                    -
-                  </button>
-                  <span className="money lg tnum">{fmt(perPerson)}</span>
-                  <button type="button" onClick={() => setPerPerson(perPerson + 25000)} aria-label="More">
-                    +
-                  </button>
-                </div>
+            <div className="start__groups">
+              <div className="start__amount">
+                <Kicker>PER PERSON, A MONTH</Kicker>
+                <NumberStepper value={perPerson} onChange={setPerPerson} step={25000} min={25000} format={fmt} label="Per person, a month" decrementLabel="Less" incrementLabel="More" />
               </div>
-              <div className="hero" style={{ marginTop: 32 }}>
-                {fmt(total)}
-                <span className="unit">a month</span>
+              <div className="start__group start__group--tight">
+                <dl>
+                  <StatTile label="All together" value={<Figure value={total} format={fmt} size="lg" countUp />} unit="A MONTH" />
+                </dl>
+                <p className="paragraph-x-small secondary">
+                  {peopleCount || 4} people, {homesCount || 2} homes.
+                </p>
               </div>
-              <p className="sub" style={{ marginTop: 8 }}>
-                {peopleCount || 4} people, {homesCount || 2} homes.
-              </p>
-              <p className="voice" style={{ marginTop: 28 }}>
-                {COPY.promise}
-              </p>
+              <Quote>{COPY.promise}</Quote>
             </div>
           )}
         </motion.div>
       </AnimatePresence>
 
-      <div className="stack" style={{ marginTop: 28 }}>
+      <div className="start__foot">
         {step < 4 ? (
-          <Btn block onClick={() => go(step + 1)}>
+          <Button block onClick={() => go(step + 1)}>
             Continue
-          </Btn>
+          </Button>
         ) : (
-          <Btn variant="honey" block onClick={finish}>
+          <Button block onClick={finish}>
             Create {name.trim() || "our colony"}
-          </Btn>
+          </Button>
         )}
       </div>
-    </main>
+    </Screen>
   );
 }

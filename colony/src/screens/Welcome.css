@@ -1,0 +1,19 @@
+/* Welcome: the dark surface with one white card. The root carries data-mode="dark" (the tokens flip), the card data-mode="light". */
+.welcome { grid-template-rows: 1fr auto; align-content: stretch; min-height: 100dvh;
+  padding: calc(var(--safe-top) + var(--padding-large)) var(--page-gutter) calc(var(--safe-bottom) + var(--padding-large));
+  background: var(--color-surface); color: var(--color-neutral-10); }
+.welcome__top { display: grid; gap: var(--padding-med); align-content: start; }
+.welcome__mark { margin-bottom: var(--padding-med); }   /* 16 + the grid's 16: 32 under the ring */
+.welcome__title { color: var(--color-neutral-10); }
+.welcome__tagline { max-width: 24ch; color: var(--color-neutral-10); }
+.welcome__body { max-width: 36ch; }
+
+/* The card: no hairline on black, the 1px radius, 32 on top, 8 between its lines. */
+.welcome__card { gap: var(--padding-small); padding: var(--padding-large) var(--page-gutter) var(--padding-med); border: 0; border-radius: var(--radius-small); }
+.welcome__kicker { text-align: center; }
+.welcome__tour .ig-button__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.welcome__note { max-width: 40ch; margin: var(--padding-small) auto 0; text-align: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome, .welcome__title, .welcome__tagline, .welcome__body { transition: none; animation: none; }
+}

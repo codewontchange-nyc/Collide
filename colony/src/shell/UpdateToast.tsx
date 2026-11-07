@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
-import { toast } from "@/ui/Toast";
+import { toast } from "@/system";
 
 const POLL_MS = 15 * 60 * 1000;
 

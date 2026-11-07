@@ -1,24 +1,28 @@
 import { useInstall } from "@/pwa/install";
-import { Icon } from "@/ui/Icon";
-import { toast } from "@/ui/Toast";
+import { ListRow, StatusWord, toast } from "@/system";
 
+/** The install row on You: a word row with a chevron; once installed it is not pressable and says so with a dot and a word. */
 export function InstallRow() {
   const { installed, canPrompt, ios, prompt } = useInstall();
-  if (installed)
+  if (installed) {
     return (
-      <div className="item">
-        <Icon name="check" />
-        <div className="grow">
-          <div className="t">Colony is on your home screen</div>
-          <div className="m">Thank you for keeping us close.</div>
-        </div>
-      </div>
+      <ListRow
+        title="Colony is on your home screen"
+        facts="Thank you for keeping us close."
+        trailing={
+          <StatusWord state="success" pulse={false}>
+            INSTALLED
+          </StatusWord>
+        }
+      />
     );
+  }
   return (
-    <button
-      type="button"
-      className="item press"
-      onClick={async () => {
+    <ListRow
+      title="Install Colony"
+      facts={ios ? "Share, then Add to Home Screen" : "Keep your colony one tap away"}
+      chevron
+      onPress={async () => {
         if (canPrompt) {
           const ok = await prompt();
           toast.show(ok ? "Welcome home." : "Maybe later.");
@@ -28,13 +32,6 @@ export function InstallRow() {
           toast.show("Open this in Safari or Chrome to install.", { ms: 3600 });
         }
       }}
-    >
-      <Icon name="install" />
-      <div className="grow">
-        <div className="t">Install Colony</div>
-        <div className="m">{ios ? "Share, then Add to Home Screen" : "Keep your colony one tap away"}</div>
-      </div>
-      <Icon name="chev" size={16} />
-    </button>
+    />
   );
 }

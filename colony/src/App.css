@@ -1,0 +1,6 @@
+/* Boot: the bare page column holding only the mark, centered. */
+.boot { min-height: 100dvh; place-items: center; align-content: center; color: var(--color-neutral-10); background: var(--color-surface); }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot { transition: none; animation: none; }
+}

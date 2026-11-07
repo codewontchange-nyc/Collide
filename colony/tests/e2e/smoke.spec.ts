@@ -110,11 +110,11 @@ test("onboarding creates a fresh colony", async ({ page }) => {
   await page.getByPlaceholder("Dekalb & Bergen").fill("Myrtle & Vanderbilt");
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByRole("heading", { name: "Invite your tribe" })).toBeVisible();
-  const first = page.locator(".card").first();
+  const first = page.locator(".ig-card").first();
   await first.getByPlaceholder("Street, like Dekalb Ave").fill("Myrtle Ave");
   await first.getByPlaceholder("You, or the first person").fill("Ada");
   await first.getByPlaceholder("Second person").fill("Ben");
-  const second = page.locator(".card").nth(1);
+  const second = page.locator(".ig-card").nth(1);
   await second.getByPlaceholder("Street, like Dekalb Ave").fill("Vanderbilt Ave");
   await second.getByPlaceholder("You, or the first person").fill("Cleo");
   await second.getByPlaceholder("Second person").fill("Dev");

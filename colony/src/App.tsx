@@ -1,4 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+import { MotionConfig } from "motion/react";
 import { StoreProvider } from "@/store/StoreProvider";
 import { AppShell } from "@/shell/AppShell";
 import { Welcome } from "@/screens/Welcome";
@@ -12,13 +13,28 @@ import { Membership } from "@/screens/Membership";
 import { Today } from "@/screens/provider/Today";
 import { Earnings } from "@/screens/provider/Earnings";
 import { Availability } from "@/screens/provider/Availability";
-import { Mark } from "@/brand/Mark";
+import { Screen, Mark } from "@/system";
 import { SystemLibrary } from "@/system/library/SystemLibrary";
+import "./App.css";
 
+/** While the store hydrates: the ring drawing in, centered, and nothing else. No text, no spinner. */
+function Boot() {
+  return (
+    <Screen bare className="boot" restoreScroll={false}>
+      <Mark size="md" drawIn />
+    </Screen>
+  );
+}
+
+/* The store sits inside the router so Boot, a Screen, has the router context the way every screen does. */
 const router = createBrowserRouter(
   [
     {
-      element: <AppShell />,
+      element: (
+        <StoreProvider fallback={<Boot />}>
+          <AppShell />
+        </StoreProvider>
+      ),
       children: [
         { path: "/welcome", element: <Welcome /> },
         { path: "/start/:step?", element: <Start /> },
@@ -39,18 +55,10 @@ const router = createBrowserRouter(
   { basename: import.meta.env.BASE_URL.replace(/\/$/, "") || "/" },
 );
 
-function Boot() {
-  return (
-    <div className="app" style={{ display: "grid", placeItems: "center", minHeight: "100dvh", color: "var(--ink)" }}>
-      <Mark size={40} drawIn />
-    </div>
-  );
-}
-
 export function App() {
   return (
-    <StoreProvider fallback={<Boot />}>
+    <MotionConfig reducedMotion="user">
       <RouterProvider router={router} />
-    </StoreProvider>
+    </MotionConfig>
   );
 }

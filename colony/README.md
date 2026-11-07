@@ -27,8 +27,9 @@ Demo controls live under You: advance a month (closes the month, rolls leftover 
 | `npm run build` | Typecheck, then a production build with the service worker and manifest in `dist/` |
 | `npm run preview` | Serve `dist/` on port 4173 |
 | `npm run test:e2e` | Playwright smoke test at iPhone size, screenshots in `e2e-out/` |
-| `npm run icons` | Re-render the icon set from `src/brand/mark.svg` |
-| `npm run check` | typecheck, test, build |
+| `npm run icons` | Re-render the icon set from `public/favicon.svg` (the colony ring) |
+| `npm run lint:dash` | Fails on any em dash or en dash in `src` |
+| `npm run check` | the em dash lint, typecheck, test, build |
 
 Playwright uses the Chromium that ships with `@playwright/test@1.63`. If your browsers live elsewhere, set `PLAYWRIGHT_BROWSERS_PATH`.
 
@@ -46,10 +47,8 @@ src/
   seed/     the demo colony: people, providers, 28 meals, service catalog, seasonal prep
   store/    tiny external store, actions, selectors, StoreProvider
   data/     ColonyRepo seam: LocalRepo (now), SupabaseRepo and billing stubs (later)
-  ui/       primitives: buttons, cards, chips, avatars, meter, sheet system, toast, jar
-  brand/    the mark and the companion
-  motion/   springs, variants, count-up
-  shell/    app frame, tab bars, update toast, install row
+  system/   the design system: tokens, type, base, every component, the motion grammar, the /system library
+  shell/    app frame (one main scroller, the route switch, tab bar, hosts), update toast, install row
   screens/  Welcome, Start, Home, Budget, Needs, Colony, You, Membership, provider/*
   sheets/   bottom sheets, grouped by subject
 supabase/
@@ -61,6 +60,16 @@ tests/
 ```
 
 Money is integer cents. Dates are `YYYY-MM-DD` strings. The engine is pure and unit tested; screens only derive from state.
+
+### The design system
+
+Every screen and sheet is composed from `src/system` (imported as `@/system`): tokens only, no raw colors, radii, fonts or durations outside `src/system/tokens.css`. The fonts are Geist, Geist Mono and Cardo from Google Fonts, reached through the token names `--font-sans`, `--font-mono` and `--font-serif`; nothing names a font family directly.
+
+The `/system` route is the living library: every component and variant, searchable (`/system?q=notice`), with a Dark switch that flips only the specimens. It is linked from You under Demo as "System library".
+
+Dark mode is `data-mode="dark"` on `<html>`, set before first paint by the inline script in `index.html` from `localStorage["colony.mode"]` or the OS preference. The tokens mirror under that attribute; no component names a dark color. Welcome is always dark (its root carries `data-mode="dark"`, its card `data-mode="light"`).
+
+`npm run check` starts with `lint:dash`, which greps `src` for U+2013 and U+2014 and fails on a hit. Use a comma, a period, a colon or parentheses instead.
 
 ### The budget engine
 

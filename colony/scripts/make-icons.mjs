@@ -1,4 +1,4 @@
-// Renders src/brand/mark.svg to the PWA icon set with the preinstalled Chromium.
+// Renders public/favicon.svg (the colony ring) to the PWA icon set with the preinstalled Chromium.
 // Run: npm run icons. PNGs are committed so the host never needs a browser.
 import { chromium } from "@playwright/test";
 import { readFileSync, mkdirSync, existsSync } from "node:fs";
@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const svg = readFileSync(join(root, "src/brand/mark.svg"), "utf8");
+const svg = readFileSync(join(root, "public/favicon.svg"), "utf8");
 const out = join(root, "public/icons");
 mkdirSync(out, { recursive: true });
 
@@ -19,7 +19,7 @@ const candidates = [
 const executablePath = process.env.PLAYWRIGHT_BROWSERS_PATH ? undefined : candidates.find((p) => existsSync(p));
 
 const page = (size, pad, radius) => `<!doctype html><html><body style="margin:0;background:transparent">
-<div style="width:${size}px;height:${size}px;background:#fcfaf6;border-radius:${radius}px;display:grid;place-items:center">
+<div style="width:${size}px;height:${size}px;background:#ffffff;border-radius:${radius}px;display:grid;place-items:center">
 <div style="width:${size - pad * 2}px;height:${size - pad * 2}px">${svg.replace("<svg ", '<svg style="width:100%;height:100%" ')}</div>
 </div></body></html>`;
 

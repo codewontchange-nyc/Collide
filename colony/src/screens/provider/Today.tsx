@@ -165,7 +165,7 @@ export function Today() {
                       index={fmtTime(i.start)}
                       indexWidth="7ch"
                       title={i.title}
-                      facts={[home?.address, `to ${fmtTime(i.end)}`]}
+                      facts={[home?.label, home?.area, `to ${fmtTime(i.end)}`]}
                       trailing={
                         <AnimatePresence mode="wait" initial={false}>
                           {i.status === "done" ? (

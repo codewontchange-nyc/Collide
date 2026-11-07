@@ -1,0 +1,6 @@
+/* Membership: the actions stack 8 apart. */
+.membership-actions { display: grid; gap: var(--padding-small); min-width: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .membership-actions { transition: none; animation: none; }
+}

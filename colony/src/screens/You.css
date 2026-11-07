@@ -1,0 +1,7 @@
+/* You: the folio line at the foot of the demo module. A 44px row in mono grey that never looks like a button and never washes. */
+.you-folio { display: flex; align-items: center; min-height: var(--size-touch); width: 100%; color: var(--color-neutral-06); -webkit-tap-highlight-color: transparent; touch-action: manipulation; user-select: none; }
+.you-folio:focus-visible { outline: var(--border-width) solid var(--color-neutral-10); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .you-folio { transition: none; animation: none; }
+}

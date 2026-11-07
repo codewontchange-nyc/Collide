@@ -2,10 +2,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 html { height: 100%; -webkit-text-size-adjust: 100%; }
 body { margin: 0; height: 100%; }
-/* Migration bridge: the window never scrolls once main is the scroller (critic (c)5), but AppShell renders .ig-main only on /system
-   until the restyle pass, so the rule is scoped. E4's last step restores the contract's `body { overflow: hidden }` verbatim and
-   deletes the :has guard, together with the .ig-main background below, when src/styles goes. */
-body:has(.ig-main) { overflow: hidden; }
+/* The window never scrolls: main is the scroller (critic (c)5). */
+body { overflow: hidden; }
 #root { height: 100%; }
 h1, h2, h3, h4, p, dl, dd, figure, ol, ul { margin: 0; }
 ol, ul { padding: 0; list-style: none; }
@@ -27,9 +25,8 @@ button, [role='button'], [role='tab'], [role='switch'], [role='radio'], a[href],
   -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 button:not(:disabled), [role='button']:not([aria-disabled='true']), a[href] { cursor: pointer; }
 
-/* The scroll container: main scrolls, the bars and hosts stay (critic (c)5). The background is the same migration bridge: it hides the
-   old shell's warm paper behind the system route; E4 drops it with src/styles (the body already paints --color-surface from type.css). */
-.ig-main { position: relative; height: 100dvh; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; background: var(--color-surface);
+/* The scroll container: main scrolls, the bars and hosts stay (critic (c)5). The body paints --color-surface from type.css. */
+.ig-main { position: relative; height: 100dvh; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch;
   scroll-padding-top: calc(var(--safe-top) + var(--padding-med)); scroll-padding-bottom: calc(var(--nav-height) + var(--padding-large)); }
 .ig-main--bare { scroll-padding-bottom: calc(var(--safe-bottom) + var(--padding-large)); }   /* welcome and start: no tab bar */
 

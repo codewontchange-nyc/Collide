@@ -3,6 +3,8 @@
 .ig-list { display: grid; min-width: 0; }
 .ig-list--ink { border-top: var(--border-width) solid var(--color-neutral-10); }
 .ig-list--hairline { border-top: var(--border-width) solid var(--color-neutral-02); }
+/* None when a PanelHead already drew the rule: the head's hairline is the list's opening line. */
+.ig-panel__head + .ig-list, .ig-panel__intro + .ig-list { border-top: 0; }
 .ig-list__item { display: grid; min-width: 0; }
 
 .ig-row { position: relative; isolation: isolate; display: grid; column-gap: var(--padding-med); align-items: center; width: 100%; min-width: 0;
