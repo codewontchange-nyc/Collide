@@ -26,3 +26,9 @@ revoke all on function public.connect_lookup(text) from public, anon;
 grant execute on function public.connect_lookup(text) to authenticated;
 
 select 'q187 step 1 applied';
+
+-- Step 2 (applied after the app q186 and admin 1ff202d read through profile_full):
+revoke select on public.profiles from anon, authenticated;
+grant select (id, display_name, avatar_url, created_at, updated_at, socials, avatar_parts, home_city)
+  on public.profiles to authenticated;
+select 'q187 step 2 applied';
